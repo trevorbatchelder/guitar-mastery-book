@@ -1032,13 +1032,13 @@ PAGES.push({id: 'scales', no: 'IV', name: 'Scales & Modes', blurb: 'five positio
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
     seg('Position', [0, 1, 2, 3, 4].map(i => [i, String(i + 1)]), st.pos, x => set('pos', +x)),
     seg('Dots show', [['num', 'Order'], ['name', 'Notes'], ['deg', 'Degrees']], st.label, x => set('label', x))));
-  const big = h('div', {class: 'big', style: 'max-width:560px;width:100%'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
+  const big = h('div', {class: 'big', style: 'max-width:380px;width:100%'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
   const thumbs = h('div', {class: 'thumbs'}, kd.boxes.map((b, i) => h('button', {class: 'thumb', 'aria-pressed': i === st.pos ? 'true' : 'false', 'aria-label': `position ${i + 1}`, on: {click: () => set('pos', i)}},
-    h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: 'none'})}))));
+    h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
-  v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:auto 1fr;align-items:start'},
+  v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);grid-template-rows:auto 1fr;align-items:start'},
     sec2(`${scale.name} in ${kd.key}`, `position ${st.pos + 1} · frets ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
-    sec2('All five positions', 'tap one to open it · each box repeats 12 frets up', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
+    sec2('All five positions', 'same labels as the big box · tap one to open it · each box repeats 12 frets up', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
   const run = box.run.map(([s, f]) => [s, f]), seq = run.concat(run.slice(0, -1).reverse());
   setFocus({label: `${scale.name} in ${kd.key}, position ${st.pos + 1}, up and back`, play: (bpm, onStop, onBeat) => { const step = 60 / bpm / 2;
     Seq.run(seq.map(([s, f], k) => ({at: k * step, fn: t => { playMidi(OPEN_MIDI[s] + f, t, {kind: 'note', gain: .4, dur: step * 1.6}); if (k % 2 === 0) click(t, k === 0); },
