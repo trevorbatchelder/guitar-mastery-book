@@ -728,12 +728,32 @@ function page(i, back = false) {
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
-  p.draw(v); window.scrollTo(0, 0); drawBar();
+  p.draw(v); window.scrollTo(0, 0); drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
-const redraw = () => { const v = view(); const y = window.scrollY; Seq.stop(); focus = null; v.innerHTML = ''; PAGES[at].draw(v); window.scrollTo(0, y); drawBar(); };
+const redraw = () => { const v = view(); const y = window.scrollY; Seq.stop(); focus = null; v.innerHTML = ''; PAGES[at].draw(v); window.scrollTo(0, y); drawBar(); fitSoon(); };
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
+
+/* keep every page on one screen: shrink to fit when a page would overflow, never past a readability floor */
+function fit() {
+  const v = view(); if (!v) return;
+  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  v.style.zoom = '';                                   // reset, then shrink until the page actually fits
+  for (let k = 0; k < 5; k++) {
+    const over = document.documentElement.scrollHeight - vh;
+    if (over <= 1) break;
+    const cur = parseFloat(v.style.zoom) || 1;
+    const z = Math.max(cur * vh / (vh + over), 0.68);  // never past the readability floor
+    if (Math.abs(z - cur) < 0.002) break;
+    v.style.zoom = z.toFixed(4);
+  }
+}
+let fitRAF = 0;
+const fitSoon = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(() => requestAnimationFrame(fit)); };
+addEventListener('resize', fitSoon); addEventListener('orientationchange', fitSoon);
+if (window.visualViewport) visualViewport.addEventListener('resize', fitSoon);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSoon);
 
 /* ---------------- the practice bar: metronome, a session clock, and "practice this" */
 const M = Object.assign({bpm: 80, beats: 4, on: false}, store.get('metro', {}));
@@ -873,9 +893,10 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
       h('td', {}, h('button', {class: 'btn small play', on: {click: () => { audio(); const t0 = A.ctx.currentTime + .02; playMidi(52, t0, {kind: 'note', gain: .4}); playMidi(52 + n, t0 + .45, {kind: 'note', gain: .4}); }}}, 'Hear'))));
     refBody.append(sec2('Intervals', 'frets apart on one string · tap to hear low E, then the interval above', 'var(--plum)', h('div', {style: 'columns:2;column-gap:28px'}, t)));
   }
-  v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);align-items:start'},
-    h('div', {style: 'display:flex;flex-direction:column;gap:16px;min-width:0'}, brand, h('div', {html: RUG}), sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc)),
-    h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, tools, refBody)));
+  v.append(brand, h('div', {html: RUG}),
+    h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
+      sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc),
+      h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, tools, refBody)));
 }});
 
 /* ================================================================ I PRACTICE */
