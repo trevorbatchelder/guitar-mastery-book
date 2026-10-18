@@ -764,7 +764,7 @@ const band = () => document.documentElement.getAttribute('data-theme') === 'meta
 const PAGES = [];
 let at = 0, focus = null;          // focus = what "Practice this" plays on the current page: {label, play(bpm, onStop)}
 // book themes: '' is the default Southwestern look (and follows the OS light/dark); others set data-theme
-const THEMES = [['bluegrass', 'Bluegrass'], ['metal', 'Black Metal'], ['vintage', 'Vintage Paper']];
+const THEMES = [['bluegrass', 'Bluegrass'], ['metal', 'Metal'], ['vintage', 'Vintage Paper']];
 const applyTheme = t => document.documentElement.setAttribute('data-theme', t || 'bluegrass');
 applyTheme(store.get('theme', 'bluegrass'));
 const view = () => $('#page');
