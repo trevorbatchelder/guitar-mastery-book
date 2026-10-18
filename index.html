@@ -74,11 +74,12 @@ body{font-family:var(--body);font-size:16px;line-height:1.35;-webkit-tap-highlig
 button,select,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 svg text{font-family:var(--body)}
-.book{min-height:100vh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
-.page{flex:1;display:flex;flex-direction:column;padding-block:14px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px;animation:turn .32s ease-out}
-.page.back{animation:turnback .32s ease-out}
-@keyframes turn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
-@keyframes turnback{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+.book{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.page{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding-block:14px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px;animation:turn .3s cubic-bezier(.32,.72,0,1)}
+.page.scrollable{overflow-y:auto}
+.page.back{animation:turnback .3s cubic-bezier(.32,.72,0,1)}
+@keyframes turn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes turnback{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.page{animation:none}}
 /* the book header */
 .hd{display:flex;align-items:flex-end;gap:10px 18px;flex-wrap:nowrap}
@@ -107,11 +108,11 @@ select{border:1.5px solid var(--ink);background:var(--bg);border-radius:9px;padd
 .btn:disabled{opacity:.35;cursor:default}
 .play::before{content:"";width:0;height:0;border-left:11px solid currentColor;border-top:7px solid transparent;border-bottom:7px solid transparent;flex:none}
 .play.on::before{width:10px;height:12px;border:0;border-left:3.5px solid currentColor;border-right:3.5px solid currentColor;box-sizing:border-box}
-:is(.btn,.chip,.seg button,select,.cbox,.thumb,.toc button,.arrow,.rt li):focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+:is(.btn,.chip,.seg button,select,.cbox,.thumb,.toc button,.arrow,.rt li,.go,.icon,.tempo2 button,.rate button,.goalchip):focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 /* sections: line-only, coloured top rule, Tenor heading with a stepped diamond */
 .body{flex:1;min-height:0;display:grid;gap:14px 22px}
 .sec{border-top:2.5px solid var(--c,var(--ink));padding-top:7px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
-.sec>h2{font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.09em;text-transform:uppercase;margin:0;display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:var(--c,var(--ink))}
+.sec>h2{font-family:var(--display);font-weight:400;font-size:19px;letter-spacing:.09em;text-transform:uppercase;margin:0;display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:var(--ink)}
 .sec>h2 small{font-family:var(--body);text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink2);font-weight:600}
 .sec.dark{background:var(--dark);color:var(--ondark);border-top:0;padding:10px 14px;border-radius:2px}
 .gem{width:13px;height:13px;flex:none}
@@ -142,7 +143,7 @@ table.t td.l{font-weight:900;color:var(--c,var(--ink));white-space:nowrap;paddin
 table.cells{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed;text-align:center}
 table.cells td,table.cells th{padding:6px 0;border-radius:5px;font-weight:800;font-size:16px}
 table.cells th{font-size:12px;color:var(--mute);font-weight:700}
-table.cells td{background:var(--panel)}
+table.cells td{background:var(--panel);font-variant-numeric:tabular-nums}
 table.cells td.k{background:none;color:var(--c,var(--ink));font-weight:900;text-align:left;padding-left:2px}
 table.cells td.h{background:var(--c,var(--ink));color:var(--onacc)}
 table.cells td button{all:unset;cursor:pointer;display:block;width:100%}
@@ -176,7 +177,7 @@ table.cells td button{all:unset;cursor:pointer;display:block;width:100%}
 .rate button[aria-pressed="true"].shaky{background:var(--warn);border-color:var(--warn);color:var(--onacc)}
 .rate button[aria-pressed="true"].missed{background:var(--bad);border-color:var(--bad);color:var(--onacc)}
 /* the practice bar, on every page */
-.pbar{flex:none;position:sticky;bottom:0;z-index:10;min-height:calc(var(--barh) + env(safe-area-inset-bottom,0px));flex-wrap:wrap;row-gap:6px;padding:0 max(14px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(14px,env(safe-area-inset-left,0px));
+.pbar{flex:none;z-index:10;min-height:calc(var(--barh) + env(safe-area-inset-bottom,0px));flex-wrap:wrap;row-gap:6px;padding:0 max(14px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(14px,env(safe-area-inset-left,0px));
   border-top:1.5px solid var(--rule);display:flex;align-items:center;gap:10px;background:var(--bg)}
 .pbar .grp{display:flex;align-items:center;gap:6px}
 .pbar .bpm{font-family:var(--display);font-size:28px;font-variant-numeric:tabular-nums;min-width:2.4ch;text-align:center;line-height:1}
@@ -225,7 +226,7 @@ textarea{width:100%;min-height:80px;border:1.5px solid var(--rule);border-radius
 
 /* ===== polish pass ===== */
 .tiles{display:flex;flex-wrap:wrap;gap:10px}
-.tile2{border-top:2.5px solid var(--navy);background:var(--panel);border-radius:0 0 8px 8px;padding:8px 16px 10px;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tile2{border-top:2.5px solid var(--navy);background:var(--panel);border-radius:0 0 10px 10px;padding:8px 16px 10px;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .tile2 span{font-size:13px;font-weight:800;color:var(--navy);letter-spacing:.04em}
 .tile2 b{font-size:30px;font-weight:900;line-height:1}
 .page{gap:14px}
@@ -246,12 +247,12 @@ select:hover{border-bottom-color:var(--acc)}
 .toolbar{gap:12px 30px;padding-bottom:2px}
 .seg{border:1.5px solid var(--ink);border-radius:999px;padding:3px;gap:2px}
 .seg button{border-radius:999px;padding:5px 14px;min-height:36px}
-.chip{border-radius:10px;border-color:var(--rule)}
+.chip{border-radius:10px;border-color:var(--ink)}
 .btn{border-radius:999px}
 .sec{gap:10px}
 .sec>h2{font-size:18px}
 .sec>h2 small{font-size:13.5px;color:var(--mute)}
-.cbox{transition:background .15s}
+.cbox{transition:background .15s ease-out,transform .14s cubic-bezier(.2,0,.2,1)}
 .cbox:hover{background:var(--panel)}
 .cbox .nm{font-size:20px;letter-spacing:.01em}
 .thumb{border-radius:12px;padding:6px 6px 4px;gap:2px}
@@ -267,13 +268,13 @@ table.t td.l{font-weight:800}
 .tempo2 button:active{background:var(--panel)}
 .tempo2 .v{display:flex;flex-direction:column;align-items:center;min-width:50px;line-height:1;gap:2px}
 .tempo2 .bpm{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums;min-width:0}
-.tempo2 .v span{font-size:9px;letter-spacing:.18em;color:var(--mute);font-weight:800}
+.tempo2 .v span{font-size:10.5px;letter-spacing:.16em;color:var(--mute);font-weight:800}
 .icon{border:1.5px solid var(--ink);background:transparent;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--ink);padding:0}
 .icon svg{width:22px;height:22px}
 .icon.on{background:var(--ink);color:var(--bg)}
 .icon.tap{font-size:11px;font-weight:900;letter-spacing:.08em;border-color:var(--rule)}
 .cta{display:flex;align-items:center;gap:12px;min-width:0}
-.cta .go{background:var(--acc);color:var(--onacc);border:0;border-radius:999px;height:50px;padding:0 22px 0 18px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;gap:10px;flex:none;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.cta .go{background:var(--acc);color:var(--onacc);border:0;border-radius:999px;height:50px;padding:0 22px 0 18px;font-weight:800;font-size:16px;display:inline-flex;align-items:center;gap:10px;flex:none}
 .what{display:flex;flex-direction:column;min-width:0;line-height:1.2}
 .what>span:first-child{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);font-weight:800}
 .what>span:last-child{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:32ch}
@@ -281,8 +282,19 @@ table.t td.l{font-weight:800}
 .clock2{display:flex;align-items:center;gap:9px}
 .clock2 .clock{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px}
 .clock2 .lbl{font-size:10px}
+.station{display:flex;align-items:center;gap:8px;flex:none}
+.station .dots{display:flex;gap:4px;margin-left:2px}
+/* contextual "Numbers to beat" on the Practice page */
+.goals-ctx{display:flex;flex-direction:column;gap:8px}
+.goal-tiers{display:flex;gap:6px}
+.goalchip{border:1.5px solid var(--rule);background:transparent;border-radius:10px;padding:5px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;min-width:0;line-height:1.1}
+.goalchip span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:800}
+.goalchip b{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}
+.goalchip.on{background:var(--gold);color:var(--onacc);border-color:var(--gold)}
+.goalchip.on span{color:var(--onacc)}
+.youline{font-size:13px;font-weight:700}
 .pgnum{font-family:var(--display);letter-spacing:.1em;color:var(--mute);font-size:13px;white-space:nowrap;text-transform:uppercase;max-width:20ch;overflow:hidden;text-overflow:ellipsis}
-.arrow{width:46px;height:46px;border:1.5px solid var(--rule);font-size:24px;font-weight:600;flex:none;color:var(--ink)}
+.arrow{width:46px;height:46px;border:1.5px solid var(--ink);font-size:24px;font-weight:600;flex:none;color:var(--ink)}
 @media (max-width:980px){ .run{display:none} .hrow h1{white-space:normal} .pgnum{display:none} }
 @media (max-width:600px){ .cta .what{display:none} .cta.none .what{display:flex} .cta .go{padding:0 16px 0 14px;font-size:15px} .tempo2 .v{min-width:40px} }
 /* IX Writing: slim song-shape row under the bars, compact melody table */
@@ -299,6 +311,20 @@ table.t td.l{font-weight:800}
 .pl-top b{font-weight:900;font-size:15px}
 .pl-top span{font-size:14px;color:var(--ink2);font-weight:700}
 .pl-desc{font-size:12px;color:var(--mute);line-height:1.3;margin-top:1px}
+/* --- motion & press feedback: subtle, fast, purposeful (reviewed for an Apple-like feel) --- */
+.btn,.chip,.seg button,.icon,.arrow,.go,.thumb,.cbox,.goalchip,.rate button,.toc button,.rt li,.prog-item,.bar,.tempo2 button{transition:transform .12s cubic-bezier(.2,0,.2,1),background-color .16s ease-out,color .16s ease-out,border-color .16s ease-out,box-shadow .16s ease-out,opacity .12s ease-out}
+:is(.btn,.chip,.seg button,.icon,.arrow,.thumb,.goalchip,.rate button,.toc button,.tempo2 button):active{transform:scale(.96)}
+.go:active{transform:scale(.975)}
+.cbox.on{transform:scale(1.03)}
+.play::before{transition:border-width .14s ease-out,width .14s ease-out,height .14s ease-out}
+.pbar .beats i{transition:transform .09s ease-out,background-color .09s ease-out}
+.pbar .beats i.on{transform:scale(1.35)} .pbar .beats i.on.one{transform:scale(1.5)}
+.sgrid .st{transition:background .08s ease-out,transform .08s ease-out}
+.sgrid .st.now{transform:scale(1.04)}
+@keyframes gm-right{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes gm-wrong{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.gm-right{animation:gm-right .3s ease-out} .gm-wrong{animation:gm-wrong .32s cubic-bezier(.36,.07,.19,.97)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <style>
 .two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px 26px}@media (max-width:820px){.two{grid-template-columns:minmax(0,1fr)}}
@@ -793,7 +819,7 @@ const keep = (k, v) => store.set('pg.' + k, v);
 function page(i, back = false) {
   Seq.stop(); if (tunerStop) tunerStop(); clearInterval(timer60);
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
-  const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';
+  const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : '') + (p.id === 'sketch' ? ' scrollable' : ''); void v.offsetWidth; v.innerHTML = '';
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
   p.draw(v); window.scrollTo(0, 0); drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
@@ -802,19 +828,14 @@ const redraw = () => { const v = view(); const y = window.scrollY; Seq.stop(); f
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
 
-/* keep every page on one screen: shrink to fit when a page would overflow, never past a readability floor */
+/* every page fits in the frame above the practice bar: scale the page down to the space it has, so it
+   never scrolls and never slides behind the bar. The Song Sketchpad is the one page allowed to scroll. */
 function fit() {
   const v = view(); if (!v) return;
-  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  v.style.zoom = '';                                   // reset, then shrink until the page actually fits
-  for (let k = 0; k < 5; k++) {
-    const over = document.documentElement.scrollHeight - vh;
-    if (over <= 1) break;
-    const cur = parseFloat(v.style.zoom) || 1;
-    const z = Math.max(cur * vh / (vh + over), 0.68);  // never past the readability floor
-    if (Math.abs(z - cur) < 0.002) break;
-    v.style.zoom = z.toFixed(4);
-  }
+  v.style.zoom = '';
+  if (v.classList.contains('scrollable')) return;      // the Sketchpad scrolls instead of shrinking
+  const avail = v.clientHeight, content = v.scrollHeight;   // the frame it has vs the content it holds
+  if (content > avail + 1) v.style.zoom = Math.max(avail / content, 0.5).toFixed(4);
 }
 let fitRAF = 0;
 const fitSoon = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(() => requestAnimationFrame(fit)); };
@@ -825,6 +846,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSoon);
 /* ---------------- the practice bar: metronome, a session clock, and "practice this" */
 const M = Object.assign({bpm: 80, beats: 4, on: false}, store.get('metro', {}));
 let sessionStart = null, sessionAcc = store.get('session:' + today(), 0), clockTimer = null, timer60 = null;
+function setBpm(v) { M.bpm = Math.max(30, Math.min(240, v)); store.set('metro', {bpm: M.bpm, beats: M.beats}); Seq.stop(); drawBar(); }
 function drawBar() {
   const bar = $('#pbar'); bar.innerHTML = '';
   const bpm = h('div', {class: 'bpm', 'aria-live': 'polite'}, String(M.bpm));
@@ -851,18 +873,21 @@ function drawBar() {
   clockBtn.addEventListener('click', () => clockBtn.classList.toggle('on', !!sessionStart));
   playBtn.className = 'go play'; playBtn.textContent = 'Practice this';
   const p = PAGES[at] || {}, pgLabel = p.no && p.no !== '✎' ? `${p.no} · ${p.name}` : p.name || 'Cover';
-  bar.append(
-    h('button', {class: 'arrow', 'aria-label': 'previous page', on: {click: () => page(at - 1, true)}}, '‹'),
+  // three intentional zones: a metronome station (left), the Practice-this action (centre), the session (right)
+  const station = h('div', {class: 'station', role: 'group', 'aria-label': 'metronome'},
     h('div', {class: 'tempo2', role: 'group', 'aria-label': 'tempo'},
       h('button', {'aria-label': 'slower', on: {click: () => setB(M.bpm - 4)}}, '−'),
       h('div', {class: 'v'}, bpm, h('span', {}, 'BPM')),
       h('button', {'aria-label': 'faster', on: {click: () => setB(M.bpm + 4)}}, '+')),
-    metro, h('span', {class: 'hide-s'}, dots),
-    h('button', {class: 'icon tap hide-s', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); }}}, 'TAP'),
-    h('div', {class: 'sp'}),
-    h('div', {class: 'cta' + (focus ? '' : ' none')}, focus ? playBtn : '', h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : 'pick something above to play it'))),
-    h('div', {class: 'sp'}),
-    h('div', {class: 'clock2 hide-s'}, clockBtn, h('div', {class: 'what'}, h('span', {class: 'lbl'}, 'today'), clock)),
+    metro,
+    h('button', {class: 'icon tap', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); }}}, 'TAP'),
+    h('span', {class: 'dots hide-s'}, dots));
+  const action = h('div', {class: 'cta' + (focus ? '' : ' none')}, focus ? playBtn : '',
+    h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : 'pick something above to play it')));
+  const session = h('div', {class: 'clock2 hide-s'}, clockBtn, h('div', {class: 'what'}, h('span', {class: 'lbl'}, 'today'), clock));
+  bar.append(
+    h('button', {class: 'arrow', 'aria-label': 'previous page', on: {click: () => page(at - 1, true)}}, '‹'),
+    station, h('div', {class: 'sp'}), action, h('div', {class: 'sp'}), session,
     h('button', {class: 'arrow', 'aria-label': 'next page', on: {click: () => page(at + 1)}}, '›'));
 }
 // swipe and keys to turn pages
@@ -877,7 +902,7 @@ function drawBar() {
 const COLOURS = ['var(--rust)', 'var(--navy)', 'var(--rust)', 'var(--teal)', 'var(--gold)', 'var(--sage)', 'var(--plum)', 'var(--teal)', 'var(--ink)', 'var(--navy)', 'var(--plum)'];
 function chordCard(c, {color = 'var(--rust)', sub = '', tuningMidi = null, onplay = null} = {}) {
   const b = h('button', {class: 'cbox', on: {click: () => { audio(); if (tuningMidi) strumMidi(c.frets, tuningMidi, 'D', A.ctx.currentTime + .02); else playChord(c.frets); onplay && onplay(c);
-    b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 450); }}},
+    b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 220); }}},
     h('span', {class: 'nm'}, c.name), h('div', {html: chordSVG(c, {rootPc: c.root, names: c.names, color, tuning: tuningMidi})}), h('span', {class: 'sub'}, sub || c.sub || ''));
   return b;
 }
@@ -987,7 +1012,26 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
   v.append(header('I', 'Practice', '<b>30 min</b> · tune 2 · warm-up 3 · changes 5 · scales 5 · technique 5 · notes 2 · a song 8', 'pick a block · rate it when you finish', 'var(--rust)'));
   const list = h('ul', {class: 'rt', role: 'listbox', 'aria-label': 'routine'}, ROUTINE.map(([id, nm, m]) => h('li', {role: 'option', tabindex: 0, 'aria-selected': id === st.blk ? 'true' : 'false', class: day[id] ? 'done' : '', on: {click: () => set('blk', id)}},
     h('b', {}, String(m)), h('span', {}, nm), h('i', {}, day[id] || ''))));
-  const goals = h('table', {class: 't'}, h('tr', {}, h('th', {}), h('th', {}, 'start'), h('th', {}, 'solid'), h('th', {}, 'fluent')), D.practice.goals.map(([n, a, b, c]) => h('tr', {}, h('td', {}, n), h('td', {}, String(a)), h('td', {}, String(b)), h('td', {style: 'font-weight:900;color:var(--rust)'}, String(c)))));
+  // Numbers to beat, but only the one that fits the block you're on, with your current standing
+  const GOALBLK = {changes: 0, warm: 1, scale: 2, tech: 3, notes: 4};
+  const goalCard = () => {
+    const gi = GOALBLK[st.blk];
+    if (gi === undefined) return h('div', {class: 'muted', style: 'font-size:13px;line-height:1.4'},
+      st.blk === 'tune' ? 'Tune by ear first — match each string to the one below it, then check with the tuner.' : 'Play it through at a tempo you can keep. No stopping to fix a fumble.');
+    const g = D.practice.goals[gi], label = g[0].replace(/[,/].*$/, '').trim(), tiers = [['start', g[1]], ['solid', g[2]], ['fluent', g[3]]];
+    const bpm = st.blk === 'warm' || st.blk === 'scale' || st.blk === 'tech', lower = st.blk === 'notes';
+    let yours = 0, unit = '';
+    if (st.blk === 'changes') { const p = D.pairs[st.pair]; yours = store.get('best:' + p.a + p.b, 0); unit = ' / min'; }
+    else if (bpm) { yours = M.bpm; unit = ' bpm'; }
+    else { yours = store.get('notesbest:' + st.note, 0); unit = 's'; }
+    const met = t => yours && (lower ? yours <= t : yours >= t), top = [...tiers].reverse().find(([, t]) => met(t));
+    return h('div', {class: 'goals-ctx'},
+      h('div', {style: 'font-weight:800;font-size:12.5px'}, label + (bpm ? ' · bpm' : lower ? ' · seconds, lower is better' : ' · per minute')),
+      h('div', {class: 'goal-tiers'}, tiers.map(([nm, t]) => h('button', {class: 'goalchip' + (top && top[0] === nm ? ' on' : ''),
+        style: bpm ? '' : 'cursor:default', on: bpm ? {click: () => { setBpm(t); redraw(); }} : {}}, h('span', {}, nm), h('b', {}, String(t))))),
+      h('div', {class: 'youline'}, yours ? h('span', {}, 'you: ', h('b', {style: `color:${top ? 'var(--ok)' : 'var(--ink2)'}`}, yours + unit)) : h('span', {class: 'muted'}, bpm ? 'set your tempo below' : 'no score yet')),
+      bpm ? h('div', {class: 'muted', style: 'font-size:11px'}, 'tap a target to set the metronome') : '');
+  };
   const tools = h('div', {class: 'toolbar'}), main = h('div', {style: 'display:flex;flex-direction:column;gap:10px;min-width:0'});
   const rate = h('div', {class: 'rate'}, h('span', {class: 'muted', style: 'font-weight:700;font-size:13px'}, 'How did it go?'), ['clean', 'shaky', 'missed'].map(r => h('button', {class: r, 'aria-pressed': day[st.blk] === r ? 'true' : 'false', on: {click: () => { const H = store.get('hist', {}); (H[date] = H[date] || {})[st.blk] = r; store.set('hist', H); redraw(); toast(r === 'clean' ? 'Clean. Nudge the tempo up next time.' : r === 'missed' ? 'Missed. Take the tempo down a notch.' : 'Shaky. Same tempo tomorrow.'); }}}, r)));
   const B = st.blk;
@@ -1030,7 +1074,8 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
     const hit = new Set(), miss = []; let t0 = null; const box = h('div', {class: 'scroll'}), msg = h('div', {style: 'font-weight:800'});
     const draw = () => { box.innerHTML = neckSVG(null, null, {marks: [...hit].map(k => k.split(':').map(Number).concat('ok')).concat(miss.map(k => k.split(':').map(Number).concat('bad'))), onFret: true});
       msg.textContent = `${hit.size} of ${all.length} found` + (miss.length ? ` · ${miss.length} miss${miss.length > 1 ? 'es' : ''}` : '');
-      if (hit.size === all.length) msg.textContent = `All ${all.length} in ${Math.round((Date.now() - t0) / 1000)} seconds${miss.length ? `, ${miss.length} miss${miss.length > 1 ? 'es' : ''}` : ', no misses'}.`;
+      if (hit.size === all.length) { const secs = Math.round((Date.now() - t0) / 1000), bk = 'notesbest:' + st.note, prev = store.get(bk, 0); if (!prev || secs < prev) store.set(bk, secs);
+        msg.textContent = `All ${all.length} in ${secs} seconds${miss.length ? `, ${miss.length} miss${miss.length > 1 ? 'es' : ''}` : ', no misses'}.`; }
       $$('.hit', box).forEach(r => r.addEventListener('click', () => { const s = +r.dataset.s, f = +r.dataset.f, k = s + ':' + f; if (f > 12) return; if (!t0) t0 = Date.now();
         if (all.includes(k)) { if (!hit.has(k)) { hit.add(k); audio(); playMidi(OPEN_MIDI[s] + f, A.ctx.currentTime + .01, {kind: 'note', gain: .35}); } } else if (!miss.includes(k)) miss.push(k); draw(); })); };
     draw(); main.append(sec2(`Find every ${st.note}`, 'open strings to fret 12 · say the name each time · goal: under 8 seconds', 'var(--rust)', box, msg));
@@ -1042,7 +1087,7 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
   }
   main.append(rate); if (tools.childNodes.length) main.prepend(tools);
   v.append(h('div', {class: 'body pr', style: 'grid-template-columns:250px minmax(0,1fr);align-items:start'},
-    h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('Today', today(), 'var(--rust)', list), sec2('Numbers to beat', '', 'var(--gold)', goals)), main));
+    h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('Today', today(), 'var(--rust)', list), sec2('Numbers to beat', '', 'var(--gold)', goalCard())), main));
 }});
 // a progression as bars + shapes; sets the page focus to loop it
 function progView(toks, tonic, minor, pattern, capo = 0) {
@@ -1457,6 +1502,7 @@ PAGES.push({id: 'staff', no: '♪', name: 'From Tab to Staff', blurb: 'learn to 
         board), fb);
       const ask = () => { answered = false; target = pickNote(); qc.innerHTML = gStaffCard(target.step, target.show); board.replaceChildren(gNeck((s, f) => answer(s, f))); fb.textContent = ''; };
       const answer = (s, f) => { if (answered) return; answered = true; const ok = (OPEN_MIDI[s] + f) === target.midi; grade(target.midi, ok); streak = ok ? streak + 1 : 0; upd();
+        fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
         board.replaceChildren(gNeck(null, {picked: s + ':' + f, correctMidi: ok ? null : target.midi}));
         fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`}, ok ? `Right — that’s ${target.name}.` : `Not quite — ${target.name} is the green fret.`),
           h('button', {class: 'btn', style: 'margin-left:16px', on: {click: ask}}, 'Next')); };
@@ -1471,6 +1517,7 @@ PAGES.push({id: 'staff', no: '♪', name: 'From Tab to Staff', blurb: 'learn to 
         opts.replaceChildren(...choices.map(c => h('button', {class: 'thumb', style: 'padding:6px', on: {click: () => answer(c)}}, h('div', {html: gStaffCard(c.step, c.show)}))));
         fb.textContent = ''; };
       const answer = c => { if (answered) return; answered = true; const ok = c.midi === target.midi; grade(target.midi, ok); streak = ok ? streak + 1 : 0; upd();
+        fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
         fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`}, ok ? `Right — ${target.name}.` : `That one is ${c.name}. The lit fret is ${target.name}.`),
           h('button', {class: 'btn', style: 'margin-left:16px', on: {click: ask}}, 'Next')); };
       ask();
