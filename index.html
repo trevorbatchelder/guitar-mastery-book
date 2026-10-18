@@ -799,6 +799,7 @@ function metalBand() {
 const band = () => document.documentElement.getAttribute('data-theme') === 'metal' ? metalBand() : RUG;
 const PAGES = [];
 let at = 0, focus = null;          // focus = what "Practice this" plays on the current page: {label, play(bpm, onStop)}
+let pageScroll = false;            // a page's draw sets this true to scroll instead of scale-to-fit (e.g. the facts feed)
 // book themes: '' is the default Southwestern look (and follows the OS light/dark); others set data-theme
 const THEMES = [['bluegrass', 'Bluegrass'], ['metal', 'Metal'], ['vintage', 'Vintage Paper']];
 const applyTheme = t => document.documentElement.setAttribute('data-theme', t || 'bluegrass');
@@ -831,10 +832,10 @@ function page(i, back = false) {
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
-  p.draw(v); $('#page').scrollTop = 0; drawBar(); fitSoon();
+  pageScroll = false; p.draw(v); $('#page').scrollTop = 0; drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
-const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; v.innerHTML = ''; PAGES[at].draw(v); fr.scrollTop = y; drawBar(); fitSoon(); };
+const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; pageScroll = false; v.innerHTML = ''; PAGES[at].draw(v); fr.scrollTop = y; drawBar(); fitSoon(); };
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
 
@@ -844,7 +845,7 @@ function fit() {
   const frame = $('#page'), pg = view(); if (!frame || !pg) return;
   // the book is landscape-first: only scale-to-fit in landscape. Portrait/narrow widths (and the Sketchpad)
   // scroll inside the frame instead, so content stays full size rather than shrinking to a tall page.
-  const scroll = window.innerWidth < 980 || (PAGES[at] && (PAGES[at].id === 'sketch' || PAGES[at].id === 'theory'));
+  const scroll = window.innerWidth < 980 || pageScroll || (PAGES[at] && PAGES[at].id === 'sketch');
   frame.classList.toggle('scrollable', scroll);
   pg.style.zoom = '';
   if (scroll) return;
@@ -1470,11 +1471,11 @@ function gNeck(onTap, opts = {}) {
     h('div', {}), ...[0, 1, 2, 3, 4].map(f => h('div', {style: 'text-align:center;font-size:12px;font-weight:800;color:var(--mute)'}, String(f))),
     ...rows.flatMap(s => [h('div', {style: 'font-weight:800;font-size:13px;color:var(--mute);padding-right:6px'}, names[s]), ...[0, 1, 2, 3, 4].map(f => cell(s, f))]));
 }
-PAGES.push({id: 'staff', no: '♪', name: 'From Tab to Staff', blurb: 'learn to read music', acc: 'var(--teal)', draw(v) {
+// Reading Music — the Tab-to-Staff lessons and games, now a topic inside the Learn hub
+function readingView(v) {
   const st = state('staff', {mode: 'learn', lesson: 0, lay: {tab: 1, rhythm: 0, names: 0, staff: 1, bars: 0, key: 1}});
   st.lay = Object.assign({tab: 1, rhythm: 0, names: 0, staff: 1, bars: 0, key: 1}, st.lay); st.lay.tab = 1; if (!st.mode) st.mode = 'learn';
   const sv = () => keep('staff', st);
-  v.append(header('', 'From Tab <em>to Staff</em>', 'read the tab you know · then learn the staff above it', 'treble clef with an 8 = guitar, written an octave above where it sounds', 'var(--teal)'));
   v.append(h('div', {class: 'toolbar'}, seg('Mode', STAFF_MODES, st.mode, m => { st.mode = m; sv(); redraw(); })));
   if (st.mode === 'learn') drawLearn(); else drawGames(st.mode);
 
@@ -1559,24 +1560,22 @@ PAGES.push({id: 'staff', no: '♪', name: 'From Tab to Staff', blurb: 'learn to 
       gen();
     }
   }
-}});
+}
 
-/* ================================================================ THEORY LAB (learn and drill the concepts, at the back of the book) */
+/* ================================================================ THEORY LAB (learn and drill the concepts, now a topic inside the Learn hub) */
 const THEORY_MODES = [['facts', 'Facts'], ['drill', 'Drill'], ['connect', 'Connect']];
 const THEORY_TOPICS = [['cof', 'Circle of Fifths'], ['intervals', 'Intervals'], ['key', 'Chords in a Key'], ['scales', 'Scales & Modes'], ['capo', 'The Capo'], ['fretboard', 'The Fretboard']];
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 const sample = (a, n) => shuffle(a).slice(0, n);
-PAGES.push({id: 'theory', no: '◎', name: 'Theory Lab', blurb: 'learn the concepts', acc: 'var(--navy)', draw(v) {
-  const st = state('theory', {topic: 'cof', mode: 'facts'});
+function theoryView(v, topic) {
+  const st = state('theory', {mode: 'facts'}); st.topic = topic;   // the topic is chosen in the Learn hub
   const sv = () => keep('theory', st);
   const COF = D.cof, IV = D.intervals, KEYS = D.majKeys, SCL = D.scales, PAL = D.palette.major.slice(0, 7), CAPO = D.capo, SHAPES = Object.keys(D.capo);
   const topicName = (THEORY_TOPICS.find(t => t[0] === st.topic) || THEORY_TOPICS[0])[1];
-  v.append(header('', 'Theory <em>Lab</em>', 'read the ideas, drill them, then see how they connect', 'facts · fast recall · games that connect it', 'var(--navy)'));
-  v.append(h('div', {class: 'toolbar'},
-    pick('Topic', THEORY_TOPICS, st.topic, x => { st.topic = x; sv(); redraw(); }, 'topic'),
-    h('label', {class: 'pick'}, h('span', {}, 'Mode'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }))));
+  v.append(h('div', {class: 'toolbar'}, h('label', {class: 'pick'}, h('span', {}, 'Mode'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }))));
 
   if (st.mode === 'facts') {
+    pageScroll = true;   // the facts feed scrolls; the games fit the screen
     const facts = (D.theory.facts || []).filter(f => f.tag === st.topic);
     v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
       sec2('Facts · ' + topicName, 'scroll through · a few a day sticks', 'var(--navy)', h('div', {class: 'facts'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {}, f.b)))))));
@@ -1731,8 +1730,15 @@ PAGES.push({id: 'theory', no: '◎', name: 'Theory Lab', blurb: 'learn the conce
       else { flash(btn, false); bump(false); } };
     ask();
   }
-}});
+}
 const CONNECT_HINT = {cof: 'tap the key the question asks for', intervals: 'listen, then name what you hear', key: 'tap the chord the question asks for', scales: 'build the scale by tapping its notes', capo: 'tap where the capo goes', fretboard: 'find every one of the note'};
+// the Learn hub: Reading Music plus the six theory topics, all in one place
+PAGES.push({id: 'learn', no: '◎', name: 'Learn', blurb: 'lessons, drills and games', acc: 'var(--navy)', draw(v) {
+  const L = state('learn', {topic: 'reading'});
+  v.append(header('', 'Learn', 'read music, drill the theory, and play with the ideas', 'reading · facts · recall · games that connect it', 'var(--navy)'));
+  v.append(h('div', {class: 'toolbar'}, pick('Topic', [['reading', 'Reading Music'], ...THEORY_TOPICS], L.topic, x => { L.topic = x; keep('learn', L); redraw(); }, 'learntopic')));
+  if (L.topic === 'reading') readingView(v); else theoryView(v, L.topic);
+}});
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
 PAGES.push({id: 'sketch', no: '✎', name: 'Song Sketchpad', blurb: 'write your own · saves as you go', acc: 'var(--rust)', draw(v) {
