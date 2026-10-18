@@ -953,7 +953,7 @@ function sec2(title, small, color, ...kids) { return h('section', {class: 'sec',
 
 /* ================================================================ COVER: title, contents, and the reference shelf */
 PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
-  const st = state('cover', {ref: 'fretboard', key: 0, note: -1, tuning: 0});
+  const st = state('cover', {ref: 'fretboard', key: 0, note: -1, tuning: 0, tnote: -1});
   const sv = () => keep('cover', st);
   v.append(h('div', {html: band()}));
   const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
@@ -1000,13 +1000,14 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
     refBody.append(sec2('Intervals', 'frets apart on one string · tap to hear low E, then the interval above', 'var(--plum)', h('div', {style: 'columns:2;column-gap:28px'}, t)));
   } else if (st.ref === 'tunings') {
     const tn = D.tunings[st.tuning] || D.tunings[0];
-    tools.append(pick('Tuning', D.tunings.map((t, i) => [i, t.name]), st.tuning, x => { st.tuning = +x; sv(); redraw(); }));
+    tools.append(pick('Tuning', D.tunings.map((t, i) => [i, t.name]), st.tuning, x => { st.tuning = +x; sv(); redraw(); }),
+      pick('Light up a note', [[-1, 'none'], ...SH.map((n, i) => [i, n])], st.tnote, x => { st.tnote = +x; sv(); redraw(); }));
     const t = h('table', {class: 'cells'}); t.style.setProperty('--c', 'var(--plum)');
     t.append(h('tr', {}, h('th', {}), Array.from({length: 13}, (_, f) => h('th', {style: [3,5,7,9,12].includes(f) ? 'color:var(--gold);font-weight:900' : ''}, f === 0 ? 'open' : String(f)))));
     for (let s = 5; s >= 0; s--) { const opc = tn.tun[s], moved = tn.tun[s] !== OPEN_PC[s];
       t.append(h('tr', {}, h('td', {class: 'k', style: moved ? 'color:var(--rust)' : ''}, tn.notes[s]), Array.from({length: 13}, (_, f) => { const pc = (opc + f) % 12, nat = SH[pc].length === 1;
-        return h('td', {style: nat ? '' : 'background:var(--panel2);color:var(--mute);font-weight:600'}, h('button', {on: {click: () => { audio(); playMidi(tn.midi[s] + f, A.ctx.currentTime + .02, {kind: 'note', gain: .4}); }}}, SH[pc])); }))); }
-    refBody.append(sec2(`${tn.name} · the neck`, `${tn.notes.join(' ')} low to high · strings you retune in <span style="color:var(--rust)">red</span> · naturals light · tap to hear`, 'var(--plum)', h('div', {class: 'scroll'}, t)));
+        return h('td', {style: pc === st.tnote ? 'background:var(--gold);color:var(--onacc);font-weight:700' : nat ? '' : 'background:var(--panel2);color:var(--mute);font-weight:600'}, h('button', {on: {click: () => { audio(); playMidi(tn.midi[s] + f, A.ctx.currentTime + .02, {kind: 'note', gain: .4}); st.tnote = pc; sv(); redraw(); }}}, SH[pc])); }))); }
+    refBody.append(sec2(`${tn.name} · the neck`, `${tn.notes.join(' ')} low to high · strings you retune in <span style="color:var(--rust)">red</span> · tap a note to hear it and light up every one`, 'var(--plum)', h('div', {class: 'scroll'}, t)));
   }
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
