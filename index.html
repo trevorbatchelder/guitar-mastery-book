@@ -75,12 +75,14 @@ button,select,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 svg text{font-family:var(--body)}
 .book{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
-.page{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding-block:14px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));gap:10px;animation:turn .3s cubic-bezier(.32,.72,0,1)}
+.page{flex:1;min-height:0;overflow:hidden;position:relative}   /* the frame: clips the content, never lays it out */
 .page.scrollable{overflow-y:auto}
-.page.back{animation:turnback .3s cubic-bezier(.32,.72,0,1)}
+/* the content wrapper holds everything at its natural height so it overflows (and fit() can scale it) instead of compressing into overlap */
+.pg{display:flex;flex-direction:column;gap:10px;padding-block:14px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));animation:turn .3s cubic-bezier(.32,.72,0,1)}
+.pg.back{animation:turnback .3s cubic-bezier(.32,.72,0,1)}
 @keyframes turn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
 @keyframes turnback{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.page{animation:none}}
+@media (prefers-reduced-motion:reduce){.pg{animation:none}}
 /* the book header */
 .hd{display:flex;align-items:flex-end;gap:10px 18px;flex-wrap:nowrap}
 .hd .no{font-family:var(--display);font-size:46px;line-height:.85;color:var(--acc);letter-spacing:.06em}
@@ -229,7 +231,7 @@ textarea{width:100%;min-height:80px;border:1.5px solid var(--rule);border-radius
 .tile2{border-top:2.5px solid var(--navy);background:var(--panel);border-radius:0 0 10px 10px;padding:8px 16px 10px;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .tile2 span{font-size:13px;font-weight:800;color:var(--navy);letter-spacing:.04em}
 .tile2 b{font-size:30px;font-weight:900;line-height:1}
-.page{gap:14px}
+.pg{gap:14px}
 .hd2{display:flex;flex-direction:column;gap:6px}
 .hrow{display:flex;align-items:flex-end;gap:14px;min-width:0}
 .hrow .no{font-family:var(--display);font-size:44px;line-height:.82;color:var(--acc);letter-spacing:.04em;flex:none}
@@ -336,7 +338,7 @@ input[type=range]{accent-color:var(--rust);width:140px}.note{font-family:var(--d
 .sec>h2 .gem{width:13px;height:13px}
 </style>
 </head><body><div class="book">
-  <div class="page" id="page"></div>
+  <div class="page" id="page"><div class="pg" id="pg"></div></div>
   <div class="pbar" id="pbar"></div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -794,7 +796,7 @@ let at = 0, focus = null;          // focus = what "Practice this" plays on the 
 const THEMES = [['bluegrass', 'Bluegrass'], ['metal', 'Metal'], ['vintage', 'Vintage Paper']];
 const applyTheme = t => document.documentElement.setAttribute('data-theme', t || 'bluegrass');
 applyTheme(store.get('theme', 'bluegrass'));
-const view = () => $('#page');
+const view = () => $('#pg');
 const setFocus = f => { focus = f; drawBar(); };
 function header(no, title, sub, key, acc) {
   const p = PAGES.find(q => q.no === no), run = no ? `${no} of IX` : '';
@@ -820,27 +822,27 @@ const keep = (k, v) => store.set('pg.' + k, v);
 function page(i, back = false) {
   Seq.stop(); if (tunerStop) tunerStop(); clearInterval(timer60);
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
-  const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the 'scrollable' class
+  const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
-  p.draw(v); window.scrollTo(0, 0); drawBar(); fitSoon();
+  p.draw(v); $('#page').scrollTop = 0; drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
-const redraw = () => { const v = view(); const y = window.scrollY; Seq.stop(); focus = null; v.innerHTML = ''; PAGES[at].draw(v); window.scrollTo(0, y); drawBar(); fitSoon(); };
+const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; v.innerHTML = ''; PAGES[at].draw(v); fr.scrollTop = y; drawBar(); fitSoon(); };
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
 
 /* every page fits in the frame above the practice bar: scale the page down to the space it has, so it
    never scrolls and never slides behind the bar. The Song Sketchpad is the one page allowed to scroll. */
 function fit() {
-  const v = view(); if (!v) return;
+  const frame = $('#page'), pg = view(); if (!frame || !pg) return;
   // the book is landscape-first: only scale-to-fit in landscape. Portrait/narrow widths (and the Sketchpad)
   // scroll inside the frame instead, so content stays full size rather than shrinking to a tall page.
   const scroll = window.innerWidth < 980 || (PAGES[at] && PAGES[at].id === 'sketch');
-  v.classList.toggle('scrollable', scroll);
-  v.style.zoom = '';
+  frame.classList.toggle('scrollable', scroll);
+  pg.style.zoom = '';
   if (scroll) return;
-  const avail = v.clientHeight, content = v.scrollHeight;   // the frame it has vs the content it holds
-  if (content > avail + 1) v.style.zoom = Math.max(avail / content, 0.5).toFixed(4);
+  const avail = frame.clientHeight, content = pg.scrollHeight;   // the frame it has vs the natural content it holds
+  if (content > avail + 1) pg.style.zoom = Math.max(avail / content, 0.5).toFixed(4);
 }
 let fitRAF = 0;
 const fitSoon = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(() => requestAnimationFrame(fit)); };
