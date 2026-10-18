@@ -820,7 +820,7 @@ const keep = (k, v) => store.set('pg.' + k, v);
 function page(i, back = false) {
   Seq.stop(); if (tunerStop) tunerStop(); clearInterval(timer60);
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
-  const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : '') + (p.id === 'sketch' ? ' scrollable' : ''); void v.offsetWidth; v.innerHTML = '';
+  const p = PAGES[at]; const v = view(); v.className = 'page' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
   p.draw(v); window.scrollTo(0, 0); drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
@@ -833,8 +833,12 @@ function go() { redraw(); }
    never scrolls and never slides behind the bar. The Song Sketchpad is the one page allowed to scroll. */
 function fit() {
   const v = view(); if (!v) return;
+  // the book is landscape-first: only scale-to-fit in landscape. Portrait/narrow widths (and the Sketchpad)
+  // scroll inside the frame instead, so content stays full size rather than shrinking to a tall page.
+  const scroll = window.innerWidth < 980 || (PAGES[at] && PAGES[at].id === 'sketch');
+  v.classList.toggle('scrollable', scroll);
   v.style.zoom = '';
-  if (v.classList.contains('scrollable')) return;      // the Sketchpad scrolls instead of shrinking
+  if (scroll) return;
   const avail = v.clientHeight, content = v.scrollHeight;   // the frame it has vs the content it holds
   if (content > avail + 1) v.style.zoom = Math.max(avail / content, 0.5).toFixed(4);
 }
