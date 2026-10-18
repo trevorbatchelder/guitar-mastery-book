@@ -832,7 +832,13 @@ function fit() {
   pg.style.zoom = '';
   if (scroll) return;
   const avail = frame.clientHeight, content = pg.scrollHeight;   // the frame it has vs the natural content it holds
-  if (content > avail + 1) pg.style.zoom = Math.max(avail / content, 0.5).toFixed(4);
+  if (content <= avail + 1) return;
+  let z = Math.max(avail / content, 0.5);
+  pg.style.zoom = z.toFixed(4);
+  // scrollHeight is the pre-zoom estimate; the page can settle a little taller (fonts/SVG, sub-pixel rounding),
+  // which the frame would then clip. Re-measure the real scaled height and tighten the zoom once so it truly fits.
+  const real = pg.getBoundingClientRect().height;
+  if (real > avail && z > 0.5) pg.style.zoom = Math.max(z * avail / real, 0.5).toFixed(4);
 }
 let fitRAF = 0;
 const fitSoon = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(() => requestAnimationFrame(fit)); };
