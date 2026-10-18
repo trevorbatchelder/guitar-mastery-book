@@ -100,7 +100,7 @@ select{border:1.5px solid var(--ink);background:var(--bg);border-radius:9px;padd
 .seg button{border:0;background:transparent;padding:8px 13px;font-weight:800;min-height:44px}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{border:1.5px solid var(--rule);background:transparent;border-radius:8px;padding:7px 10px;font-weight:800;font-size:15px;min-width:42px;min-height:42px;line-height:1.1}
+.chip{border:1.5px solid var(--rule);background:transparent;border-radius:8px;padding:7px 10px;font-weight:800;font-size:15px;min-width:44px;min-height:44px;line-height:1.1}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn{border:1.5px solid var(--ink);background:transparent;border-radius:9px;padding:8px 14px;font-weight:800;min-height:44px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
 .btn.acc{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
@@ -241,7 +241,7 @@ textarea{width:100%;min-height:80px;border:1.5px solid var(--rule);border-radius
 .meta .sub{color:var(--ink2);font-weight:600}
 .meta .key{color:var(--mute)} .meta .key b{color:var(--ink2)}
 /* fields: underline style, quieter than boxes, matching the line-only sections */
-select{border:0;border-bottom:2px solid var(--ink);border-radius:0;background-color:transparent;padding:7px 30px 6px 1px;font-size:17px;min-height:42px}
+select{border:0;border-bottom:2px solid var(--ink);border-radius:0;background-color:transparent;padding:7px 30px 6px 1px;font-size:17px;min-height:44px}
 select:hover{border-bottom-color:var(--acc)}
 .pick>span{font-size:10.5px;letter-spacing:.16em}
 .toolbar{gap:12px 30px;padding-bottom:2px}
@@ -317,6 +317,7 @@ table.t td.l{font-weight:800}
 .go:active{transform:scale(.975)}
 .cbox.on{transform:scale(1.03)}
 .play::before{transition:border-width .14s ease-out,width .14s ease-out,height .14s ease-out}
+.arrow svg{width:22px;height:22px} .tempo2 button svg{width:20px;height:20px}
 .pbar .beats i{transition:transform .09s ease-out,background-color .09s ease-out}
 .pbar .beats i.on{transform:scale(1.35)} .pbar .beats i.on.one{transform:scale(1.5)}
 .sgrid .st{transition:background .08s ease-out,transform .08s ease-out}
@@ -866,8 +867,12 @@ function drawBar() {
     if (sessionStart) { sessionAcc += Date.now() - sessionStart; sessionStart = null; store.set('session:' + today(), sessionAcc); clearInterval(clockTimer); clockBtn.textContent = 'Resume'; }
     else { sessionStart = Date.now(); clockTimer = setInterval(drawClock, 1000); clockBtn.textContent = 'Pause'; } drawClock(); }}}, sessionStart ? 'Pause' : 'Time it');
   let taps = [];
-  const IC = {metro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8.5 3h7l3.5 18H5z"/><path d="M12 15l5.5-8.5"/><circle cx="17.6" cy="6.3" r="1.4" fill="currentColor"/><path d="M7 16h10"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>'};
+  const IC = {metro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8.5 3h7l3.5 18H5z"/><path d="M12 15l5.5-8.5"/><circle cx="17.6" cy="6.3" r="1.4" fill="currentColor"/><path d="M7 16h10"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>',
+    chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+    chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+    minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>'};
   metro.className = 'icon' + (M.on ? ' on' : ''); metro.innerHTML = IC.metro; metro.title = 'metronome';
   clockBtn.className = 'icon' + (sessionStart ? ' on' : ''); clockBtn.innerHTML = IC.clock; clockBtn.title = 'practice clock';
   clockBtn.addEventListener('click', () => clockBtn.classList.toggle('on', !!sessionStart));
@@ -876,9 +881,9 @@ function drawBar() {
   // three intentional zones: a metronome station (left), the Practice-this action (centre), the session (right)
   const station = h('div', {class: 'station', role: 'group', 'aria-label': 'metronome'},
     h('div', {class: 'tempo2', role: 'group', 'aria-label': 'tempo'},
-      h('button', {'aria-label': 'slower', on: {click: () => setB(M.bpm - 4)}}, '−'),
+      h('button', {'aria-label': 'slower', html: IC.minus, on: {click: () => setB(M.bpm - 4)}}),
       h('div', {class: 'v'}, bpm, h('span', {}, 'BPM')),
-      h('button', {'aria-label': 'faster', on: {click: () => setB(M.bpm + 4)}}, '+')),
+      h('button', {'aria-label': 'faster', html: IC.plus, on: {click: () => setB(M.bpm + 4)}})),
     metro,
     h('button', {class: 'icon tap', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); }}}, 'TAP'),
     h('span', {class: 'dots hide-s'}, dots));
@@ -886,9 +891,9 @@ function drawBar() {
     h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : 'pick something above to play it')));
   const session = h('div', {class: 'clock2 hide-s'}, clockBtn, h('div', {class: 'what'}, h('span', {class: 'lbl'}, 'today'), clock));
   bar.append(
-    h('button', {class: 'arrow', 'aria-label': 'previous page', on: {click: () => page(at - 1, true)}}, '‹'),
+    h('button', {class: 'arrow', 'aria-label': 'previous page', html: IC.chevL, on: {click: () => page(at - 1, true)}}),
     station, h('div', {class: 'sp'}), action, h('div', {class: 'sp'}), session,
-    h('button', {class: 'arrow', 'aria-label': 'next page', on: {click: () => page(at + 1)}}, '›'));
+    h('button', {class: 'arrow', 'aria-label': 'next page', html: IC.chevR, on: {click: () => page(at + 1)}}));
 }
 // swipe and keys to turn pages
 (() => { let x0 = null, y0 = null, t0 = 0;
