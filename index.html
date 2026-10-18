@@ -1024,7 +1024,7 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
   if (!ROUTINE.some(r => r[0] === st.blk)) st.blk = 'changes';   // a stale saved block (e.g. the retired 'notes') falls back
   const sv = () => keep('practice', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const date = today(), hist = store.get('hist', {}), day = hist[date] || {};
-  v.append(header('I', 'Practice', '<b>30 min</b> · tune 2 · warm-up 3 · changes 5 · scales 5 · technique 5 · strum 2 · a song 8', 'pick a block · rate it when you finish', 'var(--rust)'));
+  v.append(header('I', 'Practice', '<b>30 min</b> · tune 2 · warm-up 3 · changes 5 · scales 5 · technique 5 · strum 2 · a song 8', 'pick a block and play it', 'var(--rust)'));
   const list = h('ul', {class: 'rt', role: 'listbox', 'aria-label': 'routine'}, ROUTINE.map(([id, nm, m]) => h('li', {role: 'option', tabindex: 0, 'aria-selected': id === st.blk ? 'true' : 'false', class: day[id] ? 'done' : '', on: {click: () => set('blk', id)}},
     h('b', {}, String(m)), h('span', {}, nm), h('i', {}, day[id] || ''))));
   // Numbers to beat, but only the one that fits the block you're on, with your current standing
@@ -1048,7 +1048,6 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
       bpm ? h('div', {class: 'muted', style: 'font-size:11px'}, 'tap a target to set the metronome') : '');
   };
   const tools = h('div', {class: 'toolbar'}), main = h('div', {style: 'display:flex;flex-direction:column;gap:10px;min-width:0'});
-  const rate = h('div', {class: 'rate'}, h('span', {class: 'muted', style: 'font-weight:700;font-size:13px'}, 'How did it go?'), ['clean', 'shaky', 'missed'].map(r => h('button', {class: r, 'aria-pressed': day[st.blk] === r ? 'true' : 'false', on: {click: () => { const H = store.get('hist', {}); (H[date] = H[date] || {})[st.blk] = r; store.set('hist', H); redraw(); toast(r === 'clean' ? 'Clean. Nudge the tempo up next time.' : r === 'missed' ? 'Missed. Take the tempo down a notch.' : 'Shaky. Same tempo tomorrow.'); }}}, r)));
   const B = st.blk;
   if (B === 'tune') {
     main.append(sec2('Tune', 'ears first · reference notes, then the tuner', 'var(--rust)', h('div', {class: 'row'}, 'EADGBe'.split('').map((n, s) => h('button', {class: 'chip', style: 'min-width:64px;min-height:64px;font-size:24px', on: {click: () => { audio(); playMidi(OPEN_MIDI[s], A.ctx.currentTime + .02, {gain: .45}); }}}, n))), tunerView()));
@@ -1103,7 +1102,7 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
     const p = D.progs[st.prog], tonic = p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
     main.append(sec2('Play a song', `${p.num} in ${tonic}${p.minor ? ' minor' : ''} · ${p.desc} · no stopping`, 'var(--sage)', progView(p.toks, tonic, p.minor, D.strums[st.strum])));
   }
-  main.append(rate); if (tools.childNodes.length) main.prepend(tools);
+  if (tools.childNodes.length) main.prepend(tools);
   v.append(h('div', {class: 'body pr', style: 'grid-template-columns:250px minmax(0,1fr);align-items:start'},
     h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('Today', today(), 'var(--rust)', list), sec2('Numbers to beat', '', 'var(--gold)', goalCard())), main));
 }});
