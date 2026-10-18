@@ -821,24 +821,26 @@ const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
 
-/* every page fits in the frame above the practice bar: scale the page down to the space it has, so it
-   never scrolls and never slides behind the bar. The Song Sketchpad is the one page allowed to scroll. */
+/* every page tries to fit in the frame above the practice bar: scale the page down to the space it has so it
+   sits on one screen. If it still can't fit (a page too tall even at the smallest scale), the frame scrolls
+   instead of clipping, so no content is ever trapped off-screen. Portrait/narrow and the Sketchpad always scroll. */
 function fit() {
   const frame = $('#page'), pg = view(); if (!frame || !pg) return;
-  // the book is landscape-first: only scale-to-fit in landscape. Portrait/narrow widths (and the Sketchpad)
-  // scroll inside the frame instead, so content stays full size rather than shrinking to a tall page.
-  const scroll = window.innerWidth < 980 || pageScroll || (PAGES[at] && PAGES[at].id === 'sketch');
-  frame.classList.toggle('scrollable', scroll);
+  // Portrait/narrow widths (and the Sketchpad) scroll at full size rather than shrinking to a tall page.
+  const forceScroll = window.innerWidth < 980 || pageScroll || (PAGES[at] && PAGES[at].id === 'sketch');
   pg.style.zoom = '';
-  if (scroll) return;
+  if (forceScroll) { frame.classList.add('scrollable'); return; }
   const avail = frame.clientHeight, content = pg.scrollHeight;   // the frame it has vs the natural content it holds
-  if (content <= avail + 1) return;
-  let z = Math.max(avail / content, 0.5);
-  pg.style.zoom = z.toFixed(4);
-  // scrollHeight is the pre-zoom estimate; the page can settle a little taller (fonts/SVG, sub-pixel rounding),
-  // which the frame would then clip. Re-measure the real scaled height and tighten the zoom once so it truly fits.
-  const real = pg.getBoundingClientRect().height;
-  if (real > avail && z > 0.5) pg.style.zoom = Math.max(z * avail / real, 0.5).toFixed(4);
+  if (content > avail + 1) {
+    let z = Math.max(avail / content, 0.5);
+    pg.style.zoom = z.toFixed(4);
+    // scrollHeight is the pre-zoom estimate; the page can settle a little taller (fonts/SVG, sub-pixel rounding),
+    // which the frame would then clip. Re-measure the real scaled height and tighten the zoom once so it truly fits.
+    const real = pg.getBoundingClientRect().height;
+    if (real > avail && z > 0.5) pg.style.zoom = Math.max(z * avail / real, 0.5).toFixed(4);
+  }
+  // if scaling still isn't enough (hit the 0.5 floor, or a box rendered taller than measured), let it scroll
+  frame.classList.toggle('scrollable', pg.getBoundingClientRect().height > avail + 1);
 }
 let fitRAF = 0;
 const fitSoon = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(() => requestAnimationFrame(fit)); };
