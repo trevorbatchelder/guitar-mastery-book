@@ -36,6 +36,8 @@
   --title:'UnifrakturMaguntia','Cinzel',serif; color-scheme:dark;
 }
 :root[data-theme="moon"] .brand-t{text-transform:none!important;letter-spacing:.012em!important}
+:root[data-theme="moon"] .brand-big{font-size:clamp(54px,7.4vw,84px)!important;line-height:.88!important}   /* blackletter reads smaller than Cinzel caps — size it up to match */
+:root[data-theme="moon"] .brand-sm{font-size:24px!important}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--body);font-size:16px;line-height:1.35;-webkit-tap-highlight-color:transparent;margin:0}
@@ -273,7 +275,7 @@ table.t td.l{font-weight:800}
 .shape-row{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:2px}
 .shape-row .label{color:var(--rust)}
 .shape-row .tl{flex:1;min-width:200px}
-.cells.mel-compact{border-spacing:2px}
+.cells.mel-compact{border-spacing:2px;table-layout:auto}
 .cells.mel-compact td,.cells.mel-compact th{padding:3px 8px 3px 0;font-size:14px}
 .prog-list{display:flex;flex-direction:column}
 .prog-item{all:unset;cursor:pointer;display:block;padding:6px 6px;border-bottom:1px solid var(--rule)}
@@ -1063,8 +1065,8 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
     h('button', {'aria-pressed': choice === 'auto' ? 'true' : 'false', title: 'By time of day', style: 'font-size:12px;letter-spacing:.1em', on: {click: () => setTheme('auto')}}, 'AUTO'));
   const brand = h('div', {style: 'display:flex;align-items:center;gap:16px 24px;justify-content:space-between;flex-wrap:wrap'},
     h('div', {style: 'display:flex;align-items:center;gap:14px'}, h('div', {html: MARK, style: 'width:62px;flex:none'}), h('div', {html: emblem, style: 'flex:none'}),
-      h('div', {}, h('div', {class: 'brand-t', style: 'font-family:var(--title);color:var(--rust);letter-spacing:.22em;font-size:19px;text-transform:uppercase'}, 'The Guide to'),
-        h('div', {class: 'brand-t', style: 'font-family:var(--title);font-size:clamp(40px,5.2vw,60px);letter-spacing:.06em;line-height:.95;text-transform:uppercase'}, 'Guitar', h('br'), 'Mastery'))),
+      h('div', {}, h('div', {class: 'brand-t brand-sm', style: 'font-family:var(--title);color:var(--rust);letter-spacing:.22em;font-size:19px;text-transform:uppercase'}, 'The Guide to'),
+        h('div', {class: 'brand-t brand-big', style: 'font-family:var(--title);font-size:clamp(40px,5.2vw,60px);letter-spacing:.06em;line-height:.95;text-transform:uppercase'}, 'Guitar', h('br'), 'Mastery'))),
     themeBtns);
   const refPick = pick('Reference', [['fretboard', 'The fretboard'], ['key', 'Chords in a key'], ['cof', 'Circle of fifths'], ['capo', 'The capo'], ['scales', 'What’s in each scale'], ['iv', 'Intervals'], ['tunings', 'Alternate tunings']], st.ref, x => { st.ref = x; sv(); redraw(); });
   const refBody = h('div', {style: 'display:flex;flex-direction:column;gap:10px;min-width:0'});
@@ -1418,10 +1420,10 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
   const st = state('writing', {group: 'Pop & Rock', key: 0, prog: 0, strum: 2, shape: 0});
   const sv = () => keep('writing', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const groups = [...new Set(D.progs.map(p => p.group))], ps = D.progs.filter(p => p.group === st.group), P = ps[st.prog] || ps[0];
-  bar.append(pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
-    pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)));
-  const strumPick = pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x));
   const shapePick = pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x));
+  bar.append(pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
+    pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)),
+    pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x)));
   const tonicOf = p => p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
   const list = h('div', {class: 'prog-list'}, ps.map((p, i) => h('button', {class: 'prog-item' + (i === st.prog ? ' on' : ''), on: {click: () => set('prog', i)}},
     h('div', {class: 'pl-top'}, h('b', {}, p.num), h('span', {}, p.toks.map(t => chordName(tonicOf(p), p.minor, t).name).join(' – '))),
@@ -1441,7 +1443,6 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
       sec2(`Melody in ${tn}`, 'land on the chord · pass through the rest', 'var(--teal)', mel)),
     h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'},
       sec2(`${P.num} in ${tonicOf(P)}${P.minor ? ' minor' : ''}`, P.desc, 'var(--gold)',
-        h('div', {style: 'display:flex;justify-content:flex-end;margin-top:-2px'}, strumPick),
         progView(P.toks, tonicOf(P), P.minor, D.strums[st.strum]),
         h('div', {class: 'shape-row'}, shapePick, tl, h('span', {class: 'muted', style: 'font-size:12px;flex-basis:100%'}, G.desc + ' · numbers are bars'))))));
   }
