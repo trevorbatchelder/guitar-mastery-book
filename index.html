@@ -1119,7 +1119,7 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
     tools.append(pick('Drill', [['pent', 'Straight up · shape 1, then back down'], ['pairs', 'In pairs · 1-2 · 2-3 · 3-4'], ['threes', 'In threes · 1-2-3 · 2-3-4']], st.drill, x => set('drill', x)));
     const base = st.drill === 'pent' ? D.practice.pent.concat(D.practice.pent.slice(0, -1).reverse()) : D.practice[st.drill];
     const box = h('div', {class: 'scroll'}); const draw = lit => box.innerHTML = tabSVG2(base, {rh: false, color: 'var(--teal)', lit, scale: .9}); draw(-1);
-    main.append(sec2('Scale drill', 'A minor pentatonic, frets 5–8 · numbers under the tab = fingers · any scale in any key lives on page IV', 'var(--teal)', box));
+    main.append(sec2('Scale drill', `A minor ${tm('pentatonic')}, frets 5–8 · numbers under the ${tm('tab')} = fingers · any ${tm('scale')} in any ${tm('key')} lives on page IV`, 'var(--teal)', box));
     setFocus({label: 'A minor pentatonic drill', play: tabPlay(base, draw)});
   } else if (B === 'tech') {
     const all = D.tech.map(t => ({...t, set: 'Technique'})).concat(D.practice.cross.map(t => ({...t, set: 'Across the strings'}))).concat(D.practice.connect.map(t => ({...t, set: 'Connecting drills'})));
@@ -1163,7 +1163,7 @@ function progView(toks, tonic, minor, pattern, capo = 0) {
 /* ================================================================ II OPEN CHORDS */
 PAGES.push({id: 'chords', no: 'II', name: 'Open Chords', blurb: 'every shape in the first five frets', acc: 'var(--rust)', draw(v) {
   const st = state('chords', {fam: 0, capo: 0});
-  v.append(header('II', 'Open <em>Chords</em>', 'every useful shape in the first five frets', '○ open string · <span style="color:var(--bad)">✕</span> don’t play · numbers = fingers · coloured note = root', 'var(--rust)'));
+  v.append(header('II', 'Open <em>Chords</em>', `every useful shape in the first five ${tm('fret', 'frets')}`, `○ open string · <span style="color:var(--bad)">✕</span> don’t play · numbers = fingers · coloured note = ${tm('root')}`, 'var(--rust)'));
   v.append(h('div', {class: 'toolbar'}, pick('Family', D.families.map((f, i) => [i, `${f.title} · ${f.mood}`]), st.fam, x => { st.fam = +x; keep('chords', st); redraw(); }),
     seg('Capo', [0, 1, 2, 3, 4, 5].map(c => [c, c ? String(c) : 'none']), st.capo, x => { st.capo = +x; keep('chords', st); redraw(); })));
   const f = D.families[st.fam], col = COLOURS[st.fam];
@@ -1183,7 +1183,7 @@ function nextTip(t) { return ({'Major': 'Start here with Minor. Every song in th
 /* ================================================================ III BARRE */
 PAGES.push({id: 'barre', no: 'III', name: 'Barre Chords', blurb: 'moveable shapes, any key', acc: 'var(--teal)', draw(v) {
   const st = state('barre', {fam: 0, move: 0});
-  v.append(header('III', 'Barre <em>Chords</em>', 'moveable shapes · the root sets the key', 'bar = one finger flat · number left = fret', 'var(--teal)'));
+  v.append(header('III', 'Barre <em>Chords</em>', `moveable shapes · the ${tm('root')} sets the ${tm('key')}`, `bar = one finger flat · number left = ${tm('fret')}`, 'var(--teal)'));
   const f = D.barre[st.fam], moveable = f.chords.every(c => c.frets.every(x => x !== 0));
   const tools = h('div', {class: 'toolbar'}, pick('Shape family', D.barre.map((b, i) => [i, `${b.title} · ${b.mood}`]), st.fam, x => { st.fam = +x; st.move = 0; keep('barre', st); redraw(); }));
   if (moveable) tools.append(pick('Slide it to', Array.from({length: 12}, (_, d) => [d, d ? `${SH[(f.chords[0].root + d) % 12]} · up ${d} fret${d > 1 ? 's' : ''}` : `${SH[f.chords[0].root]} · as printed`]), st.move, x => { st.move = +x; keep('barre', st); redraw(); }));
@@ -1223,7 +1223,7 @@ PAGES.push({id: 'scales', no: 'IV', name: 'Scales & Modes', blurb: 'five positio
     h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.88fr) minmax(0,1.8fr);grid-template-rows:auto 1fr;align-items:start'},
-    sec2(`${scale.name} in ${kd.key}`, `position ${st.pos + 1} · frets ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
+    sec2(`${scale.name} in ${kd.key}`, `position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
     sec2('All five positions', 'same labels as the big box · tap one to open it · each box repeats 12 frets up', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
   const run = box.run.map(([s, f]) => [s, f]), seq = run.concat(run.slice(0, -1).reverse());
   setFocus({label: `${scale.name} in ${kd.key}, position ${st.pos + 1}, up and back`, play: (bpm, onStop, onBeat) => { const step = 60 / bpm / 2;
@@ -1291,8 +1291,8 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
   const wm = state('writingmode', {mode: 'songs'});
   const chordsMode = wm.mode === 'chords';
   v.append(header('VI', 'Writing <em>Music</em>',
-    chordsMode ? 'how chords are built and how they move' : 'progressions to borrow · song shapes · making it bigger',
-    chordsMode ? 'capital = major · lower = minor · ° = diminished' : 'numerals work in every key', 'var(--gold)'));
+    chordsMode ? `how ${tm('chord', 'chords')} are built and how they move` : `${tm('progression', 'progressions')} to borrow · song shapes · making it bigger`,
+    chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
   v.append(h('div', {class: 'toolbar'}, seg('Mode', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); })));
   if (chordsMode) {
   const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major'});
@@ -1307,7 +1307,7 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
     const sh = shapeOf(rpc, F.suf), name = D.harm.roots[st.root] + F.suf;
     const tbl = h('div', {class: 'tiles'}, F.formula.split('·').map((d, i) => h('div', {class: 'tile2'}, h('span', {}, d.trim()), h('b', {}, notes[i]))));
     body.style.gridTemplateColumns = 'minmax(0,1fr) minmax(0,1fr)';
-    body.append(sec2(`${D.harm.roots[st.root]} ${st.form}`, `${name} · degrees of the root’s major scale · 9 = 2, 11 = 4, 13 = 6`, 'var(--navy)', tbl,
+    body.append(sec2(`${D.harm.roots[st.root]} ${st.form}`, `${name} · degrees of the ${tm('root')}’s ${tm('major-scale', 'major scale')} · 9 = 2, 11 = 4, 13 = 6`, 'var(--navy)', tbl,
       h('div', {class: 'row'}, h('button', {class: 'btn play', on: {click: () => { audio(); const t0 = A.ctx.currentTime + .02; F.ivs.forEach((iv, i) => playMidi(48 + rpc + iv + (iv < 0 ? 12 : 0), t0 + i * .32, {kind: 'note', gain: .38})); }}}, 'Hear it note by note'))),
       sec2('On the neck', sh ? (sh.kind === 'open' ? 'open shape' : sh.kind) : 'no book shape for this one · build it from the notes', 'var(--rust)', sh ? h('div', {style: '--cw:220px;max-width:240px'}, chordCard({...sh, name, root: rpc}, {color: 'var(--navy)'})) : h('p', {class: 'lede'}, 'Use the table: find each note near the root and keep the stretch inside four frets.')));
     const fam = ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', 'add9', '6', '9'].map(q => ({q, sh: shapeOf(rpc, q)})).filter(x => x.sh);
@@ -1782,7 +1782,7 @@ PAGES.push({id: 'learn', no: '◎', name: 'Learn', blurb: 'lessons, drills and g
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
 PAGES.push({id: 'sketch', no: '✎', name: 'Song Sketchpad', blurb: 'write your own · saves as you go', acc: 'var(--rust)', draw(v) {
-  v.append(header('', 'Song <em>Sketchpad</em>', 'build a song from the chords of any key · it saves on this iPad as you go', 'tap a bar, then a chord · Roll for a fresh progression', 'var(--rust)'));
+  v.append(header('', 'Song <em>Sketchpad</em>', `build a song from the ${tm('chord', 'chords')} of any ${tm('key')} · it saves on this iPad as you go`, `tap a bar, then a chord · Roll for a fresh ${tm('progression')}`, 'var(--rust)'));
   const holder = h('div', {style: 'display:flex;flex-direction:column;gap:14px'}); v.append(holder);
   const real = $('#topright'); VIEWS.write(holder);
 }});
