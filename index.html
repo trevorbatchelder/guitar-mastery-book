@@ -1192,7 +1192,7 @@ PAGES.push({id: 'barre', no: 'III', name: 'Barre Chords', blurb: 'moveable shape
   const cards = chords.map(c => chordCard(c, {color: 'var(--teal)'}));
   const rf = h('table', {class: 'cells'}); rf.style.setProperty('--c', 'var(--rust)');
   rf.append(h('tr', {}, h('th', {}), Array.from({length: 13}, (_, fr) => h('th', {}, fr ? String(fr) : 'open'))));
-  [[0, '6th string', 'var(--rust)'], [1, '5th string', 'var(--teal)']].forEach(([s, nm, c]) => rf.append(h('tr', {}, h('td', {class: 'k', style: `color:${c};font-size:13px;white-space:nowrap`}, nm),
+  [[0, '6th', 'var(--rust)'], [1, '5th', 'var(--teal)']].forEach(([s, nm, c]) => rf.append(h('tr', {}, h('td', {class: 'k', style: `color:${c};font-size:13px;white-space:nowrap`}, nm),
     Array.from({length: 13}, (_, fr) => { const pc = (OPEN_PC[s] + fr) % 12; return h('td', {style: SH[pc].length === 1 ? `background:${c};color:var(--onacc)` : 'color:var(--mute);font-weight:600'}, SH[pc]); }))));
   v.append(h('div', {class: 'body', style: 'grid-template-rows:auto auto'}, sec2(f.title, (moveable && st.move ? `slid up ${st.move} · ` : '') + f.mood, 'var(--teal)', h('div', {class: 'cgrid', style: `--n:${cols(chords.length)};--cw:170px`}, cards)),
     sec2('Find the root', 'E-shape: root on the 6th · A-shape: root on the 5th · count up to your key', 'var(--rust)', rf)));
@@ -1218,7 +1218,7 @@ PAGES.push({id: 'scales', no: 'IV', name: 'Scales & Modes', blurb: 'five positio
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
     seg('Position', [0, 1, 2, 3, 4].map(i => [i, String(i + 1)]), st.pos, x => set('pos', +x)),
     seg('Dots show', [['num', 'Order'], ['name', 'Notes'], ['deg', 'Degrees']], st.label, x => set('label', x))));
-  const big = h('div', {class: 'big', style: 'max-width:340px;width:100%'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
+  const big = h('div', {class: 'big', style: 'max-width:340px;width:100%;margin-inline:auto'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
   const thumbs = h('div', {class: 'thumbs'}, kd.boxes.map((b, i) => h('button', {class: 'thumb', 'aria-pressed': i === st.pos ? 'true' : 'false', 'aria-label': `position ${i + 1}`, on: {click: () => set('pos', i)}},
     h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
