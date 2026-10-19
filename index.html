@@ -201,6 +201,7 @@ textarea{width:100%;min-height:80px;border:1.5px solid var(--rule);border-radius
 .tile2 b{font-size:30px;font-weight:900;line-height:1}
 .pg{gap:14px}
 .hd2{display:flex;flex-direction:column;gap:6px}
+.hd2 .band{height:12px;opacity:.55}   /* inner pages: a quieter band than the cover's */
 .hrow{display:flex;align-items:flex-end;gap:14px;min-width:0}
 .hrow .no{font-family:var(--display);font-size:44px;line-height:.82;color:var(--acc);letter-spacing:.04em;flex:none}
 .hrow h1{flex:1;min-width:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,3.4vw,40px);line-height:.92;letter-spacing:.1em;text-transform:uppercase;margin:0;white-space:nowrap}
@@ -1266,7 +1267,7 @@ PAGES.push({id: 'righthand', no: 'V', name: 'The Right Hand', blurb: 'strumming 
     strumming ? '↓ down · ↑ up · <span style="color:var(--bad)">red</span> accent · ✕ muted chuck · <b>B</b> bass · <b>M</b> palm mute'
               : '<b style="color:var(--rust)">p</b> thumb · <b style="color:var(--navy)">i</b> index · <b style="color:var(--teal)">m</b> middle · <b style="color:var(--plum)">a</b> ring',
     strumming ? 'var(--rust)' : 'var(--plum)'));
-  const bar = h('div', {class: 'toolbar'}, seg('Hand', [['strum', 'Strumming'], ['finger', 'Fingerstyle']], ui.mode, x => { ui.mode = x; keep('righthand', ui); redraw(); }));
+  const bar = h('div', {class: 'toolbar'}, seg('Technique', [['strum', 'Strumming'], ['finger', 'Fingerstyle']], ui.mode, x => { ui.mode = x; keep('righthand', ui); redraw(); }));
   v.append(bar);
   if (strumming) {
   const st = state('rhythm', {set: 'Everyday', pat: 0, chord: 'G'});
@@ -1320,7 +1321,7 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
   v.append(header('VI', 'Writing <em>Music</em>',
     chordsMode ? `how ${tm('chord', 'chords')} are built and how they move` : `${tm('progression', 'progressions')} to borrow · song shapes · making it bigger`,
     chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
-  const bar = h('div', {class: 'toolbar'}, seg('Mode', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
+  const bar = h('div', {class: 'toolbar'}, seg('Working on', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
   v.append(bar);
   if (chordsMode) {
   const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major'});
@@ -1371,8 +1372,9 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
   const sv = () => keep('writing', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const groups = [...new Set(D.progs.map(p => p.group))], ps = D.progs.filter(p => p.group === st.group), P = ps[st.prog] || ps[0];
   bar.append(pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
-    pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)), pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x)),
-    pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x)));
+    pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)));
+  const strumPick = pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x));
+  const shapePick = pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x));
   const tonicOf = p => p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
   const list = h('div', {class: 'prog-list'}, ps.map((p, i) => h('button', {class: 'prog-item' + (i === st.prog ? ' on' : ''), on: {click: () => set('prog', i)}},
     h('div', {class: 'pl-top'}, h('b', {}, p.num), h('span', {}, p.toks.map(t => chordName(tonicOf(p), p.minor, t).name).join(' – '))),
@@ -1391,8 +1393,10 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
       sec2(st.group, 'tap one to open it', 'var(--navy)', list),
       sec2(`Melody in ${tn}`, 'land on the chord · pass through the rest', 'var(--teal)', mel)),
     h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'},
-      sec2(`${P.num} in ${tonicOf(P)}${P.minor ? ' minor' : ''}`, P.desc, 'var(--gold)', progView(P.toks, tonicOf(P), P.minor, D.strums[st.strum]),
-        h('div', {class: 'shape-row'}, h('span', {class: 'label'}, `Song shape · ${G.name}`), tl, h('span', {class: 'muted', style: 'font-size:12px;flex-basis:100%'}, G.desc + ' · numbers are bars'))))));
+      sec2(`${P.num} in ${tonicOf(P)}${P.minor ? ' minor' : ''}`, P.desc, 'var(--gold)',
+        h('div', {style: 'display:flex;justify-content:flex-end;margin-top:-2px'}, strumPick),
+        progView(P.toks, tonicOf(P), P.minor, D.strums[st.strum]),
+        h('div', {class: 'shape-row'}, shapePick, tl, h('span', {class: 'muted', style: 'font-size:12px;flex-basis:100%'}, G.desc + ' · numbers are bars'))))));
   }
 }});
 
@@ -1719,7 +1723,7 @@ function theoryView(v, topic, bar) {
     fretboard: () => { const out = [], used = new Set(); while (out.length < 5) { const s = Math.floor(Math.random() * 6), f = Math.floor(Math.random() * 8), pc = (OPEN_PC[s] + f) % 12; if (used.has(pc)) continue; used.add(pc); out.push([`${'EADGBe'[s]} string · fret ${f}`, SH[pc]]); } return out; },
   };
 
-  const body = h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'}); v.append(body);
+  const body = h('div', {style: 'min-height:min(72vh,600px);display:flex;flex-direction:column;justify-content:center;gap:14px'}); v.append(body);
 
   if (st.mode === 'drill') {
     const host = h('div', {}); body.append(sec2('Drill · ' + topicName, 'fast recall — the ones you miss come back sooner', 'var(--navy)', host));
