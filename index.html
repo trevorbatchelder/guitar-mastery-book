@@ -980,13 +980,36 @@ function openConcept(id) {
   const card = h('div', {class: 'cpop-card', role: 'dialog', 'aria-label': c.term, on: {click: e => e.stopPropagation()}},
     h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: closeConcept}}, '×'),
     h('h3', {}, c.term), h('p', {class: 'cpop-short'}, c.short),
-    c.more ? h('p', {class: 'cpop-more'}, c.more) : '',
+    c.more ? h('p', {class: 'cpop-more', html: glossify(c.more, id)}) : '',
     (c.see && c.see.length) ? h('div', {class: 'cpop-see'}, h('span', {class: 'muted', style: 'font-size:12px;letter-spacing:.08em;text-transform:uppercase'}, 'See also'),
       h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '');
   document.body.append(h('div', {id: 'cpop', on: {click: closeConcept}}, card));
 }
 addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-c]'); if (b) { e.preventDefault(); e.stopPropagation(); openConcept(b.getAttribute('data-c')); } }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape') closeConcept(); });
+
+/* glossify(text): auto-link the concept terms inside a sentence so facts and the glossary are one web.
+   Whole-word, longest phrase first ("circle of fifths" before "fifth"), first occurrence only, capped. */
+const TERM_LIST = (() => {
+  const strip = t => t.replace(/\s*\([^)]*\)\s*/g, '').trim().toLowerCase();
+  const map = {};
+  (D.concepts || []).forEach(c => { const base = strip(c.term); if (base && base !== 'natural') map[base] = c.id; });
+  Object.assign(map, {   // plurals and a few aliases the bare term name misses
+    'half step': 'half-step', 'whole step': 'whole-step', 'semitone': 'half-step', 'semitones': 'half-step',
+    'relative minor': 'relative-minor', 'circle of fifths': 'circle-of-fifths', 'key signature': 'key-signature', 'key signatures': 'key-signature',
+    'perfect fifth': 'fifth', 'major scale': 'major-scale', 'minor scale': 'minor-scale', 'time signature': 'time-signature',
+    'seventh chord': 'seventh-chord', 'seventh chords': 'seventh-chord', 'roman numerals': 'roman-numerals', 'major third': 'third', 'minor third': 'third', 'thirds': 'third',
+    'octaves': 'octave', 'intervals': 'interval', 'chords': 'chord', 'scales': 'scale', 'modes': 'mode', 'frets': 'fret', 'triads': 'triad',
+    'accidentals': 'accidental', 'keys': 'key', 'progressions': 'progression', 'tonics': 'tonic', 'roots': 'root', 'pentatonics': 'pentatonic', 'sharps': 'sharp', 'flats': 'flat',
+  });
+  return Object.keys(map).sort((a, b) => b.length - a.length).map(k => [k, map[k]]);
+})();
+const TERM_MAP = Object.fromEntries(TERM_LIST);
+const TERM_RE = new RegExp('\\b(' + TERM_LIST.map(([k]) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'gi');
+function glossify(text, skipId) {
+  const used = new Set(skipId ? [skipId] : []); let n = 0;
+  return text.replace(TERM_RE, m => { const id = TERM_MAP[m.toLowerCase()]; if (!id || used.has(id) || n >= 4) return m; used.add(id); n++; return tm(id, m); });
+}
 
 /* ================================================================ COVER: title, contents, and the reference shelf */
 PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
@@ -1614,7 +1637,7 @@ function indexView(v) {
     const name = (INDEX_SUBS.find(s => s[0] === ix.sub) || [])[1];
     const facts = (D.theory.facts || []).filter(f => f.tag === ix.sub);
     v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
-      sec2(name, 'the ideas behind the lessons · miss one in a drill and it sends you here', 'var(--navy)', h('div', {class: 'facts'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {}, f.b)))))));
+      sec2(name, 'the ideas behind the lessons · tap any term to open it', 'var(--navy)', h('div', {class: 'facts'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {html: glossify(f.b)})))))));
   }
 }
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
