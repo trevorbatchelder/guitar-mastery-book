@@ -811,7 +811,7 @@ function header(no, title, sub, key, acc) {
   const p = PAGES.find(q => q.no === no), run = no && chapters.length ? `${no} of ${chapters[chapters.length - 1].no}` : '';
   return h('header', {class: 'hd2'},
     h('div', {class: 'hrow'}, no && no !== '✎' ? h('div', {class: 'no'}, no) : '', h('h1', {html: title}),
-      h('div', {class: 'run'}, 'The Guide to Guitar Mastery', run && no !== '✎' ? h('b', {}, ' · ' + run) : '')),
+      run && no !== '✎' ? h('div', {class: 'run'}, h('b', {}, run)) : ''),
     h('div', {html: band()}),
     (sub || key) ? h('div', {class: 'meta'}, h('span', {class: 'sub', html: sub || ''}), h('span', {class: 'key', html: key || ''})) : '');
 }
@@ -1095,7 +1095,7 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
   if (!ROUTINE.some(r => r[0] === st.blk)) st.blk = 'changes';   // a stale saved block (e.g. the retired 'notes') falls back
   const sv = () => keep('practice', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const date = today(), hist = store.get('hist', {}), day = hist[date] || {};
-  v.append(header('I', 'Practice', '<b>30 min</b> · tune 2 · warm-up 3 · changes 5 · scales 5 · technique 5 · strum 2 · a song 8', 'pick a block and play it', 'var(--rust)'));
+  v.append(header('I', 'Practice', '<b>Thirty minutes</b> a day', 'pick a block, then play it', 'var(--rust)'));
   const list = h('ul', {class: 'rt', role: 'listbox', 'aria-label': 'routine'}, ROUTINE.map(([id, nm, m]) => h('li', {role: 'option', tabindex: 0, 'aria-selected': id === st.blk ? 'true' : 'false', class: day[id] ? 'done' : '', on: {click: () => set('blk', id)}},
     h('b', {}, String(m)), h('span', {}, nm), h('i', {}, day[id] || ''))));
   // Numbers to beat, but only the one that fits the block you're on, with your current standing
@@ -1199,7 +1199,7 @@ PAGES.push({id: 'chords', no: 'II', name: 'Open Chords', blurb: 'every shape in 
       h('div', {class: 'cgrid', style: `--n:${Math.max(6, same.length)};--cw:120px`}, same.map(x => chordCard(x, {color: 'var(--gold)'}))), h('p', {class: 'lede'}, nextTip(f.title)))); };
   const cards = f.chords.map(c => chordCard(c, {color: col, onplay: showColours, sub: st.capo ? `sounds as ${SH[(c.root + st.capo) % 12]}${c.name.replace(/^[A-G][♯♭]?/, '').replace(/\/.*/, '')}` : ''}));
   showColours(f.chords[0]);
-  v.append(h('div', {class: 'body', style: 'align-content:start'}, sec2(f.title, f.mood + ' · tap a chord to hear it and see its colours', col, h('div', {class: 'cgrid', style: `--n:${cols(f.chords.length)};--cw:190px`}, cards)), colours));
+  v.append(h('div', {class: 'body', style: 'align-content:start'}, sec2(f.title, f.mood + ' · tap a chord to hear it', col, h('div', {class: 'cgrid', style: `--n:${cols(f.chords.length)};--cw:190px`}, cards)), colours));
   setFocus({label: `cycle ${f.title.toLowerCase()} chords`, play: cycleChords(cards, f.chords)});
 }});
 function nextTip(t) { return ({'Major': 'Start here with Minor. Every song in the book uses these two families.', 'Minor': 'Pair each minor with its major: A ↔ Am, E ↔ Em, D ↔ Dm. One finger changes.',
@@ -1221,7 +1221,7 @@ PAGES.push({id: 'barre', no: 'III', name: 'Barre Chords', blurb: 'moveable shape
   [[0, '6th', 'var(--rust)'], [1, '5th', 'var(--teal)']].forEach(([s, nm, c]) => rf.append(h('tr', {}, h('td', {class: 'k', style: `color:${c};font-size:13px;white-space:nowrap`}, nm),
     Array.from({length: 13}, (_, fr) => { const pc = (OPEN_PC[s] + fr) % 12; return h('td', {style: SH[pc].length === 1 ? `background:${c};color:var(--onacc)` : 'color:var(--mute);font-weight:600'}, SH[pc]); }))));
   v.append(h('div', {class: 'body', style: 'grid-template-rows:auto auto'}, sec2(f.title, (moveable && st.move ? `slid up ${st.move} · ` : '') + f.mood, 'var(--teal)', h('div', {class: 'cgrid', style: `--n:${cols(chords.length)};--cw:170px`}, cards)),
-    sec2('Find the root', 'E-shape: root on the 6th · A-shape: root on the 5th · count up to your key', 'var(--rust)', rf)));
+    sec2('Find the root', 'count up to your key · E-shape on the 6th, A-shape on the 5th', 'var(--rust)', rf)));
   setFocus({label: `cycle the ${f.title}`, play: cycleChords(cards, chords)});
 }});
 function slide(c, d) {   // move a closed shape up d frets; names re-spelled, and the notes re-checked against the original quality
@@ -1250,7 +1250,7 @@ PAGES.push({id: 'scales', no: 'IV', name: 'Scales & Modes', blurb: 'five positio
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.88fr) minmax(0,1.8fr);grid-template-rows:auto 1fr;align-items:start'},
     sec2(`${scale.name} in ${kd.key}`, `position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
-    sec2('All five positions', 'same labels as the big box · tap one to open it · each box repeats 12 frets up', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
+    sec2('All five positions', 'tap one to open it', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
   const run = box.run.map(([s, f]) => [s, f]), seq = run.concat(run.slice(0, -1).reverse());
   setFocus({label: `${scale.name} in ${kd.key}, position ${st.pos + 1}, up and back`, play: (bpm, onStop, onBeat) => { const step = 60 / bpm / 2;
     Seq.run(seq.map(([s, f], k) => ({at: k * step, fn: t => { playMidi(OPEN_MIDI[s] + f, t, {kind: 'note', gain: .4, dur: step * 1.6}); if (k % 2 === 0) click(t, k === 0); },
@@ -1266,14 +1266,15 @@ PAGES.push({id: 'righthand', no: 'V', name: 'The Right Hand', blurb: 'strumming 
     strumming ? '↓ down · ↑ up · <span style="color:var(--bad)">red</span> accent · ✕ muted chuck · <b>B</b> bass · <b>M</b> palm mute'
               : '<b style="color:var(--rust)">p</b> thumb · <b style="color:var(--navy)">i</b> index · <b style="color:var(--teal)">m</b> middle · <b style="color:var(--plum)">a</b> ring',
     strumming ? 'var(--rust)' : 'var(--plum)'));
-  v.append(h('div', {class: 'toolbar'}, seg('Hand', [['strum', 'Strumming'], ['finger', 'Fingerstyle']], ui.mode, x => { ui.mode = x; keep('righthand', ui); redraw(); })));
+  const bar = h('div', {class: 'toolbar'}, seg('Hand', [['strum', 'Strumming'], ['finger', 'Fingerstyle']], ui.mode, x => { ui.mode = x; keep('righthand', ui); redraw(); }));
+  v.append(bar);
   if (strumming) {
   const st = state('rhythm', {set: 'Everyday', pat: 0, chord: 'G'});
   const sets = [...new Set(D.strums.map(s => s.set))], pats = D.strums.filter(s => s.set === st.set), P = pats[st.pat] || pats[0];
   const chordOpts = ['G', 'C', 'D', 'Em', 'Am', 'E', 'A', 'F', 'Dm'];
-  v.append(h('div', {class: 'toolbar'}, pick('Set', sets.map(s => [s, s]), st.set, x => { st.set = x; st.pat = 0; keep('rhythm', st); redraw(); }),
+  bar.append(pick('Set', sets.map(s => [s, s]), st.set, x => { st.set = x; st.pat = 0; keep('rhythm', st); redraw(); }),
     pick('Pattern', pats.map((p, i) => [i, `${p.name} · ${p.desc}`]), st.pat, x => { st.pat = +x; keep('rhythm', st); redraw(); }),
-    pick('Strum it on', chordOpts.map(c => [c, c]), st.chord, x => { st.chord = x; keep('rhythm', st); redraw(); })));
+    pick('Strum it on', chordOpts.map(c => [c, c]), st.chord, x => { st.chord = x; keep('rhythm', st); redraw(); }));
   const pat = Array.isArray(P.pat) ? P.pat : P.pat.split(''), n = pat.length;
   const SYM = {D: '↓', U: '↑', X: '↓', x: '✕', M: 'M', B: 'B', '-': ''};
   const grid = h('div', {class: 'sgrid', style: `--n:${n}`}, P.count.map(c => h('div', {class: 'ct' + (/^\d+$/.test(c) ? ' b' : '')}, c)),
@@ -1295,8 +1296,8 @@ PAGES.push({id: 'righthand', no: 'V', name: 'The Right Hand', blurb: 'strumming 
   } else {
   const st = state('finger', {set: 0, pat: 0});
   const S = D.finger[st.set], P = S.patterns[st.pat] || S.patterns[0];
-  v.append(h('div', {class: 'toolbar'}, pick('Set', D.finger.map((f, i) => [i, f.title]), st.set, x => { st.set = +x; st.pat = 0; keep('finger', st); redraw(); }),
-    pick(S.song ? 'Chord' : 'Pattern', S.patterns.map((p, i) => [i, `${p.name} · ${p.desc}`]), st.pat, x => { st.pat = +x; keep('finger', st); redraw(); })));
+  bar.append(pick('Set', D.finger.map((f, i) => [i, f.title]), st.set, x => { st.set = +x; st.pat = 0; keep('finger', st); redraw(); }),
+    pick(S.song ? 'Chord' : 'Pattern', S.patterns.map((p, i) => [i, `${p.name} · ${p.desc}`]), st.pat, x => { st.pat = +x; keep('finger', st); redraw(); }));
   const tab = h('div', {class: 'scroll'}); const draw = lit => tab.innerHTML = tabSVG2(P.steps, {lit, scale: 1.75}); draw(-1);
   const cname = S.song ? P.name : P.desc.split(' · ')[0], known = shapeByName(cname);
   const ch = {frets: P.chord, fingers: known && known.frets.join() === P.chord.join() ? known.fingers : [], name: cname};
@@ -1319,12 +1320,14 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
   v.append(header('VI', 'Writing <em>Music</em>',
     chordsMode ? `how ${tm('chord', 'chords')} are built and how they move` : `${tm('progression', 'progressions')} to borrow · song shapes · making it bigger`,
     chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
-  v.append(h('div', {class: 'toolbar'}, seg('Mode', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); })));
+  const bar = h('div', {class: 'toolbar'}, seg('Mode', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
+  v.append(bar);
   if (chordsMode) {
   const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major'});
   const sv = () => keep('harmony', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const topics = [['build', 'Build any chord'], ['sev', 'Seventh chords in a key'], ['minor', 'Writing in minor'], ...Object.keys(D.harm.moves).map(k => [k, k]), ['voice', 'Voice leading'], ['edit', 'Edit a barre shape']];
-  const tools = h('div', {class: 'toolbar'}, pick('Topic', topics, st.topic, x => set('topic', x)));
+  bar.append(pick('Topic', topics, st.topic, x => set('topic', x)));
+  const tools = bar;
   const body = h('div', {class: 'body', style: 'align-content:start'});
   const tonic = D.majKeys[st.key];
   if (st.topic === 'build') {
@@ -1362,14 +1365,14 @@ PAGES.push({id: 'writing', no: 'VI', name: 'Writing Music', blurb: 'chords, prog
     body.append(sec2(st.topic === 'voice' ? 'Voice leading' : 'Edit a barre shape', st.topic === 'voice' ? 'move each note the shortest way' : 'E- or A-shape · one finger moves, the chord changes', 'var(--gold)',
       h('table', {class: 't', style: '--c:var(--gold)'}, rows.map(([a, b]) => h('tr', {}, h('td', {class: 'l', style: 'font-size:20px'}, a), h('td', {style: 'font-size:18px'}, b))))));
   }
-  v.append(tools, body);
+  v.append(body);
   } else {
   const st = state('writing', {group: 'Pop & Rock', key: 0, prog: 0, strum: 2, shape: 0});
   const sv = () => keep('writing', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const groups = [...new Set(D.progs.map(p => p.group))], ps = D.progs.filter(p => p.group === st.group), P = ps[st.prog] || ps[0];
-  v.append(h('div', {class: 'toolbar'}, pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
+  bar.append(pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
     pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)), pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x)),
-    pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x))));
+    pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x)));
   const tonicOf = p => p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
   const list = h('div', {class: 'prog-list'}, ps.map((p, i) => h('button', {class: 'prog-item' + (i === st.prog ? ' on' : ''), on: {click: () => set('prog', i)}},
     h('div', {class: 'pl-top'}, h('b', {}, p.num), h('span', {}, p.toks.map(t => chordName(tonicOf(p), p.minor, t).name).join(' – '))),
@@ -1530,11 +1533,12 @@ function gNeck(onTap, opts = {}) {
     ...rows.flatMap(s => [h('div', {style: 'font-weight:800;font-size:13px;color:var(--mute);padding-right:6px'}, names[s]), ...[0, 1, 2, 3, 4].map(f => cell(s, f))]));
 }
 // Reading Music — the Tab-to-Staff lessons and games, now a topic inside the Learn hub
-function readingView(v) {
+function readingView(v, bar) {
   const st = state('staff', {mode: 'learn', lesson: 0, lay: {tab: 1, rhythm: 0, names: 0, staff: 1, bars: 0, key: 1}});
   st.lay = Object.assign({tab: 1, rhythm: 0, names: 0, staff: 1, bars: 0, key: 1}, st.lay); st.lay.tab = 1; if (!st.mode) st.mode = 'learn';
   const sv = () => keep('staff', st);
-  v.append(h('div', {class: 'toolbar'}, seg('Mode', STAFF_MODES, st.mode, m => { st.mode = m; sv(); redraw(); })));
+  const modePick = seg('Mode', STAFF_MODES, st.mode, m => { st.mode = m; sv(); redraw(); });
+  if (bar) bar.append(modePick); else v.append(h('div', {class: 'toolbar'}, modePick));
   if (st.mode === 'learn') drawLearn(); else drawGames(st.mode);
 
   function drawLearn() {
@@ -1642,13 +1646,14 @@ function indexView(v) {
 }
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 const sample = (a, n) => shuffle(a).slice(0, n);
-function theoryView(v, topic) {
+function theoryView(v, topic, bar) {
   const st = state('theory', {mode: 'drill'}); st.topic = topic;   // the topic is chosen in the Learn hub
   if (st.mode === 'facts') st.mode = 'drill';                       // Facts moved to the Index; default to a lesson
   const sv = () => keep('theory', st);
   const COF = D.cof, IV = D.intervals, KEYS = D.majKeys, SCL = D.scales, PAL = D.palette.major.slice(0, 7), CAPO = D.capo, SHAPES = Object.keys(D.capo);
   const topicName = (THEORY_TOPICS.find(t => t[0] === st.topic) || THEORY_TOPICS[0])[1];
-  v.append(h('div', {class: 'toolbar'}, h('label', {class: 'pick'}, h('span', {}, 'Lessons'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }))));
+  const lessons = h('label', {class: 'pick'}, h('span', {}, 'Lessons'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }));
+  if (bar) bar.append(lessons); else v.append(h('div', {class: 'toolbar'}, lessons));
 
   // when a lesson is missed, point at the concept that teaches it
   const TOPIC_CONCEPT = {cof: 'circle-of-fifths', intervals: 'interval', key: 'roman-numerals', scales: 'scale', capo: 'capo', fretboard: 'fret'};
@@ -1842,10 +1847,11 @@ const CONNECT_HINT = {cof: 'tap the key the question asks for', intervals: 'list
 PAGES.push({id: 'learn', no: '◎', name: 'Learn', blurb: 'lessons, games and the index', acc: 'var(--navy)', draw(v) {
   const L = state('learn', {topic: 'reading', index: false});
   v.append(header('', 'Learn', 'play with the ideas, then look anything up', 'reading music · theory lessons · the index of every idea', 'var(--navy)'));
-  v.append(h('div', {class: 'toolbar'},
+  const bar = h('div', {class: 'toolbar'},
     pick('Topic', [['reading', 'Reading Music'], ...THEORY_TOPICS], L.topic, x => { L.index = false; L.topic = x; keep('learn', L); redraw(); }, 'learntopic'),
-    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index'))));
-  if (L.index) indexView(v); else if (L.topic === 'reading') readingView(v); else theoryView(v, L.topic);
+    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index')));
+  v.append(bar);
+  if (L.index) indexView(v); else if (L.topic === 'reading') readingView(v, bar); else theoryView(v, L.topic, bar);
 }});
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
