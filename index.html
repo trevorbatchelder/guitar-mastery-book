@@ -316,6 +316,9 @@ table.t td.l{font-weight:800}
 .gloss-row:hover{border-color:var(--rust)}
 .gloss-row b{font-size:15px;color:var(--rust)}
 .gloss-row span{font-size:12.5px;color:var(--ink2);line-height:1.35}
+.btn.match{width:100%;text-align:left;min-height:46px}
+.btn.match.sel{outline:2.5px solid var(--gold);outline-offset:1px}
+.btn.match.matched{background:var(--sage);color:var(--onacc);border-color:var(--sage)}
 .wheel{position:relative;width:300px;height:300px;margin:4px auto;max-width:100%}
 .wheel .ring{position:absolute;inset:14px;border-radius:50%;border:1.5px dashed var(--rule)}
 </style>
@@ -1595,32 +1598,38 @@ function readingView(v) {
 }
 
 /* ================================================================ THEORY LAB (learn and drill the concepts, now a topic inside the Learn hub) */
-const THEORY_MODES = [['facts', 'Facts'], ['drill', 'Drill'], ['connect', 'Connect']];
-const THEORY_TOPICS = [['concepts', 'The Index'], ['cof', 'Circle of Fifths'], ['intervals', 'Intervals'], ['key', 'Chords in a Key'], ['scales', 'Scales & Modes'], ['capo', 'The Capo'], ['fretboard', 'The Fretboard']];
-// the glossary browser: the whole concept index, scannable, every row a door into its popover
-function conceptIndexView(v) {
+const THEORY_MODES = [['drill', 'Drill'], ['connect', 'Connect'], ['match', 'Match-up']];   // the "Lessons" — Facts moved to the Index
+const THEORY_TOPICS = [['cof', 'Circle of Fifths'], ['intervals', 'Intervals'], ['key', 'Chords in a Key'], ['scales', 'Scales & Modes'], ['capo', 'The Capo'], ['fretboard', 'The Fretboard']];
+const INDEX_SUBS = [['glossary', 'The Basics'], ['cof', 'Circle of Fifths'], ['intervals', 'Intervals'], ['key', 'Chords in a Key'], ['scales', 'Scales & Modes'], ['capo', 'The Capo'], ['fretboard', 'The Fretboard']];
+// The Index: all the knowledge in one place — the A–Z glossary ("The Basics") plus the facts behind every topic.
+function indexView(v) {
   pageScroll = true;
-  const rows = (D.concepts || []).map(c => h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short)));
-  v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
-    sec2('The Index', 'every term the pages assume you know · tap one to open it, then follow “see also”', 'var(--navy)', h('div', {class: 'gloss'}, rows))));
+  const ix = state('index', {sub: 'glossary'});
+  v.append(h('div', {class: 'toolbar'}, pick('In the index', INDEX_SUBS, ix.sub, x => { ix.sub = x; keep('index', ix); redraw(); }, 'indexsub')));
+  if (ix.sub === 'glossary') {
+    const rows = (D.concepts || []).map(c => h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short)));
+    v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
+      sec2('The Basics', 'every term the pages assume you know · tap one to open it, then follow “see also”', 'var(--navy)', h('div', {class: 'gloss'}, rows))));
+  } else {
+    const name = (INDEX_SUBS.find(s => s[0] === ix.sub) || [])[1];
+    const facts = (D.theory.facts || []).filter(f => f.tag === ix.sub);
+    v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
+      sec2(name, 'the ideas behind the lessons · miss one in a drill and it sends you here', 'var(--navy)', h('div', {class: 'facts'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {}, f.b)))))));
+  }
 }
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 const sample = (a, n) => shuffle(a).slice(0, n);
 function theoryView(v, topic) {
-  const st = state('theory', {mode: 'facts'}); st.topic = topic;   // the topic is chosen in the Learn hub
+  const st = state('theory', {mode: 'drill'}); st.topic = topic;   // the topic is chosen in the Learn hub
+  if (st.mode === 'facts') st.mode = 'drill';                       // Facts moved to the Index; default to a lesson
   const sv = () => keep('theory', st);
   const COF = D.cof, IV = D.intervals, KEYS = D.majKeys, SCL = D.scales, PAL = D.palette.major.slice(0, 7), CAPO = D.capo, SHAPES = Object.keys(D.capo);
   const topicName = (THEORY_TOPICS.find(t => t[0] === st.topic) || THEORY_TOPICS[0])[1];
-  if (st.topic === 'concepts') { conceptIndexView(v); return; }   // the Index is a glossary, not a facts/drill/connect topic
-  v.append(h('div', {class: 'toolbar'}, h('label', {class: 'pick'}, h('span', {}, 'Mode'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }))));
+  v.append(h('div', {class: 'toolbar'}, h('label', {class: 'pick'}, h('span', {}, 'Lessons'), seg('', THEORY_MODES, st.mode, m => { st.mode = m; sv(); redraw(); }))));
 
-  if (st.mode === 'facts') {
-    pageScroll = true;   // the facts feed scrolls; the games fit the screen
-    const facts = (D.theory.facts || []).filter(f => f.tag === st.topic);
-    v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
-      sec2('Facts · ' + topicName, 'scroll through · a few a day sticks', 'var(--navy)', h('div', {class: 'facts'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {}, f.b)))))));
-    return;
-  }
+  // when a lesson is missed, point at the concept that teaches it
+  const TOPIC_CONCEPT = {cof: 'circle-of-fifths', intervals: 'interval', key: 'roman-numerals', scales: 'scale', capo: 'capo', fretboard: 'fret'};
+  const whyLink = ok => ok ? '' : ` &nbsp;${tm(TOPIC_CONCEPT[st.topic] || 'note', 'why?')}`;
 
   // shared spaced-repetition score, keyed per topic
   const SBOX = () => store.get('theory.box', {}), sSave = b => store.set('theory.box', b);
@@ -1644,7 +1653,7 @@ function theoryView(v, topic) {
       fb.textContent = ''; };
     const answer = (o, a) => { if (answered) return; answered = true; const ok = String(o) === String(a); grade(target, ok); streak = ok ? streak + 1 : 0; upd();
       fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
-      fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`}, ok ? 'Right.' : `Not quite — the answer is ${a}.`), h('button', {class: 'btn', style: 'margin-left:16px', on: {click: ask}}, 'Next')); };
+      fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`, html: (ok ? 'Right.' : `Not quite — the answer is <b>${a}</b>.`) + whyLink(ok)}), h('button', {class: 'btn', style: 'margin-left:16px', on: {click: ask}}, 'Next')); };
     ask();
   }
 
@@ -1672,6 +1681,16 @@ function theoryView(v, topic) {
       return {q: `What note is at string ${'EADGBe'[s]}, fret ${f}?`, a: note, opts: shuffle([note, ...sample(SH.filter(x => x !== note), 3)])}; }],
   };
 
+  // Match-up pairs per topic — each left item has exactly one right match, answers kept distinct so pairing is unambiguous
+  const MATCH = {
+    cof: () => sample(COF.map((_, i) => i), 5).map(i => [`${COF[i][0]} major`, COF[i][2]]),
+    intervals: () => sample(IV.map((_, i) => i), 5).map(i => [IV[i][1], `${IV[i][0]} semitone${IV[i][0] > 1 ? 's' : ''}`]),
+    key: () => { const tonic = KEYS[Math.floor(Math.random() * 12)]; return sample(PAL.map((_, i) => i), 5).map(d => [`${roman(PAL[d], false)} in ${tonic}`, chordName(tonic, false, PAL[d]).name]); },
+    scales: () => sample(SCL.map((_, i) => i), Math.min(5, SCL.length)).map(i => [SCL[i].name, SCL[i].mood]),
+    capo: () => sample(SHAPES.map((_, i) => i), Math.min(5, SHAPES.length)).map(i => [`${SHAPES[i]} shape · capo 2`, CAPO[SHAPES[i]][2]]),
+    fretboard: () => { const out = [], used = new Set(); while (out.length < 5) { const s = Math.floor(Math.random() * 6), f = Math.floor(Math.random() * 8), pc = (OPEN_PC[s] + f) % 12; if (used.has(pc)) continue; used.add(pc); out.push([`${'EADGBe'[s]} string · fret ${f}`, SH[pc]]); } return out; },
+  };
+
   const body = h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'}); v.append(body);
 
   if (st.mode === 'drill') {
@@ -1680,11 +1699,35 @@ function theoryView(v, topic) {
     return;
   }
 
+  const bump = ok => { streak = ok ? streak + 1 : 0; score.textContent = `Streak ${streak}`; };
+  const flash = (el, ok) => { el.classList.remove('gm-right', 'gm-wrong'); void el.offsetWidth; el.classList.add(ok ? 'gm-right' : 'gm-wrong'); };
+
+  if (st.mode === 'match') {
+    const host = h('div', {}); body.append(sec2('Match-up · ' + topicName, 'tap one on the left, then its match on the right', 'var(--navy)', score, host));
+    score.textContent = `Streak ${streak}`;
+    const board = h('div', {style: 'display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;align-items:start'}), fb = h('div', {style: 'min-height:40px;margin-top:14px;font-weight:800'});
+    host.append(board, fb);
+    let sel = null, left = 0;
+    const mk = (txt, i, side) => h('button', {class: 'btn match', on: {click(e) { pick(e.currentTarget, i, side); }}}, txt);
+    const deal = () => { const pairs = MATCH[st.topic](); left = pairs.length; sel = null; fb.textContent = '';
+      board.replaceChildren(
+        h('div', {style: 'display:flex;flex-direction:column;gap:8px'}, ...pairs.map((p, i) => mk(p[0], i, 'L'))),
+        h('div', {style: 'display:flex;flex-direction:column;gap:8px'}, ...shuffle(pairs.map((p, i) => [p[1], i])).map(([t, i]) => mk(t, i, 'R')))); };
+    function pick(btn, i, side) { if (btn.disabled) return;
+      if (!sel) { sel = {btn, i, side}; btn.classList.add('sel'); return; }
+      if (sel.side === side) { sel.btn.classList.remove('sel'); sel = {btn, i, side}; btn.classList.add('sel'); return; }
+      const ok = sel.i === i;
+      if (ok) { [sel.btn, btn].forEach(el => { el.classList.remove('sel'); el.classList.add('matched'); el.disabled = true; }); bump(true); fb.textContent = '';
+        if (--left === 0) { flash(fb, true); fb.replaceChildren(h('span', {style: 'color:var(--sage)'}, 'All matched.'), h('button', {class: 'btn', style: 'margin-left:14px', on: {click: deal}}, 'Next set')); } }
+      else { flash(sel.btn, false); flash(btn, false); bump(false); sel.btn.classList.remove('sel'); fb.replaceChildren(h('span', {style: 'color:var(--rust)', html: 'Not a pair.' + whyLink(false)})); }
+      sel = null; }
+    deal();
+    return;
+  }
+
   // ---- Connect: a bespoke "see how it fits" game per topic ----
   const host = h('div', {}); body.append(sec2('Connect · ' + topicName, CONNECT_HINT[st.topic], 'var(--navy)', score, host));
   score.textContent = `Streak ${streak}`;
-  const bump = ok => { streak = ok ? streak + 1 : 0; score.textContent = `Streak ${streak}`; };
-  const flash = (el, ok) => { el.classList.remove('gm-right', 'gm-wrong'); void el.offsetWidth; el.classList.add(ok ? 'gm-right' : 'gm-wrong'); };
 
   if (st.topic === 'cof') {
     const info = h('div', {class: 'muted', style: 'font-weight:800;text-align:center;margin-bottom:6px;min-height:1.3em'});
@@ -1773,11 +1816,13 @@ function theoryView(v, topic) {
 }
 const CONNECT_HINT = {cof: 'tap the key the question asks for', intervals: 'listen, then name what you hear', key: 'tap the chord the question asks for', scales: 'build the scale by tapping its notes', capo: 'tap where the capo goes', fretboard: 'find every one of the note'};
 // the Learn hub: Reading Music plus the six theory topics, all in one place
-PAGES.push({id: 'learn', no: '◎', name: 'Learn', blurb: 'lessons, drills and games', acc: 'var(--navy)', draw(v) {
-  const L = state('learn', {topic: 'reading'});
-  v.append(header('', 'Learn', 'read music, drill the theory, and play with the ideas', 'reading · facts · recall · games that connect it', 'var(--navy)'));
-  v.append(h('div', {class: 'toolbar'}, pick('Topic', [['reading', 'Reading Music'], ...THEORY_TOPICS], L.topic, x => { L.topic = x; keep('learn', L); redraw(); }, 'learntopic')));
-  if (L.topic === 'reading') readingView(v); else theoryView(v, L.topic);
+PAGES.push({id: 'learn', no: '◎', name: 'Learn', blurb: 'lessons, games and the index', acc: 'var(--navy)', draw(v) {
+  const L = state('learn', {topic: 'reading', index: false});
+  v.append(header('', 'Learn', 'play with the ideas, then look anything up', 'reading music · theory lessons · the index of every idea', 'var(--navy)'));
+  v.append(h('div', {class: 'toolbar'},
+    pick('Topic', [['reading', 'Reading Music'], ...THEORY_TOPICS], L.topic, x => { L.index = false; L.topic = x; keep('learn', L); redraw(); }, 'learntopic'),
+    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index'))));
+  if (L.index) indexView(v); else if (L.topic === 'reading') readingView(v); else theoryView(v, L.topic);
 }});
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
