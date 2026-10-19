@@ -311,6 +311,7 @@ table.t td.l{font-weight:800}
 .cpop-more{margin:0 0 14px;font-size:14px;line-height:1.5;color:var(--ink2)}
 .cpop-see{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-top:1px solid var(--rule);padding-top:12px}
 .cpop-see>div{display:flex;flex-wrap:wrap;gap:6px 14px}
+.cpop-go{margin-top:16px}
 .cpop-x{position:absolute;top:10px;right:14px;appearance:none;border:0;background:none;font-size:26px;line-height:1;color:var(--mute);cursor:pointer}
 .gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:8px}
 .gloss-row{text-align:left;appearance:none;border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:9px 13px;cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit;color:inherit}
@@ -975,15 +976,32 @@ function sec2(title, small, color, ...kids) { return h('section', {class: 'sec',
 const CMAP = Object.fromEntries((D.concepts || []).map(c => [c.id, c]));
 function tm(id, label) { const c = CMAP[id]; return `<button type="button" class="term" data-c="${id}">${label || (c ? c.term : id)}</button>`; }
 function closeConcept() { const e = $('#cpop'); if (e) e.remove(); }
+// where a concept sends you to actually use it: ['drill', <theory topic>] trains it, ['page', <page id>] opens the page
+const CONCEPT_GOTO = {
+  'circle-of-fifths': ['drill', 'cof', 'Drill the circle'], 'relative-minor': ['drill', 'cof', 'Drill the circle'], 'key-signature': ['drill', 'cof', 'Drill the keys'], 'key': ['drill', 'cof', 'Drill the keys'],
+  'interval': ['drill', 'intervals', 'Train your ear'], 'third': ['drill', 'intervals', 'Train your ear'], 'fifth': ['drill', 'intervals', 'Train your ear'], 'tritone': ['drill', 'intervals', 'Train your ear'], 'octave': ['drill', 'intervals', 'Train your ear'], 'half-step': ['drill', 'intervals', 'Train your ear'],
+  'fret': ['drill', 'fretboard', 'Find it on the neck'], 'note': ['drill', 'fretboard', 'Find it on the neck'],
+  'capo': ['drill', 'capo', 'Drill the capo'], 'roman-numerals': ['drill', 'key', 'Drill chords in a key'], 'tonic': ['drill', 'key', 'Drill chords in a key'],
+  'scale': ['page', 'scales', 'Open Scales & Modes'], 'major-scale': ['page', 'scales', 'Open Scales & Modes'], 'minor-scale': ['page', 'scales', 'Open Scales & Modes'], 'pentatonic': ['page', 'scales', 'Open Scales & Modes'], 'mode': ['page', 'scales', 'Open Scales & Modes'],
+  'chord': ['page', 'chords', 'Open the chord library'], 'triad': ['page', 'chords', 'Open the chord library'], 'major-chord': ['page', 'chords', 'Open the chord library'], 'minor-chord': ['page', 'chords', 'Open the chord library'], 'diminished': ['page', 'chords', 'Open the chord library'], 'seventh-chord': ['page', 'chords', 'Open the chord library'],
+  'progression': ['page', 'writing', 'Open Writing Music'], 'tab': ['page', 'learn', 'Read music in Learn'], 'staff': ['page', 'learn', 'Read music in Learn'], 'time-signature': ['page', 'learn', 'Read music in Learn'],
+};
+function conceptGoto(g) {
+  const learnIdx = PAGES.findIndex(p => p.id === 'learn');
+  if (g[0] === 'drill') { const L = state('learn', {}); L.index = false; L.topic = g[1]; keep('learn', L); const t = state('theory', {}); t.mode = 'drill'; keep('theory', t); page(learnIdx); }
+  else { if (g[1] === 'learn') { const L = state('learn', {}); L.index = false; L.topic = 'reading'; keep('learn', L); } page(PAGES.findIndex(p => p.id === g[1])); }
+}
 function openConcept(id) {
   const c = CMAP[id]; if (!c) return;
   closeConcept();
+  const g = CONCEPT_GOTO[id];
   const card = h('div', {class: 'cpop-card', role: 'dialog', 'aria-label': c.term, on: {click: e => e.stopPropagation()}},
     h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: closeConcept}}, '×'),
     h('h3', {}, c.term), h('p', {class: 'cpop-short'}, c.short),
     c.more ? h('p', {class: 'cpop-more', html: glossify(c.more, id)}) : '',
     (c.see && c.see.length) ? h('div', {class: 'cpop-see'}, h('span', {class: 'muted', style: 'font-size:12px;letter-spacing:.08em;text-transform:uppercase'}, 'See also'),
-      h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '');
+      h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '',
+    g ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
   document.body.append(h('div', {id: 'cpop', on: {click: closeConcept}}, card));
 }
 addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-c]'); if (b) { e.preventDefault(); e.stopPropagation(); openConcept(b.getAttribute('data-c')); } }, true);
