@@ -1732,9 +1732,11 @@ function theoryView(v, topic, bar) {
       if (Math.random() < .5) { const q = tok[2] === '' ? 'major' : tok[2] === 'm' ? 'minor' : 'diminished'; return {q: `In a major key, the ${rn} chord is…?`, a: q, opts: ['major', 'minor', 'diminished']}; }
       const others = sample(PAL.filter((_, j) => j !== deg).map(t => chordName(tonic, false, t).name), 3);
       return {q: `In ${tonic} major, the ${rn} chord is…?`, a: c, opts: shuffle([c, ...others])}; }],
-    scales: [SCL.length, 'scales', i => { const s = SCL[i], t = Math.floor(Math.random() * 3);
+    scales: [SCL.length, 'scales', i => { const s = SCL[i], t = Math.floor(Math.random() * 4);
       if (t === 0) return {q: `Does the ${s.name} have a major or minor 3rd?`, a: s.steps.includes(4) ? 'major' : 'minor', opts: ['major', 'minor']};
       if (t === 1) return {q: `Does the ${s.name} have a natural 7 or a ♭7?`, a: s.steps.includes(11) ? 'natural 7' : '♭7', opts: ['natural 7', '♭7']};
+      if (t === 2) { const k = Math.floor(Math.random() * 12), kd = keyData(s, k), pos = Math.floor(Math.random() * kd.boxes.length), box = kd.boxes[pos];   // where each position sits, key by key
+        return {q: `In ${kd.key}, where on the neck is position ${pos + 1} of the ${s.name}?`, a: `frets ${box.lo}–${box.hi}`, opts: shuffle([...new Set(kd.boxes.map(b => `frets ${b.lo}–${b.hi}`))])}; }
       return {q: `Which scale is "${s.mood}"?`, a: s.name, opts: shuffle([s.name, ...sample(SCL.filter((_, j) => j !== i), 3).map(x => x.name)])}; }],
     capo: [SHAPES.length, 'shapes', si => { const sh = SHAPES[si], row = CAPO[sh], f = 1 + Math.floor(Math.random() * 7), key = row[f];
       return {q: `A ${sh} shape with the capo at fret ${f} sounds in…?`, a: key, opts: shuffle([key, ...sample([...new Set([].concat(...SHAPES.map(s => CAPO[s])).filter(k => k !== key))], 3)])}; }],
