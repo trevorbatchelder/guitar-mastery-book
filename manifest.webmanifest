@@ -1,8 +1,16 @@
 {
  "name": "The Guide to Guitar Mastery",
  "short_name": "Guitar Mastery",
+ "id": ".",
  "start_url": ".",
+ "lang": "en",
+ "description": "An interactive guitar method \u2014 chords, scales, rhythm, theory and songwriting you can hear and practise.",
  "display": "standalone",
+ "orientation": "any",
+ "categories": [
+  "education",
+  "music"
+ ],
  "background_color": "#f6efe0",
  "theme_color": "#f6efe0",
  "icons": [
@@ -15,6 +23,21 @@
    "src": "icon-512.png",
    "sizes": "512x512",
    "type": "image/png"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "Learn",
+   "url": "./#learn"
+  },
+  {
+   "name": "Practice",
+   "url": "./#practice"
+  },
+  {
+   "name": "Song Sketchpad",
+   "short_name": "Sketchpad",
+   "url": "./#sketch"
   }
  ]
 }
