@@ -803,7 +803,8 @@ let pageScroll = false;            // a page's draw sets this true to scroll ins
 // two paired themes — Sun (day, default) and Moon (night) — switched by the cover icons or the clock
 function autoTheme() { const hh = new Date().getHours(); return (hh >= 20 || hh < 6) ? 'moon' : 'sun'; }
 function resolveTheme() { const o = store.get('theme', 'auto'); return o === 'auto' ? autoTheme() : o; }
-function applyTheme() { if (resolveTheme() === 'moon') document.documentElement.setAttribute('data-theme', 'moon'); else document.documentElement.removeAttribute('data-theme'); }
+function applyTheme() { if (resolveTheme() === 'moon') document.documentElement.setAttribute('data-theme', 'moon'); else document.documentElement.removeAttribute('data-theme');
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f0e3c4'); }
 function setTheme(c) { store.set('theme', c); applyTheme(); redraw(); }
 applyTheme();
 const view = () => $('#pg');
@@ -838,7 +839,11 @@ function page(i, back = false) {
   pageScroll = false; p.draw(v); $('#page').scrollTop = 0; drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
-const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; pageScroll = false; v.innerHTML = ''; PAGES[at].draw(v); fr.scrollTop = y; drawBar(); fitSoon(); };
+const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; pageScroll = false; v.innerHTML = '';
+  try { PAGES[at].draw(v); } catch (err) { console.error('page draw failed', PAGES[at] && PAGES[at].id, err);   // one bad page shouldn't blank the whole app
+    v.append(h('div', {style: 'padding:40px 8px;max-width:60ch'}, h('h2', {class: 'lede', style: 'font-weight:800;font-size:18px;color:var(--rust)'}, 'This page hit a snag.'),
+      h('p', {class: 'lede'}, 'Swipe or use the arrows to move on — the rest of the book is fine.'))); }
+  fr.scrollTop = y; drawBar(); fitSoon(); };
 // VIEWS.write (the sketchpad) expects go(); route it to a redraw of the current page
 function go() { redraw(); }
 
@@ -975,7 +980,8 @@ function sec2(title, small, color, ...kids) { return h('section', {class: 'sec',
    listener catches every [data-c] (even inside the popover's "see also"), so no per-term binding. */
 const CMAP = Object.fromEntries((D.concepts || []).map(c => [c.id, c]));
 function tm(id, label) { const c = CMAP[id]; return `<button type="button" class="term" data-c="${id}">${label || (c ? c.term : id)}</button>`; }
-function closeConcept() { const e = $('#cpop'); if (e) e.remove(); }
+let _cpopReturn = null;
+function closeConcept() { const e = $('#cpop'); if (e) e.remove(); const r = _cpopReturn; _cpopReturn = null; if (r && r.focus) try { r.focus(); } catch (err) {} }
 // where a concept sends you to actually use it: ['drill', <theory topic>] trains it, ['page', <page id>] opens the page
 const CONCEPT_GOTO = {
   'circle-of-fifths': ['drill', 'cof', 'Drill the circle'], 'relative-minor': ['drill', 'cof', 'Drill the circle'], 'key-signature': ['drill', 'cof', 'Drill the keys'], 'key': ['drill', 'cof', 'Drill the keys'],
@@ -993,16 +999,25 @@ function conceptGoto(g) {
 }
 function openConcept(id) {
   const c = CMAP[id]; if (!c) return;
-  closeConcept();
+  const existing = $('#cpop');
+  if (!existing) _cpopReturn = document.activeElement;   // remember focus on first open, not on see-also hops
+  if (existing) existing.remove();
   const g = CONCEPT_GOTO[id];
-  const card = h('div', {class: 'cpop-card', role: 'dialog', 'aria-label': c.term, on: {click: e => e.stopPropagation()}},
+  const card = h('div', {class: 'cpop-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': c.term, on: {click: e => e.stopPropagation()}},
     h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: closeConcept}}, '×'),
     h('h3', {}, c.term), h('p', {class: 'cpop-short'}, c.short),
     c.more ? h('p', {class: 'cpop-more', html: glossify(c.more, id)}) : '',
     (c.see && c.see.length) ? h('div', {class: 'cpop-see'}, h('span', {class: 'muted', style: 'font-size:12px;letter-spacing:.08em;text-transform:uppercase'}, 'See also'),
       h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '',
     g ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
-  document.body.append(h('div', {id: 'cpop', on: {click: closeConcept}}, card));
+  const wrap = h('div', {id: 'cpop', on: {click: closeConcept}}, card);
+  wrap.addEventListener('keydown', e => { if (e.key !== 'Tab') return;   // keep Tab inside the dialog
+    const f = [...wrap.querySelectorAll('button')].filter(el => !el.disabled && el.offsetParent !== null); if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } });
+  document.body.append(wrap);
+  const x = card.querySelector('.cpop-x'); if (x) x.focus();
 }
 addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-c]'); if (b) { e.preventDefault(); e.stopPropagation(); openConcept(b.getAttribute('data-c')); } }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape') closeConcept(); });
