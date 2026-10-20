@@ -137,6 +137,7 @@ table.cells td button{all:unset;cursor:pointer;display:block;width:100%}
 .toc small{display:block;font-weight:500;font-size:13px;color:var(--mute)}
 /* practice routine list */
 .rt{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rt-grid{display:grid;grid-auto-flow:column;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,auto);column-gap:30px}   /* Today routine: 3 blocks down the left, 3 down the right */
 .rt li{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:baseline;padding:9px 6px;border-bottom:1px solid var(--rule);cursor:pointer;border-radius:6px}
 .rt li b{font-family:var(--display);font-size:22px;font-weight:400;color:var(--rust);text-align:right}
 .rt li span{font-weight:800}
@@ -1139,35 +1140,15 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
 }});
 
 /* ================================================================ I PRACTICE */
-const ROUTINE = [['tune', 'Tune', 2], ['warm', 'Warm-up', 3], ['changes', 'Chord changes', 5], ['scale', 'Scale drill', 5], ['tech', 'Technique', 5], ['strum', 'Strumming', 2], ['song', 'Play a song', 8]];
+const ROUTINE = [['tune', 'Tune', 2], ['warm', 'Warm-up', 3], ['changes', 'Chord changes', 5], ['scale', 'Scale drill', 5], ['tech', 'Technique', 5], ['strum', 'Strumming', 2]];
 PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a day', acc: 'var(--rust)', draw(v) {
   const st = state('practice', {blk: 'changes', warm: 0, fret: 5, pair: 0, drill: 'pent', tech: 0, note: 'C', prog: 0, key: 7, strum: 2});
   if (!ROUTINE.some(r => r[0] === st.blk)) st.blk = 'changes';   // a stale saved block (e.g. the retired 'notes') falls back
   const sv = () => keep('practice', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const date = today(), hist = store.get('hist', {}), day = hist[date] || {};
   v.append(header('I', 'Practice', '<b>Thirty minutes</b> a day', 'pick a block, then play it', 'var(--rust)'));
-  const list = h('ul', {class: 'rt', role: 'listbox', 'aria-label': 'routine'}, ROUTINE.map(([id, nm, m]) => h('li', {role: 'option', tabindex: 0, 'aria-selected': id === st.blk ? 'true' : 'false', class: day[id] ? 'done' : '', on: {click: () => set('blk', id)}},
+  const list = h('ul', {class: 'rt rt-grid', role: 'listbox', 'aria-label': 'routine'}, ROUTINE.map(([id, nm, m]) => h('li', {role: 'option', tabindex: 0, 'aria-selected': id === st.blk ? 'true' : 'false', class: day[id] ? 'done' : '', on: {click: () => set('blk', id)}},
     h('b', {}, String(m)), h('span', {}, nm), h('i', {}, day[id] || ''))));
-  // Numbers to beat, but only the one that fits the block you're on, with your current standing
-  const GOALBLK = {changes: 0, warm: 1, scale: 2, tech: 3, strum: 5};
-  const goalCard = () => {
-    const gi = GOALBLK[st.blk];
-    if (gi === undefined) return h('div', {class: 'muted', style: 'font-size:13px;line-height:1.4'},
-      st.blk === 'tune' ? 'Tune by ear first — match each string to the one below it, then check with the tuner.' : 'Play it through at a tempo you can keep. No stopping to fix a fumble.');
-    const g = D.practice.goals[gi], label = g[0].replace(/[,/].*$/, '').trim(), tiers = [['start', g[1]], ['solid', g[2]], ['fluent', g[3]]];
-    const bpm = st.blk === 'warm' || st.blk === 'scale' || st.blk === 'tech' || st.blk === 'strum', lower = false;
-    let yours = 0, unit = '';
-    if (st.blk === 'changes') { const p = D.pairs[st.pair]; yours = store.get('best:' + p.a + p.b, 0); unit = ' / min'; }
-    else if (bpm) { yours = M.bpm; unit = ' bpm'; }
-    else { yours = store.get('notesbest:' + st.note, 0); unit = 's'; }
-    const met = t => yours && (lower ? yours <= t : yours >= t), top = [...tiers].reverse().find(([, t]) => met(t));
-    return h('div', {class: 'goals-ctx'},
-      h('div', {style: 'font-weight:800;font-size:12.5px'}, label + (bpm ? ' · bpm' : lower ? ' · seconds, lower is better' : ' · per minute')),
-      h('div', {class: 'goal-tiers'}, tiers.map(([nm, t]) => h('button', {class: 'goalchip' + (top && top[0] === nm ? ' on' : ''),
-        style: bpm ? '' : 'cursor:default', on: bpm ? {click: () => { setBpm(t); redraw(); }} : {}}, h('span', {}, nm), h('b', {}, String(t))))),
-      h('div', {class: 'youline'}, yours ? h('span', {}, 'you: ', h('b', {style: `color:${top ? 'var(--ok)' : 'var(--ink2)'}`}, yours + unit)) : h('span', {class: 'muted'}, bpm ? 'set your tempo below' : 'no score yet')),
-      bpm ? h('div', {class: 'muted', style: 'font-size:11px'}, 'tap a target to set the metronome') : '');
-  };
   const tools = h('div', {class: 'toolbar'}), main = h('div', {style: 'display:flex;flex-direction:column;gap:10px;min-width:0'});
   const B = st.blk;
   if (B === 'tune') {
@@ -1217,15 +1198,9 @@ PAGES.push({id: 'practice', no: 'I', name: 'Practice', blurb: 'thirty minutes a 
       pat.forEach((k, j) => { ev.push({at: j * step, ui: () => $$('.st', grid).forEach((el, i) => el.classList.toggle('now', i === j))}); if (k !== '-') ev.push({at: j * step, fn: t => strum(ch.frets, k, t)});
         if (j % perBeat === 0) ev.push({at: j * step, fn: t => click(t, j === 0), ui: () => onBeat(j / perBeat)}); });
       Seq.run(ev, n * step, () => { $$('.st', grid).forEach(el => el.classList.remove('now')); onStop(); }); }});
-  } else if (B === 'song') {
-    tools.append(pick('Progression', [...new Set(D.progs.map(p => p.group))].map(g => ({group: g, items: D.progs.map((p, i) => [i, `${p.num} · ${p.desc}`]).filter((_, i) => D.progs[i].group === g)})), st.prog, x => set('prog', +x)),
-      pick('Key', D.majKeys.map((k, i) => [i, k]), st.key, x => set('key', +x)), pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x)));
-    const p = D.progs[st.prog], tonic = p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
-    main.append(sec2('Play a song', `${p.num} in ${tonic}${p.minor ? ' minor' : ''} · ${p.desc} · no stopping`, 'var(--sage)', progView(p.toks, tonic, p.minor, D.strums[st.strum])));
   }
   if (tools.childNodes.length) main.prepend(tools);
-  v.append(h('div', {class: 'body pr', style: 'grid-template-columns:250px minmax(0,1fr);align-items:start'},
-    h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('Today', today(), 'var(--rust)', list), sec2('Numbers to beat', '', 'var(--gold)', goalCard())), main));
+  v.append(main, sec2('Today', today(), 'var(--rust)', list));
 }});
 // a progression as bars + shapes; sets the page focus to loop it
 function progView(toks, tonic, minor, pattern, capo = 0) {
