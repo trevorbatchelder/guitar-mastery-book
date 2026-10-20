@@ -38,8 +38,6 @@
 :root[data-theme="moon"] .brand-t{text-transform:none!important;letter-spacing:.012em!important}
 :root[data-theme="moon"] .brand-big{font-size:clamp(54px,7.4vw,84px)!important;line-height:.88!important}   /* blackletter reads smaller than Cinzel caps — size it up to match */
 :root[data-theme="moon"] .brand-sm{font-size:24px!important}
-.emblem-top{position:absolute;top:-12px;right:-2px;line-height:0}   /* sun/moon emblem nested into the top-right of the wordmark */
-.emblem-top svg{width:46px;height:46px;display:block}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--body);font-size:16px;line-height:1.35;-webkit-tap-highlight-color:transparent;margin:0}
@@ -1085,12 +1083,10 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const sv = () => keep('cover', st);
   v.append(h('div', {html: band()}));
   const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
-  const emblem = resolveTheme() === 'moon' ? moonArt() : sunArt();
   // the guitar mark is the day/night switch — tap it to flip the theme
   const markBtn = h('button', {title: resolveTheme() === 'moon' ? 'Tap for day' : 'Tap for night', 'aria-label': 'Switch day or night', style: 'all:unset;cursor:pointer;width:62px;flex:none;display:block',
     html: MARK, on: {click: () => setTheme(resolveTheme() === 'moon' ? 'sun' : 'moon')}});
-  const titleBlock = h('div', {style: 'position:relative'},
-    h('div', {class: 'emblem-top', html: emblem}),
+  const titleBlock = h('div', {},
     h('div', {class: 'brand-t brand-sm', style: 'font-family:var(--title);color:var(--rust);letter-spacing:.22em;font-size:19px;text-transform:uppercase'}, 'The Guide to'),
     h('div', {class: 'brand-t brand-big', style: 'font-family:var(--title);font-size:clamp(40px,5.2vw,60px);letter-spacing:.06em;line-height:.95;text-transform:uppercase'}, 'Guitar', h('br'), 'Mastery'));
   const brand = h('div', {style: 'display:flex;align-items:center;gap:16px 24px;justify-content:space-between;flex-wrap:wrap'},
