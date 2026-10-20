@@ -27,12 +27,12 @@
  ],
  "shortcuts": [
   {
-   "name": "Learn",
-   "url": "./#learn"
+   "name": "Songs",
+   "url": "./#songs"
   },
   {
-   "name": "Practice",
-   "url": "./#practice"
+   "name": "Learn",
+   "url": "./#learn"
   },
   {
    "name": "Song Sketchpad",
