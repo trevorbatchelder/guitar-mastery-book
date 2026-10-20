@@ -1940,7 +1940,7 @@ function quizView(v, ch, idx) {
 
   const wrap = h('div', {style: 'max-width:700px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px;justify-content:center;min-height:min(64vh,520px)'});
   v.append(wrap);
-  const sage = h('div', {style: 'text-align:center', html: sageSVG('idle')});
+  const sage = h('div', {style: 'text-align:center'}, mageTile(0, 80));
   const barOuter = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'});
   const fill = h('div', {style: 'height:100%;width:0;background:var(--navy);transition:width .3s'}); barOuter.append(fill);
   const counter = h('div', {class: 'muted', style: 'text-align:center;font-weight:800;min-height:1.3em'});
@@ -1958,14 +1958,14 @@ function quizView(v, ch, idx) {
     fb.textContent = ''; }
   function pick(o, Q) { if (answered) return; answered = true;
     const ok = String(o) === String(Q.a); if (ok) right++; sfx(ok);
-    sage.innerHTML = sageSVG(ok ? 'cheer' : 'idle');
+    sage.replaceChildren(mageTile(ok ? 2 : 0, 80));
     fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
     fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`, html: ok ? 'Right!' : `Not quite — it’s <b>${Q.a}</b>. ${Q.why || ''}`}),
       h('button', {class: 'btn acc', style: 'margin-left:16px', on: {click: () => { i++; render(); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
   function finish() {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
     const passed = right >= need; if (passed) { courseClear(id); sfx(true); }
-    sage.innerHTML = sageSVG(passed ? 'cheer' : 'idle'); fill.style.width = '100%'; counter.textContent = '';
+    sage.replaceChildren(mageTile(passed ? 2 : 0, 80)); fill.style.width = '100%'; counter.textContent = '';
     qh.textContent = passed ? 'Chapter cleared.' : 'So close.'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${qs.length}. ${passed ? 'The next chapter is open.' : `Clear ${need} to pass — give it another go.`}`}),
       h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
@@ -1974,89 +1974,95 @@ function quizView(v, ch, idx) {
   render();
 }
 
-/* ===== SPIKE art proof: a hand-drawn pixel-art sample (wizard + tiled path + crystal landmarks), scaled crisp. */
-const PXP = {H: '#2b2458', h: '#473a86', S: '#f3cf52', G: '#b9892c', K: '#ecc99b', k: '#cda074', E: '#1c1b1a',
-  B: '#ecebe1', b: '#c7c4b8', R: '#7c3f79', r: '#562a55', T: '#7b4a2b', O: '#7fe0ef'};
-const WIZ = [
-  "     HH         ",
-  "    HHHH        ",
-  "   HHhhHH       ",
-  "  HHHhhHHH      ",
-  "  HHSHhhHH      ",
-  " HHHHhhHHHH     ",
-  " HHHHhhHHHH     ",
-  "GGGGGGGGGGG     ",
-  "   KKKKKKK      ",
-  "  KKKKKKKKK  O  ",
-  "  KEKKKKEKK  T  ",
-  "  KKKKKKKKK  T  ",
-  "  kKKKKKKKk  T  ",
-  "  BBBBBBBBB  T  ",
-  "  BBBBBBBBB  T  ",
-  "   BBBBBBB   T  ",
-  "   RRRRRRR   T  ",
-  "  RRRRRRRRR  T  ",
-  " RRRRrRrRRRR T  ",
-  " RRRRrRrRRRR T  ",
-  " RRRRrRrRRRR T  ",
-  " RRRRRRRRRRR T  ",
-  "  RRRRRRRRR     ",
-  "  rr     rr     "];
+/* ===== SPIKE: the Learn road as a pixel-art scene — a CC0 animated wizard walks a tiled path.
+   Wizard sprite: saint11 "16x16 Mage", CC0 (OpenGameArt) — 128x32, 4 directions x 4 frames (row 0 = facing down).
+   Terrain tiles are hand-drawn for v1; the CC0 overworld tiles (ArMM1998) can replace them in the next pass. */
+const MAGE_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAAAgCAYAAADaInAlAAAAB3RJTUUH3QsCFwIHCpYeHwAAABd0RVh0U29mdHdhcmUAR0xEUE5HIHZlciAzLjRxhaThAAAACHRwTkdHTEQzAAAAAEqAKR8AAAAEZ0FNQQAAsY8L/GEFAAAABmJLR0QA/wD/AP+gvaeTAAACR0lEQVR4nO1aMU7EMBAMJ9FQUCB+QIlECzX0iAIkeiS+xCNo+AY14jVIhPOJPVnGudgza2982NJKudPNzuzuXJQ4GcZxHHr83yia/Oj4dPSjdnFW/C3VXawQ9/vzq/tNoE2w4tcYYCv8xQoQrEaOzl+Ov0gBgh/W6V2g+Nb5W8AXa6BgJWoPUIO/hQEWMwDbwPHtcIt1x63hWxkgi18NE2vdtOhxynp/+B4O7r62n92x+y5nhfja/MyKcS2WP+aKj6eTP2cA912OA93vxX3uOMfBS+CPRS6/H7n84T+4FH+RBsopyCfPxWvyL/kUXMJAaheBTAM1bmNQ/lgTLA1gfRuZbYAwAbIZ4ZsAxbP8grXib6H+2QLQBoZ5UByLZ3Xve/07E8SO0SYwGBbPat7n+uGieuxHmAvo0Q3QoxugxyIMEF55slevw+8zhNQ8MX4WzzZIUwuC93uocTcR5ogCwg0EpGh0I0MDj+qf04FqQPo4hWf6GMNmCchpno+V/XwrfO2dQNFrhc/RX3wA/gMdFC+PdmsZSGOAopkxAItXMYD1ADX4UQNYDrCWgYoMcGoItfCsfq0BoHv5GvhU/cUGiD5L18Iz+tkBWNefo7/KACzw1gb032dADVTDgJOvhF2+robHz+tNsMvlQtbZxQ2M19AveJTfLakBxTMrSf+uf+Dt8wv1PJrFM5s6cgZxGmrr19pQY/Wn4JOLyBXg59DAoUNgDIhuJMW0a/UhFzuXI6kIVIR1MA3UwFvXnjI/c6E9bMNcQA/b+AE5rdu+4uoQGwAAAABJRU5ErkJggg==";
+const MAGE = new Image(); MAGE.src = MAGE_SRC;
+let mageTimer = null;
 function pixSprite(ctx, rows, pal, ox, oy) {
   for (let y = 0; y < rows.length; y++) { const row = rows[y];
     for (let x = 0; x < row.length; x++) { const c = pal[row[x]]; if (c) { ctx.fillStyle = c; ctx.fillRect(ox + x, oy + y, 1, 1); } } } }
-function drawCrystal(ctx, cx, baseY, on) {
+function drawCrystal(ctx, cx, baseY, state) {   // state: 'done' | 'open' | 'lock'
   const rows = ["  t  ", " ttt ", "ttttt", "teedt", "ttttt", " tdt ", "  b  "];
-  const pal = on ? {t: '#64cfe0', e: '#c2f4fb', d: '#2f93ab', b: '#1f5f6e'} : {t: '#9aa0a4', e: '#cbd0d3', d: '#6b7074', b: '#474b4e'};
+  const pal = state === 'done' ? {t: '#6ad48e', e: '#c8f6d6', d: '#2f9a55', b: '#1f6e3a'}
+    : state === 'open' ? {t: '#64cfe0', e: '#c2f4fb', d: '#2f93ab', b: '#1f5f6e'}
+    : {t: '#9aa0a4', e: '#cbd0d3', d: '#6b7074', b: '#474b4e'};
   pixSprite(ctx, rows, pal, cx - 2, baseY - 6); }
-function drawPixelProof(cv) {
-  const W = 168, H = 104, ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+// one 16x16 wizard frame as a crisp, scaled canvas (used in the quiz panel)
+function mageTile(frame, px) {
+  const cv = h('canvas', {width: 16, height: 16, style: `image-rendering:pixelated;width:${px}px;height:${px}px;display:inline-block`});
+  const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+  const draw = () => { g.clearRect(0, 0, 16, 16); g.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, 0, 0, 16, 16); };
+  if (MAGE.complete && MAGE.naturalWidth) draw(); else MAGE.addEventListener('load', draw, {once: true});
+  return cv; }
+function drawTerrain(ctx, W, H, pathY) {
   ctx.fillStyle = '#6a9a46'; ctx.fillRect(0, 0, W, H);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     if ((x * 3 + y * 5) % 13 === 0) { ctx.fillStyle = '#5c8b3c'; ctx.fillRect(x, y, 1, 1); }
-    else if ((x * 2 + y) % 23 === 0) { ctx.fillStyle = '#7cab57'; ctx.fillRect(x, y, 1, 1); } }
-  const pathY = x => Math.round(60 + 12 * Math.sin(x * 0.06));
+    else if ((x * 2 + y) % 23 === 0) { ctx.fillStyle = '#7cab57'; ctx.fillRect(x, y, 1, 1); }
+    else if ((x * 5 + y * 3) % 47 === 0) { ctx.fillStyle = '#4f7e34'; ctx.fillRect(x, y, 1, 1); ctx.fillRect(x, y - 1, 1, 1); } }   // tufts
   for (let x = 0; x < W; x++) { const py = pathY(x);
-    for (let dy = -5; dy <= 5; dy++) { const y = py + dy; if (y < 0 || y >= H) continue;
-      ctx.fillStyle = dy <= -4 ? '#dcb87f' : dy >= 4 ? '#9a7340' : '#c69c64'; ctx.fillRect(x, y, 1, 1); }
-    if ((x * 7) % 29 === 0) { ctx.fillStyle = '#b58a52'; ctx.fillRect(x, py + (x % 3 - 1), 1, 1); } }
-  drawCrystal(ctx, 92, pathY(92), true);
-  drawCrystal(ctx, 132, pathY(132), false);
-  pixSprite(ctx, WIZ, PXP, 16, pathY(24) - 23);
-}
+    for (let dy = -6; dy <= 6; dy++) { const y = py + dy; if (y < 0 || y >= H) continue;
+      ctx.fillStyle = dy <= -5 ? '#d7b074' : dy >= 5 ? '#8f6a3b' : (dy === -4 || dy === 4) ? '#b78d51' : '#c69c64'; ctx.fillRect(x, y, 1, 1); }
+    if ((x * 7) % 17 === 0) { ctx.fillStyle = '#ad8149'; ctx.fillRect(x, py + ((x * 3) % 5 - 2), 1, 1); } } }
+
+const TREE = ["  ggg  ", " ggGgg ", "gggGggg", "ggggggg", " ggggg ", "  ttt  ", "  ttt  "];
+const TREEPAL = {g: '#3f7d34', G: '#549a44', t: '#6b4a2a'};
+function drawTree(ctx, cx, by) { ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.fillRect(cx - 3, by + 1, 7, 1); pixSprite(ctx, TREE, TREEPAL, cx - 3, by - 6); }
+function drawPond(ctx, cx, cy) { for (let y = -4; y <= 4; y++) for (let x = -7; x <= 7; x++) { if (x * x / 49 + y * y / 16 > 1) continue;
+  ctx.fillStyle = (y <= -3) ? '#bfe6f2' : ((x + y) % 3 === 0 ? '#5aa9d4' : '#4b97c4'); ctx.fillRect(cx + x, cy + y, 1, 1); } }
+function drawSeg(ctx, a, b) { const w = 3, x0 = Math.min(a.x, b.x) - w, x1 = Math.max(a.x, b.x) + w, y0 = Math.min(a.y, b.y) - w, y1 = Math.max(a.y, b.y) + w;
+  ctx.fillStyle = '#9a7340'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.fillStyle = '#c69c64'; ctx.fillRect(x0 + 1, y0 + 1, x1 - x0 - 2, y1 - y0 - 2); }
+function drawPanel(ctx, cx, cy, st) {
+  const col = st === 'done' ? '#6ad48e' : st === 'open' ? '#f3cf52' : '#9aa0a4', dark = st === 'done' ? '#2f9a55' : st === 'open' ? '#b9892c' : '#6b7074', s = 11, x = cx - 5, y = cy - 5;
+  ctx.fillStyle = dark; ctx.fillRect(x - 1, y - 1, s + 2, s + 2); ctx.fillStyle = col; ctx.fillRect(x, y, s, s);
+  ctx.fillStyle = '#6a9a46'; [[x - 1, y - 1], [x + s, y - 1], [x - 1, y + s], [x + s, y + s]].forEach(([px, py]) => ctx.fillRect(px, py, 1, 1));
+  if (st === 'done') { ctx.fillStyle = '#fff'; [[cx - 2, cy + 1], [cx - 1, cy + 2], [cx, cy + 1], [cx + 1, cy], [cx + 2, cy - 1]].forEach(([px, py]) => ctx.fillRect(px, py, 1, 1)); }
+  else if (st === 'lock') { ctx.fillStyle = '#3c4042'; ctx.fillRect(cx - 2, cy, 5, 4); ctx.fillRect(cx - 1, cy - 2, 3, 2); } }
 
 function roadView(v) {
-  pageScroll = true;   // the pixel proof sits above the working course; let the page scroll to show both
-  v.append(h('div', {style: 'max-width:800px;margin:0 auto 16px;width:100%;text-align:center'},
-    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:8px'}, '8-bit art proof — judge the pixel style, not the layout'),
-    (() => { const cv = h('canvas', {width: 168, height: 104, style: 'image-rendering:pixelated;width:min(760px,100%);height:auto;border:3px solid var(--navy);border-radius:5px;display:block;margin:0 auto;background:#6a9a46'}); drawPixelProof(cv); return cv; })(),
-    h('div', {class: 'muted', style: 'font-size:12px;margin-top:6px'}, 'hand-drawn pixels · no asset packs · the working course is below')));
+  pageScroll = false;
+  if (mageTimer) { clearInterval(mageTimer); mageTimer = null; }
   const cleared = courseGot(), best = store.get('course.best', {});
   const fo = COURSE.findIndex(ch => !cleared[chapKey(ch)]), firstOpen = fo < 0 ? COURSE.length - 1 : fo;
   const done = COURSE.filter(ch => cleared[chapKey(ch)]).length, pct = Math.round(done / COURSE.length * 100);
-  v.append(h('div', {style: 'max-width:760px;margin:0 auto 4px;width:100%;text-align:center'},
-    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `You’ve cleared ${done} of ${COURSE.length} chapters · ${pct}%`),
+  v.append(h('div', {style: 'max-width:860px;margin:0 auto 8px;width:100%;text-align:center'},
+    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `Cleared ${done} of ${COURSE.length} chapters · ${pct}%`),
     (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
 
-  const n = COURSE.length, W = 1000, H = 440, pad = 86, amp = 118, midY = H / 2;
-  const P = COURSE.map((ch, i) => ({x: pad + (W - 2 * pad) * (i / (n - 1)), y: midY + amp * Math.sin(i * 0.92), ch, i}));
-  const box = h('div', {style: `position:relative;width:${W}px;height:${H + 46}px;margin:0 auto;max-width:100%`});
-  const seg = P.map(p => `${p.x.toFixed(0)},${p.y.toFixed(0)}`).join(' ');
-  box.append(h('div', {style: 'position:absolute;inset:0', html:
-    `<svg viewBox="0 0 ${W} ${H + 46}" width="100%" height="100%" xmlns="${NS}" aria-hidden="true">`
-    + `<polyline points="${seg}" fill="none" stroke="var(--rule)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>`
-    + `<polyline points="${seg}" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="2 15" stroke-linecap="round"/></svg>`}));
-  P.forEach(p => { const id = chapKey(p.ch), isDone = cleared[id], unlocked = p.i <= firstOpen || isDone, sz = 92;
-    const ring = isDone ? 'var(--sage)' : unlocked ? 'var(--navy)' : 'var(--rule)';
-    box.append(h('button', {class: 'btn', disabled: !unlocked, 'aria-label': p.ch.name,
-      style: `position:absolute;left:${p.x - sz / 2}px;top:${p.y - sz / 2}px;width:${sz}px;min-width:${sz}px;height:${sz}px;border-radius:50%;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${isDone ? 'var(--sage)' : 'var(--bg)'};color:${isDone ? 'var(--onacc)' : 'var(--ink)'};border:4px solid ${ring}${unlocked ? '' : ';opacity:.5;cursor:default'}`,
-      on: unlocked ? {click: () => { const s = state('course', {}); s.open = p.i; keep('course', s); redraw(); }} : {}},
-      h('div', {style: 'font-size:26px;line-height:1', html: isDone ? '✓' : unlocked ? (p.ch.exam ? '★' : '▶') : '🔒'}),
-      h('div', {style: 'font-size:10px;font-weight:800;margin-top:2px'}, best[id] ? `${best[id]}/${p.ch.exam ? 12 : QN}` : '')));
-    box.append(h('div', {style: `position:absolute;left:${p.x - 72}px;top:${p.y + sz / 2 + 3}px;width:144px;text-align:center;font-size:12px;font-weight:800;color:var(--ink)`}, p.ch.name)); });
-  const cur = P[firstOpen] || P[0];
-  box.append(h('div', {style: `position:absolute;left:${cur.x - 100}px;top:${cur.y - 110}px;width:80px`, html: sageSVG('idle')}));
-  v.append(box);
+  // Mario-3-style board: discrete panels linked by short orthogonal paths, snaking across the map
+  const W = 240, H = 148;
+  const PTS = [[26, 120], [74, 120], [74, 86], [118, 86], [162, 86], [162, 50], [118, 50], [74, 50]];
+  const nodes = COURSE.map((ch, i) => ({x: PTS[i % PTS.length][0], y: PTS[i % PTS.length][1], ch, i}));
+  const TREES = [[22, 44], [214, 122], [128, 128], [40, 92]], POND = [210, 36];
+
+  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: 'image-rendering:pixelated;width:min(860px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:#6a9a46;cursor:pointer'});
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  function drawScene(frame) {
+    drawTerrain(ctx, W, H, () => -99);                       // grass + tufts, no path band (the board draws its own)
+    drawPond(ctx, POND[0], POND[1]);
+    TREES.forEach(([tx, ty]) => drawTree(ctx, tx, ty));
+    ctx.fillStyle = '#4f7e34'; ctx.fillRect(1, 1, W - 2, 2); ctx.fillRect(1, H - 3, W - 2, 2); ctx.fillRect(1, 1, 2, H - 2); ctx.fillRect(W - 3, 1, 2, H - 2);   // frame
+    for (let i = 1; i < nodes.length; i++) drawSeg(ctx, nodes[i - 1], nodes[i]);
+    nodes.forEach(nd => drawPanel(ctx, nd.x, nd.y, cleared[chapKey(nd.ch)] ? 'done' : (nd.i <= firstOpen ? 'open' : 'lock')));
+    const cur = nodes[firstOpen] || nodes[0];
+    if (MAGE.complete && MAGE.naturalWidth) {
+      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(cur.x, cur.y - 3, 6, 2.2, 0, 0, 7); ctx.fill();
+      ctx.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, cur.x - 8, cur.y - 19, 16, 16); } }
+  let frame = 0; drawScene(0);
+  if (!MAGE.complete) MAGE.addEventListener('load', () => drawScene(frame), {once: true});
+  mageTimer = setInterval(() => { if (!document.body.contains(cv)) { clearInterval(mageTimer); mageTimer = null; return; } frame = (frame + 1) % 4; drawScene(frame); }, 240);
+  cv.addEventListener('click', e => { const r = cv.getBoundingClientRect(), lx = (e.clientX - r.left) / r.width * W, ly = (e.clientY - r.top) / r.height * H;
+    let hit = null, bd = 1e9; nodes.forEach(nd => { const d = (nd.x - lx) ** 2 + (nd.y - ly) ** 2; if (d < bd) { bd = d; hit = nd; } });
+    if (hit && bd < 120 && (hit.i <= firstOpen || cleared[chapKey(hit.ch)])) { const s = state('course', {}); s.open = hit.i; keep('course', s); redraw(); } });
+  v.append(cv);
+  // chapter buttons below: readable names + keyboard access the canvas alone can't give
+  v.append(h('div', {style: 'max-width:860px;margin:10px auto 0;width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center'},
+    ...COURSE.map((ch, i) => { const id = chapKey(ch), isDone = cleared[id], unlocked = i <= firstOpen || isDone;
+      return h('button', {class: 'btn' + (i === firstOpen ? ' acc' : ''), disabled: !unlocked, style: 'min-height:34px;font-size:12px' + (unlocked ? '' : ';opacity:.5'),
+        on: unlocked ? {click: () => { const s = state('course', {}); s.open = i; keep('course', s); redraw(); }} : {}},
+        (isDone ? '✓ ' : unlocked ? '' : '🔒 ') + ch.name); })));
 }
 
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
