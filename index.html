@@ -1907,20 +1907,28 @@ function sageSVG(mood = 'idle') {
 }
 
 // blended questions: each topic has a generator; the chapter quiz mixes them into one gauntlet
-const _IV = D.intervals, _COF = D.cof, _SCL = D.scales, _CAPO = D.capo, _SHP = Object.keys(D.capo), _PAL = D.palette.major.slice(0, 7);
+const _IV = D.intervals, _COF = D.cof, _SCL = D.scales, _CAPO = D.capo, _SHP = Object.keys(D.capo), _PAL = D.palette.major.slice(0, 7), _KEYS = D.majKeys;
+// each topic offers several question shapes so a chapter quiz never feels repetitive
 const GENQ = {
-  fretboard: () => { const s = rnd(6), f = rnd(12), a = SH[(OPEN_PC[s] + f) % 12];
-    return {q: `What note is at string ${'EADGBe'[s]}, fret ${f}?`, a, opts: shuffle([a, ...sample(SH.filter(x => x !== a), 3)])}; },
-  intervals: () => { const i = rnd(_IV.length), a = _IV[i][1];
-    return {q: `What interval is ${_IV[i][0]} semitone${_IV[i][0] > 1 ? 's' : ''}?`, a, opts: shuffle([a, ...sample(_IV.filter((_, j) => j !== i), 3).map(r => r[1])])}; },
-  cof: () => { const i = rnd(_COF.length), a = _COF[i][2];
-    return {q: `What is the relative minor of ${_COF[i][0]} major?`, a, opts: shuffle([a, ...sample(_COF.filter((_, j) => j !== i), 3).map(r => r[2])])}; },
-  key: () => { const deg = rnd(7), tok = _PAL[deg], a = tok[2] === '' ? 'major' : tok[2] === 'm' ? 'minor' : 'diminished';
-    return {q: `In a major key, the ${roman(tok, false)} chord is…?`, a, opts: ['major', 'minor', 'diminished']}; },
-  scales: () => { const i = rnd(_SCL.length), s = _SCL[i], a = s.steps.includes(4) ? 'major' : 'minor';
-    return {q: `Does the ${s.name} have a major or minor 3rd?`, a, opts: ['major', 'minor']}; },
+  fretboard: () => { if (rnd(2)) { const s = rnd(6), f = rnd(12), a = SH[(OPEN_PC[s] + f) % 12];
+      return {q: `What note is at string ${'EADGBe'[s]}, fret ${f}?`, a, opts: shuffle([a, ...sample(SH.filter(x => x !== a), 3)])}; }
+    const s = rnd(6), a = SH[OPEN_PC[s] % 12]; return {q: `What note does the open ${'EADGBe'[s]} string play?`, a, opts: shuffle([a, ...sample(SH.filter(x => x !== a), 3)])}; },
+  intervals: () => { const i = rnd(_IV.length); if (rnd(2)) return {q: `How many semitones is a ${_IV[i][1]}?`, a: String(_IV[i][0]), opts: shuffle([String(_IV[i][0]), ...sample(_IV.filter((_, j) => j !== i), 3).map(r => String(r[0]))])};
+    return {q: `What interval is ${_IV[i][0]} semitone${_IV[i][0] > 1 ? 's' : ''}?`, a: _IV[i][1], opts: shuffle([_IV[i][1], ...sample(_IV.filter((_, j) => j !== i), 3).map(r => r[1])])}; },
+  cof: () => { const i = rnd(_COF.length), t = rnd(3);
+    if (t === 0 && _COF[i][1] !== '—') return {q: `How many sharps or flats does ${_COF[i][0]} major have?`, a: _COF[i][1], opts: shuffle([_COF[i][1], ...sample(_COF.filter((_, j) => j !== i), 3).map(r => r[1])])};
+    if (t === 1) return {q: `What is the relative minor of ${_COF[i][0]} major?`, a: _COF[i][2], opts: shuffle([_COF[i][2], ...sample(_COF.filter((_, j) => j !== i), 3).map(r => r[2])])};
+    const v5 = _COF[(i + 1) % 12][0]; return {q: `A perfect fifth above ${_COF[i][0]} is…?`, a: v5, opts: shuffle([v5, ...sample(_COF.filter(r => r[0] !== v5), 3).map(r => r[0])])}; },
+  key: () => { const tonic = _KEYS[rnd(12)], deg = rnd(7), tok = _PAL[deg];
+    if (rnd(2)) { const a = tok[2] === '' ? 'major' : tok[2] === 'm' ? 'minor' : 'diminished'; return {q: `In a major key, the ${roman(tok, false)} chord is…?`, a, opts: ['major', 'minor', 'diminished']}; }
+    const a = chordName(tonic, false, tok).name; return {q: `In ${tonic} major, the ${roman(tok, false)} chord is…?`, a, opts: shuffle([a, ...sample(_PAL.filter((_, j) => j !== deg).map(t => chordName(tonic, false, t).name), 3)])}; },
+  scales: () => { const i = rnd(_SCL.length), s = _SCL[i], t = rnd(3);
+    if (t === 0) return {q: `Does the ${s.name} have a major or minor 3rd?`, a: s.steps.includes(4) ? 'major' : 'minor', opts: ['major', 'minor']};
+    if (t === 1) return {q: `Does the ${s.name} have a natural 7 or a ♭7?`, a: s.steps.includes(11) ? 'natural 7' : '♭7', opts: ['natural 7', '♭7']};
+    return {q: `Which scale is "${s.mood}"?`, a: s.name, opts: shuffle([s.name, ...sample(_SCL.filter((_, j) => j !== i), 3).map(x => x.name)])}; },
   capo: () => { const sh = _SHP[rnd(_SHP.length)], f = 1 + rnd(7), a = _CAPO[sh][f];
-    return {q: `A ${sh} shape with a capo at fret ${f} sounds in…?`, a, opts: shuffle([a, ...sample([...new Set([].concat(..._SHP.map(x => _CAPO[x])).filter(k => k !== a))], 3)])}; },
+    if (rnd(2)) return {q: `A ${sh} shape with a capo at fret ${f} sounds in…?`, a, opts: shuffle([a, ...sample([...new Set([].concat(..._SHP.map(x => _CAPO[x])).filter(k => k !== a))], 3)])};
+    return {q: `Where do you capo so a ${sh} shape sounds in ${a}?`, a: 'fret ' + f, opts: shuffle(['fret ' + f, ...sample([1, 2, 3, 4, 5, 6, 7].filter(x => x !== f), 3).map(x => 'fret ' + x)])}; },
 };
 function buildQuiz(topics, n) { const out = [], seen = new Set(); let g = 0;
   while (out.length < n && g++ < 600) { const tp = topics[rnd(topics.length)], Q = GENQ[tp] && GENQ[tp]();
@@ -1964,7 +1972,7 @@ function quizView(v, ch, idx) {
       h('button', {class: 'btn acc', style: 'margin-left:16px', on: {click: () => { i++; render(); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
   function finish() {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
-    const passed = right >= need; if (passed) { courseClear(id); sfx(true); }
+    const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, COURSE.length - 1)}; }
     sage.replaceChildren(mageTile(passed ? 2 : 0, 80)); fill.style.width = '100%'; counter.textContent = '';
     qh.textContent = passed ? 'Chapter cleared.' : 'So close.'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${qs.length}. ${passed ? 'The next chapter is open.' : `Clear ${need} to pass — give it another go.`}`}),
@@ -2007,19 +2015,34 @@ function drawTerrain(ctx, W, H, pathY) {
       ctx.fillStyle = dy <= -5 ? '#d7b074' : dy >= 5 ? '#8f6a3b' : (dy === -4 || dy === 4) ? '#b78d51' : '#c69c64'; ctx.fillRect(x, y, 1, 1); }
     if ((x * 7) % 17 === 0) { ctx.fillStyle = '#ad8149'; ctx.fillRect(x, py + ((x * 3) % 5 - 2), 1, 1); } } }
 
-const TREE = ["  ggg  ", " ggGgg ", "gggGggg", "ggggggg", " ggggg ", "  ttt  ", "  ttt  "];
-const TREEPAL = {g: '#3f7d34', G: '#549a44', t: '#6b4a2a'};
-function drawTree(ctx, cx, by) { ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.fillRect(cx - 3, by + 1, 7, 1); pixSprite(ctx, TREE, TREEPAL, cx - 3, by - 6); }
-function drawPond(ctx, cx, cy) { for (let y = -4; y <= 4; y++) for (let x = -7; x <= 7; x++) { if (x * x / 49 + y * y / 16 > 1) continue;
-  ctx.fillStyle = (y <= -3) ? '#bfe6f2' : ((x + y) % 3 === 0 ? '#5aa9d4' : '#4b97c4'); ctx.fillRect(cx + x, cy + y, 1, 1); } }
-function drawSeg(ctx, a, b) { const w = 3, x0 = Math.min(a.x, b.x) - w, x1 = Math.max(a.x, b.x) + w, y0 = Math.min(a.y, b.y) - w, y1 = Math.max(a.y, b.y) + w;
-  ctx.fillStyle = '#9a7340'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.fillStyle = '#c69c64'; ctx.fillRect(x0 + 1, y0 + 1, x1 - x0 - 2, y1 - y0 - 2); }
-function drawPanel(ctx, cx, cy, st) {
-  const col = st === 'done' ? '#6ad48e' : st === 'open' ? '#f3cf52' : '#9aa0a4', dark = st === 'done' ? '#2f9a55' : st === 'open' ? '#b9892c' : '#6b7074', s = 11, x = cx - 5, y = cy - 5;
-  ctx.fillStyle = dark; ctx.fillRect(x - 1, y - 1, s + 2, s + 2); ctx.fillStyle = col; ctx.fillRect(x, y, s, s);
-  ctx.fillStyle = '#6a9a46'; [[x - 1, y - 1], [x + s, y - 1], [x - 1, y + s], [x + s, y + s]].forEach(([px, py]) => ctx.fillRect(px, py, 1, 1));
-  if (st === 'done') { ctx.fillStyle = '#fff'; [[cx - 2, cy + 1], [cx - 1, cy + 2], [cx, cy + 1], [cx + 1, cy], [cx + 2, cy - 1]].forEach(([px, py]) => ctx.fillRect(px, py, 1, 1)); }
-  else if (st === 'lock') { ctx.fillStyle = '#3c4042'; ctx.fillRect(cx - 2, cy, 5, 4); ctx.fillRect(cx - 1, cy - 2, 3, 2); } }
+let walkAnim = null;   // {from,to} set when a chapter is cleared, so the wizard strolls to the next node
+const DISC = (ctx, cx, cy, r, col) => { ctx.fillStyle = col; for (let dy = -r; dy <= r; dy++) { const w = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy))); ctx.fillRect(cx - w, cy + dy, 2 * w + 1, 1); } };
+function drawGround(ctx, W, H) { ctx.fillStyle = '#e0a84c'; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { if ((x * 3 + y * 5) % 17 === 0) { ctx.fillStyle = '#d2963a'; ctx.fillRect(x, y, 1, 1); } else if ((x * 5 + y * 3) % 31 === 0) { ctx.fillStyle = '#edbb63'; ctx.fillRect(x, y, 1, 1); } } }
+function drawBush(ctx, x, y) { const hs = [[x + 4, y + 5, 4], [x + 9, y + 4, 5], [x + 14, y + 5, 4]];
+  ctx.fillStyle = '#235223'; ctx.fillRect(x + 2, y + 8, 15, 1);
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r + 1, '#235223'));
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r, '#4f9b3f'));
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy - 1, Math.max(1, r - 2), '#73c257')); }
+function drawRocks(ctx, x, y) { [[x + 5, y + 6, 4], [x + 11, y + 7, 4], [x + 8, y + 3, 3]].forEach(([cx, cy, r]) => { DISC(ctx, cx, cy, r + 1, '#5a3b22'); DISC(ctx, cx, cy, r, '#8a5a33'); DISC(ctx, cx, cy - 1, Math.max(1, r - 2), '#a9743f'); }); }
+function drawWater(ctx, x, y, w, hh) { for (let j = 0; j < hh; j++) for (let i = 0; i < w; i++) {
+  const edge = j === 0 || j === hh - 1 || i === 0 || i === w - 1; ctx.fillStyle = edge ? '#bfe6f2' : ((i + j) % 4 === 0 ? '#5aa9d4' : '#3f8ec0'); ctx.fillRect(x + i, y + j, 1, 1); } }
+const DIG = {'1': ["010", "110", "010", "010", "111"], '2': ["111", "001", "111", "100", "111"], '3': ["111", "001", "111", "001", "111"], '4': ["101", "101", "111", "001", "001"],
+  '5': ["111", "100", "111", "001", "111"], '6': ["111", "100", "111", "101", "111"], '7': ["111", "001", "010", "010", "010"], '8': ["111", "101", "111", "101", "111"]};
+function drawNum(ctx, x, y, ch, col) { const g = DIG[ch] || DIG['1']; ctx.fillStyle = col; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r][c] === '1') ctx.fillRect(x + c, y + r, 1, 1); }
+function drawPanel(ctx, cx, cy, st, num) {
+  const border = st === 'done' ? '#6ad48e' : st === 'open' ? '#f3cf52' : '#7a7f84', s = 13, x = cx - 6, y = cy - 6;
+  ctx.fillStyle = st === 'open' ? '#2b6fd6' : border; ctx.fillRect(x + 1, y - 4, 4, 3); ctx.fillStyle = border; ctx.fillRect(x + 1, y - 4, 1, 4);   // pennant
+  ctx.fillStyle = border; ctx.fillRect(x - 1, y - 1, s + 2, s + 2);
+  ctx.fillStyle = st === 'lock' ? '#4a4e54' : '#20242c'; ctx.fillRect(x, y, s, s);
+  if (st === 'lock') { ctx.fillStyle = '#9aa0a4'; ctx.fillRect(cx - 2, cy, 5, 4); ctx.fillRect(cx - 1, cy - 2, 3, 2); }
+  else drawNum(ctx, cx - 1, cy - 2, num, st === 'done' ? '#c8f6d6' : '#fff'); }
+function drawCastle(ctx, cx, by, st) { const x = cx - 8, y = by - 18, body = st === 'lock' ? '#8a8f93' : '#cdd1d6', dk = st === 'lock' ? '#5f6469' : '#9aa0a6';
+  ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(x, y + 18, 17, 1);
+  ctx.fillStyle = body; ctx.fillRect(x - 1, y + 3, 4, 15); ctx.fillRect(x + 14, y + 3, 4, 15); ctx.fillRect(x + 2, y + 5, 13, 13);
+  ctx.fillStyle = dk; for (let i = 0; i < 18; i += 3) ctx.fillRect(x - 1 + i, y + 2, 2, 2);
+  ctx.fillStyle = '#3a2a1a'; ctx.fillRect(cx - 2, y + 11, 5, 7);
+  ctx.fillStyle = st === 'done' ? '#6ad48e' : '#b93b2e'; ctx.fillRect(cx + 1, y - 4, 5, 3); ctx.fillStyle = dk; ctx.fillRect(cx + 1, y - 4, 1, 7); }
 
 function roadView(v) {
   pageScroll = false;
@@ -2027,38 +2050,49 @@ function roadView(v) {
   const cleared = courseGot(), best = store.get('course.best', {});
   const fo = COURSE.findIndex(ch => !cleared[chapKey(ch)]), firstOpen = fo < 0 ? COURSE.length - 1 : fo;
   const done = COURSE.filter(ch => cleared[chapKey(ch)]).length, pct = Math.round(done / COURSE.length * 100);
-  v.append(h('div', {style: 'max-width:860px;margin:0 auto 8px;width:100%;text-align:center'},
+  v.append(h('div', {style: 'max-width:880px;margin:0 auto 8px;width:100%;text-align:center'},
     h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `Cleared ${done} of ${COURSE.length} chapters · ${pct}%`),
     (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
 
-  // Mario-3-style board: discrete panels linked by short orthogonal paths, snaking across the map
-  const W = 240, H = 148;
-  const PTS = [[26, 120], [74, 120], [74, 86], [118, 86], [162, 86], [162, 50], [118, 50], [74, 50]];
-  const nodes = COURSE.map((ch, i) => ({x: PTS[i % PTS.length][0], y: PTS[i % PTS.length][1], ch, i}));
-  const TREES = [[22, 44], [214, 122], [128, 128], [40, 92]], POND = [210, 36];
+  // Super-Mario-World-style board on a 16px tile grid: tan ground, pale dotted paths, numbered panels, a castle finale
+  const T = 16, cols = 15, rows = 9, W = cols * T, H = rows * T;
+  const CELL = [[1, 7], [4, 7], [7, 7], [7, 5], [4, 5], [1, 5], [1, 3], [4, 3]];
+  const nodes = COURSE.map((ch, i) => ({c: CELL[i][0], r: CELL[i][1], x: CELL[i][0] * T + T / 2, y: CELL[i][1] * T + T / 2, ch, i}));
+  const pathCells = new Set(), dots = [];
+  for (let i = 1; i < nodes.length; i++) { const a = nodes[i - 1], b = nodes[i];
+    if (a.r === b.r) { for (let c = Math.min(a.c, b.c); c <= Math.max(a.c, b.c); c++) { pathCells.add(c + ',' + a.r); if (c !== a.c && c !== b.c) dots.push([c, a.r]); } }
+    else { for (let r = Math.min(a.r, b.r); r <= Math.max(a.r, b.r); r++) { pathCells.add(a.c + ',' + r); if (r !== a.r && r !== b.r) dots.push([a.c, r]); } } }
+  const BUSHES = [[8, 1], [12, 1], [8, 6], [12, 6], [2, 0], [5, 0], [13, 3]], ROCKS = [[10, 7], [6, 8]];
 
-  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: 'image-rendering:pixelated;width:min(860px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:#6a9a46;cursor:pointer'});
+  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: 'image-rendering:pixelated;width:min(880px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:#e0a84c;cursor:pointer'});
   const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  function drawScene(frame) {
-    drawTerrain(ctx, W, H, () => -99);                       // grass + tufts, no path band (the board draws its own)
-    drawPond(ctx, POND[0], POND[1]);
-    TREES.forEach(([tx, ty]) => drawTree(ctx, tx, ty));
-    ctx.fillStyle = '#4f7e34'; ctx.fillRect(1, 1, W - 2, 2); ctx.fillRect(1, H - 3, W - 2, 2); ctx.fillRect(1, 1, 2, H - 2); ctx.fillRect(W - 3, 1, 2, H - 2);   // frame
-    for (let i = 1; i < nodes.length; i++) drawSeg(ctx, nodes[i - 1], nodes[i]);
-    nodes.forEach(nd => drawPanel(ctx, nd.x, nd.y, cleared[chapKey(nd.ch)] ? 'done' : (nd.i <= firstOpen ? 'open' : 'lock')));
-    const cur = nodes[firstOpen] || nodes[0];
+  function drawScene(frame, wiz) {
+    drawGround(ctx, W, H);
+    drawWater(ctx, 10 * T, 1 * T, 4 * T, 3 * T);
+    pathCells.forEach(k => { const [c, r] = k.split(',').map(Number); ctx.fillStyle = '#efcf93'; ctx.fillRect(c * T + 1, r * T + 1, T - 2, T - 2); });
+    dots.forEach(([c, r]) => { ctx.fillStyle = '#f6d33a'; ctx.fillRect(c * T + T / 2 - 1, r * T + T / 2 - 1, 2, 2); });
+    BUSHES.forEach(([c, r]) => drawBush(ctx, c * T, r * T)); ROCKS.forEach(([c, r]) => drawRocks(ctx, c * T, r * T));
+    ctx.fillStyle = '#7a4a22'; ctx.fillRect(0, 0, W, 2); ctx.fillRect(0, H - 2, W, 2); ctx.fillRect(0, 0, 2, H); ctx.fillRect(W - 2, 0, 2, H);
+    ctx.fillStyle = '#c99a4a'; ctx.fillRect(2, 2, W - 4, 1); ctx.fillRect(2, H - 3, W - 4, 1); ctx.fillRect(2, 2, 1, H - 4); ctx.fillRect(W - 3, 2, 1, H - 4);
+    nodes.forEach(nd => { const st = cleared[chapKey(nd.ch)] ? 'done' : (nd.i <= firstOpen ? 'open' : 'lock');
+      if (nd.ch.exam) drawCastle(ctx, nd.x, nd.y + 5, st); else drawPanel(ctx, nd.x, nd.y, st, String(nd.i + 1)); });
+    const cur = nodes[firstOpen] || nodes[0], wx = wiz ? wiz.x : cur.x, wy = wiz ? wiz.y : cur.y;
     if (MAGE.complete && MAGE.naturalWidth) {
-      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(cur.x, cur.y - 3, 6, 2.2, 0, 0, 7); ctx.fill();
-      ctx.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, cur.x - 8, cur.y - 19, 16, 16); } }
-  let frame = 0; drawScene(0);
-  if (!MAGE.complete) MAGE.addEventListener('load', () => drawScene(frame), {once: true});
-  mageTimer = setInterval(() => { if (!document.body.contains(cv)) { clearInterval(mageTimer); mageTimer = null; return; } frame = (frame + 1) % 4; drawScene(frame); }, 240);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(wx, wy + 4, 5, 2, 0, 0, 7); ctx.fill();
+      ctx.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, wx - 8, wy - 11, 16, 16); } }
+
+  const walk = walkAnim && nodes[walkAnim.to] ? {from: nodes[walkAnim.from], to: nodes[walkAnim.to], t: 0} : null;
+  let frame = 0; drawScene(0, walk ? {x: walk.from.x, y: walk.from.y} : null);
+  if (!MAGE.complete) MAGE.addEventListener('load', () => drawScene(frame, null), {once: true});
+  mageTimer = setInterval(() => { if (!document.body.contains(cv)) { clearInterval(mageTimer); mageTimer = null; return; }
+    frame = (frame + 1) % 4; let wiz = null;
+    if (walk && walk.t < 1) { walk.t = Math.min(1, walk.t + 0.1); wiz = {x: walk.from.x + (walk.to.x - walk.from.x) * walk.t, y: walk.from.y + (walk.to.y - walk.from.y) * walk.t}; if (walk.t >= 1) walkAnim = null; }
+    drawScene(frame, wiz); }, 150);
   cv.addEventListener('click', e => { const r = cv.getBoundingClientRect(), lx = (e.clientX - r.left) / r.width * W, ly = (e.clientY - r.top) / r.height * H;
     let hit = null, bd = 1e9; nodes.forEach(nd => { const d = (nd.x - lx) ** 2 + (nd.y - ly) ** 2; if (d < bd) { bd = d; hit = nd; } });
-    if (hit && bd < 120 && (hit.i <= firstOpen || cleared[chapKey(hit.ch)])) { const s = state('course', {}); s.open = hit.i; keep('course', s); redraw(); } });
+    if (hit && bd < 90 && (hit.i <= firstOpen || cleared[chapKey(hit.ch)])) { const s = state('course', {}); s.open = hit.i; keep('course', s); redraw(); } });
   v.append(cv);
-  // chapter buttons below: readable names + keyboard access the canvas alone can't give
-  v.append(h('div', {style: 'max-width:860px;margin:10px auto 0;width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center'},
+  v.append(h('div', {style: 'max-width:880px;margin:10px auto 0;width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center'},
     ...COURSE.map((ch, i) => { const id = chapKey(ch), isDone = cleared[id], unlocked = i <= firstOpen || isDone;
       return h('button', {class: 'btn' + (i === firstOpen ? ' acc' : ''), disabled: !unlocked, style: 'min-height:34px;font-size:12px' + (unlocked ? '' : ';opacity:.5'),
         on: unlocked ? {click: () => { const s = state('course', {}); s.open = i; keep('course', s); redraw(); }} : {}},
