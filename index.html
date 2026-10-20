@@ -326,6 +326,7 @@ table.t td.l{font-weight:800}
 @keyframes gm-right{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
 @keyframes gm-wrong{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
 .gm-right{animation:gm-right .3s ease-out} .gm-wrong{animation:gm-wrong .32s cubic-bezier(.36,.07,.19,.97)}
+@keyframes sageHop{0%{transform:translateY(0)}30%{transform:translateY(-12px)}55%{transform:translateY(0)}72%{transform:translateY(-5px)}100%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* Theory Lab: the facts feed and the circle-of-fifths wheel */
 .facts{display:flex;flex-direction:column;gap:10px}
@@ -948,7 +949,7 @@ function drawBar() {
     h('button', {class: 'icon tap', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); }}}, 'TAP'),
     h('span', {class: 'dots hide-s'}, dots));
   const action = h('div', {class: 'cta' + (focus ? '' : ' none')}, focus ? playBtn : '',
-    h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : 'pick something above to play it')));
+    h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : '')));
   const session = h('div', {class: 'clock2 hide-s'}, clockBtn, h('div', {class: 'what'}, h('span', {class: 'lbl'}, 'today'), clock));
   bar.append(
     h('button', {class: 'arrow', 'aria-label': 'previous page', html: IC.chevL, on: {click: () => page(at - 1, true)}}),
@@ -1168,7 +1169,6 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
     if (tn.barre) { const bt = h('table', {class: 'cells'}); bt.style.setProperty('--c', 'var(--ink)');
       bt.append(h('tr', {}, h('th', {}, 'barre at'), tn.barre.map((_, f) => h('th', {}, String(f)))), h('tr', {}, h('td', {class: 'k'}, tn.name), tn.barre.map((n, f) => h('td', {class: [5, 7, 12].includes(f) ? 'h' : ''}, n))));
       refBody.append(sec2('One finger, every chord', 'a flat finger or a slide over any fret is a new chord · I IV V = 0, 5, 7', 'var(--ink)', bt)); }
-    refBody.append(sec2('Retuning', 'getting there and back safely', 'var(--rust)', h('table', {class: 't'}, ['Go down, not up · Open E and A raise the tension', 'One string at a time, then go round twice', 'Play hard for a minute, then retune', 'Capo 2 in Open D = Open E, safely'].map(r => h('tr', {}, h('td', {}, r))))));
     setFocus({label: `cycle the ${tn.name} chords`, play: cycleChords(tcards, tn.chords, {midi: tn.midi})});
   }
   // tie the quick reference to the deeper material: jump to this topic's facts in the Index, or straight to its drill
@@ -1256,7 +1256,7 @@ PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'five positions · an
   const st = state('scales', {scale: 'Minor Pentatonic', k: 4, pos: 0, label: 'num'});
   const sv = () => keep('scales', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const scale = scaleBy(st.scale), kd = keyData(scale, st.k), box = kd.boxes[st.pos];
-  v.append(header('II', 'Scales', 'numbers = playing order', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
+  v.append(header('II', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
     pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
@@ -1322,11 +1322,10 @@ PAGES.push({id: 'righthand', no: 'III', name: 'The Right Hand', blurb: 'strummin
   const others = h('div', {class: 'chips'}, S.patterns.map((q, i) => h('button', {class: 'chip', 'aria-pressed': i === st.pat ? 'true' : 'false', on: {click: () => { st.pat = i; keep('finger', st); redraw(); }}}, q.name)));
   const hand = h('div', {style: 'display:grid;grid-template-columns:1fr 1fr;gap:10px'}, [['p', 'thumb · strings 6 5 4', 'var(--rust)'], ['i', 'index · string 3', 'var(--navy)'], ['m', 'middle · string 2', 'var(--teal)'], ['a', 'ring · string 1', 'var(--plum)']].map(([l, d, c]) =>
     h('div', {class: 'row', style: 'gap:8px;flex-wrap:nowrap'}, h('b', {style: `background:${c};color:var(--onacc);border-radius:50%;width:36px;height:36px;display:grid;place-items:center;font-size:20px;flex:none`}, l), h('span', {style: 'font-size:14px'}, d))));
-  const rules = h('table', {class: 't'}, ['The thumb is a metronome · it never waits', 'Bass louder than the fingers', 'Plant the finger before you pluck'].map(r => h('tr', {}, h('td', {}, r))));
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr) 300px;align-items:start'},
     sec2(S.song ? `${S.title} · ${P.name}` : P.name, P.desc, 'var(--plum)', h('div', {class: 'row', style: 'align-items:flex-start;gap:24px'}, h('div', {style: 'width:150px;text-align:center'}, h('div', {style: 'font-weight:900;font-size:20px'}, cname), h('div', {html: chordSVG(ch, {rootPc: known ? known.root : null, names: known ? known.names : null, color: 'var(--plum)'})})), tab),
       h('p', {class: 'lede'}, S.mood), h('div', {class: 'pick'}, h('span', {}, 'More in ' + S.title), others)),
-    h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('The picking hand', '', 'var(--rust)', hand, rules))));
+    h('div', {style: 'display:flex;flex-direction:column;gap:14px'}, sec2('The picking hand', '', 'var(--rust)', hand))));
   setFocus({label: P.name, play: tabPlay(P.steps, draw)});
   }
 }});
@@ -1865,15 +1864,158 @@ function theoryView(v, topic, bar) {
   }
 }
 const CONNECT_HINT = {cof: 'tap the key the question asks for', intervals: 'listen, then name what you hear', key: 'tap the chord the question asks for', scales: 'build the scale by tapping its notes', capo: 'tap where the capo goes', fretboard: 'find every one of the note'};
-// the Learn hub: Reading Music plus the six theory topics, all in one place
-PAGES.push({id: 'learn', no: 'V', name: 'Learn', blurb: 'lessons, games and the index', acc: 'var(--navy)', draw(v) {
-  const L = state('learn', {topic: 'reading', index: false});
-  v.append(header('V', 'Learn', 'play with the ideas, then look anything up', 'reading music · theory lessons · the index of every idea', 'var(--navy)'));
-  const bar = h('div', {class: 'toolbar'},
-    pick('Topic', [['reading', 'Reading Music'], ...THEORY_TOPICS], L.topic, x => { L.index = false; L.topic = x; keep('learn', L); redraw(); }, 'learntopic'),
-    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index')));
+/* ===== SPIKE: the Learn page as a course road — locked chapters, one blended quiz each, a Sage who walks it.
+   Throwaway preview. Every old view (theoryView/indexView/readingView) is left intact, so reverting is: restore this PAGES.push. */
+const COURSE = [
+  {topic: 'fretboard', name: 'The Fretboard'},
+  {topic: 'intervals', name: 'Intervals'},
+  {topic: 'cof',       name: 'Circle of Fifths'},
+  {topic: 'key',       name: 'Chords in a Key'},
+  {topic: 'scales',    name: 'Scales & Modes'},
+  {topic: 'capo',      name: 'The Capo'},
+  {reading: true,      name: 'Reading Music'},
+  {exam: true,         name: 'Final Exam'},
+];
+const PASS = 8, QN = 10;                                   // clear a chapter with 8 of 10
+const rnd = n => Math.floor(Math.random() * n);
+const chapKey = ch => ch.topic || (ch.reading ? 'reading' : 'exam');
+const courseGot = () => store.get('course.cleared', {});
+const courseClear = id => { const c = courseGot(); c[id] = true; store.set('course.cleared', c); };
+const soundOn = () => store.get('course.sound', true);
+const QWHY = {cof: 'circle-of-fifths', intervals: 'interval', key: 'roman-numerals', scales: 'scale', capo: 'capo', fretboard: 'fret'};
+
+// the Sage reacts with a sound: a bright rising triad when you're right, a low thud when you're not
+function sfx(ok) { if (!soundOn()) return; audio(); const t = A.ctx.currentTime + .02;
+  if (ok) [60, 64, 67, 72].forEach((m, i) => playMidi(m, t + i * .07, {kind: 'note', gain: .32, dur: .22}));
+  else { playMidi(42, t, {kind: 'note', gain: .4, dur: .3}); playMidi(43, t + .01, {kind: 'note', gain: .28, dur: .3}); } }
+
+// the Sage — a little robed wizard; every colour is a theme token, so Moon turns him into the dark wizard
+function sageSVG(mood = 'idle') {
+  return `<svg viewBox="0 0 80 116" width="80" height="116" xmlns="${NS}" aria-hidden="true" style="overflow:visible${mood === 'cheer' ? ';animation:sageHop .5s ease' : ''}">`
+    + `<ellipse cx="40" cy="110" rx="22" ry="4.5" fill="var(--rule)" opacity=".5"/>`
+    + `<path d="M21 106 L40 54 L59 106 Z" fill="var(--plum)"/>`                                          // robe
+    + `<path d="M40 54 L59 106 L49 106 Z" fill="var(--ink2)" opacity=".22"/>`                           // robe shadow
+    + `<circle cx="40" cy="46" r="11" fill="#e8c9a0"/>`                                                 // face
+    + `<path d="M31 48 Q40 70 49 48 Q40 56 31 48 Z" fill="var(--mute)"/>`                               // beard
+    + `<path d="M23 42 Q40 -8 57 42 Z" fill="var(--navy)"/>`                                            // hat
+    + `<path d="M23 42 Q40 33 57 42 L52 47 Q40 40 28 47 Z" fill="var(--gold)"/>`                        // hat brim
+    + `<path d="M40 6 l1.8 4.6 4.8.5 -3.4 3.3 .9 4.8 -4.1-2.4 -4.1 2.4 .9-4.8 -3.4-3.3 4.8-.5 z" fill="var(--gold)"/>`  // star
+    + `<circle cx="36" cy="45" r="1.4" fill="var(--ink)"/><circle cx="44" cy="45" r="1.4" fill="var(--ink)"/>`        // eyes
+    + `<rect x="60" y="40" width="3.4" height="66" rx="1.7" fill="var(--rust)"/>`                       // staff
+    + `<circle cx="61.7" cy="38" r="6" fill="var(--gold)"/><circle cx="61.7" cy="38" r="6" fill="none" stroke="var(--rust)" stroke-width="1.5"/>`  // orb
+    + `</svg>`;
+}
+
+// blended questions: each topic has a generator; the chapter quiz mixes them into one gauntlet
+const _IV = D.intervals, _COF = D.cof, _SCL = D.scales, _CAPO = D.capo, _SHP = Object.keys(D.capo), _PAL = D.palette.major.slice(0, 7);
+const GENQ = {
+  fretboard: () => { const s = rnd(6), f = rnd(12), a = SH[(OPEN_PC[s] + f) % 12];
+    return {q: `What note is at string ${'EADGBe'[s]}, fret ${f}?`, a, opts: shuffle([a, ...sample(SH.filter(x => x !== a), 3)])}; },
+  intervals: () => { const i = rnd(_IV.length), a = _IV[i][1];
+    return {q: `What interval is ${_IV[i][0]} semitone${_IV[i][0] > 1 ? 's' : ''}?`, a, opts: shuffle([a, ...sample(_IV.filter((_, j) => j !== i), 3).map(r => r[1])])}; },
+  cof: () => { const i = rnd(_COF.length), a = _COF[i][2];
+    return {q: `What is the relative minor of ${_COF[i][0]} major?`, a, opts: shuffle([a, ...sample(_COF.filter((_, j) => j !== i), 3).map(r => r[2])])}; },
+  key: () => { const deg = rnd(7), tok = _PAL[deg], a = tok[2] === '' ? 'major' : tok[2] === 'm' ? 'minor' : 'diminished';
+    return {q: `In a major key, the ${roman(tok, false)} chord is…?`, a, opts: ['major', 'minor', 'diminished']}; },
+  scales: () => { const i = rnd(_SCL.length), s = _SCL[i], a = s.steps.includes(4) ? 'major' : 'minor';
+    return {q: `Does the ${s.name} have a major or minor 3rd?`, a, opts: ['major', 'minor']}; },
+  capo: () => { const sh = _SHP[rnd(_SHP.length)], f = 1 + rnd(7), a = _CAPO[sh][f];
+    return {q: `A ${sh} shape with a capo at fret ${f} sounds in…?`, a, opts: shuffle([a, ...sample([...new Set([].concat(..._SHP.map(x => _CAPO[x])).filter(k => k !== a))], 3)])}; },
+};
+function buildQuiz(topics, n) { const out = [], seen = new Set(); let g = 0;
+  while (out.length < n && g++ < 600) { const tp = topics[rnd(topics.length)], Q = GENQ[tp] && GENQ[tp]();
+    if (!Q || seen.has(Q.q)) continue; seen.add(Q.q); Q.why = tm(QWHY[tp] || 'note', 'why?'); out.push(Q); }
+  return out; }
+
+function quizView(v, ch, idx) {
+  pageScroll = false;
+  const id = chapKey(ch), topics = ch.exam ? COURSE.filter(c => c.topic).map(c => c.topic) : [ch.topic];
+  const total = ch.exam ? 12 : QN, need = ch.exam ? 10 : PASS;
+  const back = () => { const s = state('course', {}); s.open = -1; keep('course', s); redraw(); };
+  const again = () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); };
+  const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
+    h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name));
   v.append(bar);
-  if (L.index) indexView(v); else if (L.topic === 'reading') readingView(v, bar); else theoryView(v, L.topic, bar);
+  if (ch.reading) { readingView(v, bar); return; }
+
+  const wrap = h('div', {style: 'max-width:700px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px;justify-content:center;min-height:min(64vh,520px)'});
+  v.append(wrap);
+  const sage = h('div', {style: 'text-align:center', html: sageSVG('idle')});
+  const barOuter = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'});
+  const fill = h('div', {style: 'height:100%;width:0;background:var(--navy);transition:width .3s'}); barOuter.append(fill);
+  const counter = h('div', {class: 'muted', style: 'text-align:center;font-weight:800;min-height:1.3em'});
+  const qh = h('div', {style: 'font-size:22px;font-weight:800;min-height:1.5em;text-align:center'});
+  const opts = h('div', {style: 'display:flex;flex-wrap:wrap;gap:12px;justify-content:center'});
+  const fb = h('div', {'aria-live': 'polite', style: 'min-height:50px;text-align:center;font-weight:800'});
+  wrap.append(sage, barOuter, counter, qh, opts, fb);
+
+  const qs = buildQuiz(topics, total); let i = 0, right = 0, answered = false;
+  function render() { if (i >= qs.length) return finish();
+    answered = false; const Q = qs[i]; fill.style.width = (i / qs.length * 100) + '%';
+    counter.textContent = `Question ${i + 1} of ${qs.length} · ${right} right so far`;
+    qh.textContent = Q.q;
+    opts.replaceChildren(...Q.opts.map(o => h('button', {class: 'btn', style: 'font-size:17px;min-height:58px;padding:0 22px', on: {click: () => pick(o, Q)}}, String(o))));
+    fb.textContent = ''; }
+  function pick(o, Q) { if (answered) return; answered = true;
+    const ok = String(o) === String(Q.a); if (ok) right++; sfx(ok);
+    sage.innerHTML = sageSVG(ok ? 'cheer' : 'idle');
+    fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
+    fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`, html: ok ? 'Right!' : `Not quite — it’s <b>${Q.a}</b>. ${Q.why || ''}`}),
+      h('button', {class: 'btn acc', style: 'margin-left:16px', on: {click: () => { i++; render(); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
+  function finish() {
+    const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
+    const passed = right >= need; if (passed) { courseClear(id); sfx(true); }
+    sage.innerHTML = sageSVG(passed ? 'cheer' : 'idle'); fill.style.width = '100%'; counter.textContent = '';
+    qh.textContent = passed ? 'Chapter cleared.' : 'So close.'; opts.replaceChildren();
+    fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${qs.length}. ${passed ? 'The next chapter is open.' : `Clear ${need} to pass — give it another go.`}`}),
+      h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
+        h('button', {class: 'btn', on: {click: again}}, 'Try again'),
+        h('button', {class: 'btn acc', on: {click: back}}, 'Back to the map'))); }
+  render();
+}
+
+function roadView(v) {
+  pageScroll = false;
+  const cleared = courseGot(), best = store.get('course.best', {});
+  const fo = COURSE.findIndex(ch => !cleared[chapKey(ch)]), firstOpen = fo < 0 ? COURSE.length - 1 : fo;
+  const done = COURSE.filter(ch => cleared[chapKey(ch)]).length, pct = Math.round(done / COURSE.length * 100);
+  v.append(h('div', {style: 'max-width:760px;margin:0 auto 4px;width:100%;text-align:center'},
+    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `You’ve cleared ${done} of ${COURSE.length} chapters · ${pct}%`),
+    (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
+
+  const n = COURSE.length, W = 1000, H = 440, pad = 86, amp = 118, midY = H / 2;
+  const P = COURSE.map((ch, i) => ({x: pad + (W - 2 * pad) * (i / (n - 1)), y: midY + amp * Math.sin(i * 0.92), ch, i}));
+  const box = h('div', {style: `position:relative;width:${W}px;height:${H + 46}px;margin:0 auto;max-width:100%`});
+  const seg = P.map(p => `${p.x.toFixed(0)},${p.y.toFixed(0)}`).join(' ');
+  box.append(h('div', {style: 'position:absolute;inset:0', html:
+    `<svg viewBox="0 0 ${W} ${H + 46}" width="100%" height="100%" xmlns="${NS}" aria-hidden="true">`
+    + `<polyline points="${seg}" fill="none" stroke="var(--rule)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<polyline points="${seg}" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="2 15" stroke-linecap="round"/></svg>`}));
+  P.forEach(p => { const id = chapKey(p.ch), isDone = cleared[id], unlocked = p.i <= firstOpen || isDone, sz = 92;
+    const ring = isDone ? 'var(--sage)' : unlocked ? 'var(--navy)' : 'var(--rule)';
+    box.append(h('button', {class: 'btn', disabled: !unlocked, 'aria-label': p.ch.name,
+      style: `position:absolute;left:${p.x - sz / 2}px;top:${p.y - sz / 2}px;width:${sz}px;min-width:${sz}px;height:${sz}px;border-radius:50%;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${isDone ? 'var(--sage)' : 'var(--bg)'};color:${isDone ? 'var(--onacc)' : 'var(--ink)'};border:4px solid ${ring}${unlocked ? '' : ';opacity:.5;cursor:default'}`,
+      on: unlocked ? {click: () => { const s = state('course', {}); s.open = p.i; keep('course', s); redraw(); }} : {}},
+      h('div', {style: 'font-size:26px;line-height:1', html: isDone ? '✓' : unlocked ? (p.ch.exam ? '★' : '▶') : '🔒'}),
+      h('div', {style: 'font-size:10px;font-weight:800;margin-top:2px'}, best[id] ? `${best[id]}/${p.ch.exam ? 12 : QN}` : '')));
+    box.append(h('div', {style: `position:absolute;left:${p.x - 72}px;top:${p.y + sz / 2 + 3}px;width:144px;text-align:center;font-size:12px;font-weight:800;color:var(--ink)`}, p.ch.name)); });
+  const cur = P[firstOpen] || P[0];
+  box.append(h('div', {style: `position:absolute;left:${cur.x - 100}px;top:${cur.y - 110}px;width:80px`, html: sageSVG('idle')}));
+  v.append(box);
+}
+
+// the Learn page: the course road (with the Index still reachable until it moves to the cover)
+PAGES.push({id: 'learn', no: 'V', name: 'Learn', blurb: 'a path from first chord to fluent', acc: 'var(--navy)', draw(v) {
+  pageScroll = false;
+  const L = state('learn', {index: false});
+  v.append(header('V', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
+  v.append(h('div', {class: 'toolbar'},
+    h('label', {class: 'pick'}, h('span', {}, 'Sound'), h('button', {class: 'btn' + (soundOn() ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { store.set('course.sound', !soundOn()); redraw(); }}}, soundOn() ? 'On' : 'Off')),
+    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index'))));
+  if (L.index) { indexView(v); return; }
+  const s = state('course', {open: -1});
+  if (s.open >= 0 && s.open < COURSE.length) quizView(v, COURSE[s.open], s.open);
+  else roadView(v);
 }});
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
