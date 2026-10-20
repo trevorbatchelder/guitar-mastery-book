@@ -272,19 +272,31 @@ table.t td.l{font-weight:800}
 .arrow{width:46px;height:46px;border:1.5px solid var(--ink);font-size:24px;font-weight:600;flex:none;color:var(--ink)}
 @media (max-width:980px){ .run{display:none} .hrow h1{white-space:normal} .pgnum{display:none} }
 @media (max-width:600px){ .cta .what{display:none} .cta.none .what{display:flex} .cta .go{padding:0 16px 0 14px;font-size:15px} .tempo2 .v{min-width:40px} }
-/* phones (≤560px): keep the bottom bar's arrows on screen and tighten everything so there's less to scroll */
+/* phones, narrow (≤560px): a compact bottom bar and smaller everything so there's less to scroll */
 @media (max-width:560px){
   .cta.none .what{display:none}                                  /* was the thing pushing the forward arrow off */
   .pbar .tap{display:none}                                       /* drop tap-tempo on phones; the −/+ remain */
-  .pbar{gap:5px} .pbar .go.play{font-size:0;gap:0;padding:0 15px;min-width:44px}   /* play button → just the ▶ */
-  .tempo2{height:42px;padding:0 2px} .tempo2 button{width:33px;height:33px;font-size:19px} .tempo2 .v{min-width:38px} .tempo2 .bpm{font-size:19px}
-  .icon{width:42px;height:42px} .arrow{width:38px;height:38px}
+  .pbar{gap:4px} .pbar .go.play{font-size:0;gap:0;padding:0 14px;min-width:42px}   /* play button → just the ▶ */
+  .tempo2{height:40px;padding:0 2px} .tempo2 button{width:31px;height:31px;font-size:18px} .tempo2 .v{min-width:34px} .tempo2 .bpm{font-size:18px}
+  .icon{width:40px;height:40px} .arrow{width:36px;height:36px}
   .pg{gap:9px;padding-block:9px 13px} .sec{gap:6px} .body{gap:9px 12px}
   .band{height:12px} .hd2 .band{height:8px;opacity:.5} .hd2{gap:4px}
-  .hrow h1{font-size:clamp(26px,8vw,34px)} .brand-big{font-size:clamp(34px,10vw,48px)!important}
-  .sec>h2{font-size:16px} .sec>h2 small{font-size:12px} .lede{font-size:14px}
-  .cgrid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))!important} .cbox .nm{font-size:17px}
-  .big svg{max-height:330px} .toolbar{gap:8px 16px}
+  .hrow h1{font-size:clamp(24px,7.5vw,32px)} .brand-big{font-size:clamp(34px,10vw,48px)!important}
+  .sec>h2{font-size:15px} .sec>h2 small{font-size:12px} .lede{font-size:13.5px}
+  .cgrid{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))!important;gap:6px 8px} .cbox .nm{font-size:16px} .cbox .sub{font-size:11px}
+  .big svg{max-height:300px} .toolbar{gap:7px 14px} select{min-height:40px;font-size:16px}
+}
+/* short screens (≤460px tall) = a phone held sideways: reclaim vertical space so content isn't buried */
+@media (max-height:460px){
+  .band{display:none} .hd2{gap:2px} .hrow h1{font-size:24px} .run{display:none}
+  .meta,.hd2 .sub{font-size:12px} .pg{gap:6px;padding-block:5px 9px} .sec{gap:5px} .sec>h2{font-size:15px}
+  .toolbar{gap:6px 14px;padding-bottom:0} select{min-height:36px} .seg button{min-height:32px;padding:4px 11px} .btn{min-height:34px}
+  .pbar{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+  .pbar .tap,.pbar .clock2,.cta .what,.cta.none .what{display:none}   /* just the essentials in the bar */
+  .pbar .go.play{font-size:0;gap:0;padding:0 13px;min-width:40px}
+  .tempo2{height:36px;padding:0 2px} .tempo2 button{width:29px;height:29px;font-size:17px} .tempo2 .v{min-width:32px} .tempo2 .bpm{font-size:16px}
+  .icon{width:36px;height:36px} .arrow{width:34px;height:34px}
+  .big svg{max-height:210px} .cgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))!important}
 }
 /* IX Writing: slim song-shape row under the bars, compact melody table */
 .shape-row{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:2px}
