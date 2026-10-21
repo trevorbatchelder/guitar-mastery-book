@@ -811,7 +811,7 @@ function moonBand() {
   return `<svg class="band" width="100%" height="20" xmlns="${NS}" aria-hidden="true">`
     + `<defs><pattern id="${id}" width="40" height="20" patternUnits="userSpaceOnUse">`
     + `<path d="M12 4 a6.2 6.2 0 1 0 0 12.4 a4.7 4.7 0 1 1 0 -12.4 z" fill="var(--gold)"/>`   // crescent moon
-    + `<path d="M29 7 l.7 1.9 2 .3 -1.5 1.4 .4 2 -1.6 -1 -1.6 1 .4 -2 -1.5 -1.4 2 -.3 z" fill="var(--ink2)"/>`  // star
+    + `<path d="M29 16 L29 5 M29 7 L26.3 4.3 M29 7 L31.7 4.3 M29 11 L26.8 13 M29 11 L31.2 13" stroke="var(--ink2)" stroke-width="1.1" fill="none" stroke-linecap="round"/>`  // a rune in place of the star
     + `</pattern></defs>`
     + `<line x1="0" y1="2" x2="100%" y2="2" stroke="var(--rule)" stroke-width="1"/>`
     + `<rect x="0" y="0" width="100%" height="20" fill="url(#${id})"/>`
@@ -1353,8 +1353,9 @@ PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'how songs are bu
   v.append(bar);
   if (chordsMode) {
   const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major'});
+  if (!['build', 'sev', 'minor', 'moves'].includes(st.topic)) st.topic = 'build';
   const sv = () => keep('harmony', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
-  const topics = [['build', 'Build any chord'], ['sev', 'Seventh chords in a key'], ['minor', 'Writing in minor'], ...Object.keys(D.harm.moves).map(k => [k, k]), ['voice', 'Voice leading'], ['edit', 'Edit a barre shape']];
+  const topics = [['build', 'Build any chord'], ['sev', 'Seventh chords in a key'], ['minor', 'Writing in minor'], ['moves', 'How chords move']];
   bar.append(pick('Topic', topics, st.topic, x => set('topic', x)));
   const tools = bar;
   const body = h('div', {class: 'body', style: 'align-content:start'});
@@ -1380,19 +1381,17 @@ PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'how songs are bu
     body.append(sec2(minor ? `Writing in ${tn} minor` : `Seventh chords in ${tn}`, minor ? 'i ii° III iv v → V VI VII · raise the v to a major V7: the pull home almost every minor song uses' : 'maj7 · m7 · m7 · maj7 · 7 · m7 · m7♭5 · swap any chord for its 7th', 'var(--gold)',
       h('div', {class: 'cgrid', style: `--n:${cards.length};--cw:140px`}, cards)));
     setFocus({label: `walk the chords of ${tn}`, play: cycleChords(cards, cs.map(c => shapeOf(c.pc, c.q)))});
-  } else if (D.harm.moves[st.topic]) {
+  } else {   // 'moves' — borrowed chords, secondary dominants, substitutions, key changes and cadences, all on one page
     tools.append(pick('Key', D.majKeys.map((k, i) => [i, k + ' major']), st.key, x => set('key', +x)));
-    const rows = D.harm.moves[st.topic];
-    const list = h('table', {class: 't', style: '--c:var(--rust)'}, rows.map((m, i) => { const cs = m.toks.map(t => chordName(tonic, false, t));
-      return h('tr', {}, h('td', {class: 'l'}, m.name), h('td', {style: 'font-weight:800'}, m.num.replaceAll('–', ' → ')), h('td', {style: 'font-size:19px;font-weight:900'}, cs.map(c => c.name).join(' → ')), h('td', {class: 'muted'}, m.desc),
-        h('td', {}, h('button', {class: 'btn small play', on: {click: () => { audio(); const step = .9, t0 = A.ctx.currentTime + .05; cs.forEach((c, k) => { const sh = shapeOf(c.pc, c.q); strum(sh.frets, 'D', t0 + k * step); }); }}}, 'Hear'))); }));
-    body.append(sec2(st.topic + ` in ${tonic}`, 'tap Hear · every example re-spells for the key you pick', 'var(--rust)', list));
-    const all = rows.flatMap(m => m.toks.map(t => chordName(tonic, false, t)));
-    setFocus({label: `${st.topic.toLowerCase()} in ${tonic}, one after another`, play: cycleChords([], all.map(c => shapeOf(c.pc, c.q)))});
-  } else {
-    const rows = st.topic === 'voice' ? D.harm.voice : D.harm.edit;
-    body.append(sec2(st.topic === 'voice' ? 'Voice leading' : 'Edit a barre shape', st.topic === 'voice' ? 'move each note the shortest way' : 'E- or A-shape · one finger moves, the chord changes', 'var(--gold)',
-      h('table', {class: 't', style: '--c:var(--gold)'}, rows.map(([a, b]) => h('tr', {}, h('td', {class: 'l', style: 'font-size:20px'}, a), h('td', {style: 'font-size:18px'}, b))))));
+    const allChords = [];
+    Object.keys(D.harm.moves).forEach(cat => {
+      const rows = D.harm.moves[cat];
+      const list = h('table', {class: 't', style: '--c:var(--rust)'}, rows.map(m => { const cs = m.toks.map(t => chordName(tonic, false, t)); cs.forEach(c => allChords.push(c));
+        return h('tr', {}, h('td', {class: 'l'}, m.name), h('td', {style: 'font-weight:800'}, m.num.replaceAll('–', ' → ')), h('td', {style: 'font-size:19px;font-weight:900'}, cs.map(c => c.name).join(' → ')), h('td', {class: 'muted'}, m.desc),
+          h('td', {}, h('button', {class: 'btn small play', on: {click: () => { audio(); const step = .9, t0 = A.ctx.currentTime + .05; cs.forEach((c, k) => { const sh = shapeOf(c.pc, c.q); strum(sh.frets, 'D', t0 + k * step); }); }}}, 'Hear'))); }));
+      body.append(sec2(cat.charAt(0).toUpperCase() + cat.slice(1), `in ${tonic} · tap Hear · re-spells for any key`, 'var(--rust)', list));
+    });
+    setFocus({label: `chord moves in ${tonic}`, play: cycleChords([], allChords.map(c => shapeOf(c.pc, c.q)))});
   }
   v.append(body);
   } else {
