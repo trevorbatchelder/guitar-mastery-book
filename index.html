@@ -1878,18 +1878,36 @@ function theoryView(v, topic, bar) {
 const CONNECT_HINT = {cof: 'tap the key the question asks for', intervals: 'listen, then name what you hear', key: 'tap the chord the question asks for', scales: 'build the scale by tapping its notes', capo: 'tap where the capo goes', fretboard: 'find every one of the note'};
 /* ===== SPIKE: the Learn page as a course road — locked chapters, one blended quiz each, a Sage who walks it.
    Throwaway preview. Every old view (theoryView/indexView/readingView) is left intact, so reverting is: restore this PAGES.push. */
-const COURSE = [
-  {topic: 'basics',    name: 'Guitar Basics'},
-  {topic: 'fretboard', name: 'The Fretboard'},
-  {topic: 'notes',     name: 'Notes & Half-Steps'},
-  {topic: 'intervals', name: 'Intervals'},
-  {topic: 'cof',       name: 'Circle of Fifths'},
-  {topic: 'key',       name: 'Chords in a Key'},
-  {topic: 'scales',    name: 'Scales & Modes'},
-  {topic: 'capo',      name: 'The Capo'},
-  {reading: true,      name: 'Reading Music'},
-  {exam: true,         name: 'Final Exam'},
+// 5 modules, each with several lessons — a Duolingo-style tree. LESSONS is the flattened, ordered sequence.
+const MODULES = [
+  {name: 'First Steps', acc: '#c0632e', lessons: [
+    {topic: 'anatomy', name: 'Parts of the Guitar'},
+    {topic: 'strings', name: 'The Six Strings'},
+    {topic: 'frets', name: 'Frets, Dots & Open Strings'}]},
+  {name: 'Notes on the Neck', acc: '#c99a2e', lessons: [
+    {topic: 'halfsteps', name: 'Half Steps & Whole Steps'},
+    {topic: 'accidentals', name: 'Sharps, Flats & Naturals'},
+    {topic: 'neck', name: 'Reading Notes on the Fretboard'},
+    {topic: 'octaves', name: 'Octaves & Tuning'}]},
+  {name: 'Intervals & Keys', acc: '#2f8f86', lessons: [
+    {topic: 'interval', name: 'What Is an Interval'},
+    {topic: 'intervalname', name: 'Naming Intervals'},
+    {topic: 'cof', name: 'The Circle of Fifths'},
+    {topic: 'keys', name: 'Keys & Relative Minors'}]},
+  {name: 'Chords & Harmony', acc: '#3a5a9c', lessons: [
+    {topic: 'triads', name: 'How Chords Are Built'},
+    {topic: 'chordsinkey', name: 'Chords in a Key'},
+    {topic: 'qualities', name: 'Roman Numerals & Qualities'},
+    {topic: 'progressions', name: 'Common Progressions'}]},
+  {name: 'Scales, Modes & Technique', acc: '#4f8f4a', lessons: [
+    {topic: 'scalewhat', name: 'What Is a Scale'},
+    {topic: 'majmin', name: 'Major vs Minor'},
+    {topic: 'modes', name: 'Scales & Modes'},
+    {topic: 'capo', name: 'The Capo'},
+    {exam: true, name: 'Final Challenge'}]},
 ];
+const LESSONS = [];
+MODULES.forEach((m, mi) => m.lessons.forEach(l => LESSONS.push(Object.assign({mod: mi, modName: m.name, acc: m.acc}, l))));
 const PASS = 8, QN = 10;                                   // clear a chapter with 8 of 10
 const rnd = n => Math.floor(Math.random() * n);
 const chapKey = ch => ch.topic || (ch.reading ? 'reading' : 'exam');
@@ -2085,6 +2103,122 @@ const QBANK = {
         hint: 'Count half steps from the open shape up to the target key.', why: `A ${sh} shape reaches ${a} with the capo at fret ${f}.`}; },
   ],
 };
+// --- granular lesson banks for the 5-module tree. 'cof' and 'capo' reuse the entries above. ---
+Object.assign(QBANK, {
+  anatomy: [
+    () => ({q: 'Which part of the guitar holds the tuning pegs?', a: 'the headstock', opts: shuffle(['the headstock', 'the bridge', 'the nut', 'the soundhole']), hint: 'It is at the very top of the neck.', why: 'The headstock sits at the top of the neck and holds the tuners (machine heads) that tighten each string.'}),
+    () => ({q: 'What is the notched strip where the strings leave the headstock onto the neck?', a: 'the nut', opts: shuffle(['the nut', 'the bridge', 'a fret', 'the saddle']), hint: 'It sets where the open-string length begins.', why: 'The nut is the grooved strip at the top of the fretboard; it spaces the strings and marks the start of the vibrating length.'}),
+    () => ({q: 'Where do the strings anchor at the body end of the guitar?', a: 'the bridge', opts: shuffle(['the bridge', 'the headstock', 'the nut', 'the neck']), hint: 'Opposite end from the tuners.', why: 'The bridge holds the strings at the body and passes their vibration into the top of the guitar.'}),
+    () => ({q: 'The flat surface where you press the strings is the:', a: 'fretboard', opts: shuffle(['fretboard', 'headstock', 'soundhole', 'bridge']), hint: 'Also called the fingerboard.', why: 'The fretboard (fingerboard) is the front of the neck, divided by frets, where your fingers press the strings.'}),
+    () => ({q: 'On an electric guitar, what turns string vibration into sound?', a: 'the pickups', opts: shuffle(['the pickups', 'the soundhole', 'the nut', 'the capo']), hint: 'Acoustics use a soundhole instead.', why: 'Pickups sense the steel strings vibrating and send an electric signal to the amp. Acoustics project sound through a soundhole.'}),
+    () => ({q: 'The large part you rest against your body is the:', a: 'the body', opts: shuffle(['the body', 'the neck', 'the headstock', 'the nut']), hint: 'The biggest piece.', why: 'The body anchors the bridge and (on an acoustic) resonates the sound; the neck extends from it.'}),
+  ],
+  strings: [
+    () => ({q: 'From thickest to thinnest, the open strings are:', a: 'E A D G B E', opts: shuffle(['E A D G B E', 'E A D G B D', 'E A D F B E', 'G D A E B E']), hint: 'The outer two strings share a letter.', why: 'Low to high: E A D G B E. The 6th (thick) and 1st (thin) strings are both E, two octaves apart.'}),
+    () => ({q: 'The thickest, lowest string is the:', a: '6th string (low E)', opts: shuffle(['6th string (low E)', '1st string (high E)', '5th string (A)', '3rd string (G)']), hint: 'Numbering starts at the thinnest.', why: 'Strings run 1 (thin) to 6 (thick), so the thick low E is the 6th string.'}),
+    () => ({q: 'The thinnest, highest string is the:', a: '1st string (high E)', opts: shuffle(['1st string (high E)', '6th string (low E)', '2nd string (B)', '4th string (D)']), hint: 'Number 1 is the thinnest.', why: 'The thin high E is the 1st string.'}),
+    () => ({q: 'What is the second-thickest string?', a: 'A (5th string)', opts: shuffle(['A (5th string)', 'B (2nd string)', 'D (4th string)', 'G (3rd string)']), hint: 'Right next to the low E.', why: 'Next to the 6th-string low E is the 5th string, A.'}),
+    () => ({q: 'Which phrase remembers the strings E A D G B E?', a: 'Eddie Ate Dynamite, Good Bye Eddie', opts: shuffle(['Eddie Ate Dynamite, Good Bye Eddie', 'Every Amp Delivers Great Big Echoes', 'Easy Acoustic Days Go By Easy', 'Even Angry Donkeys Get Bored Early']), hint: 'Read the first letters.', why: 'Any phrase works if the first letters spell E A D G B E.'}),
+    () => ({q: 'Guitar strings are numbered starting from:', a: 'the thinnest string', opts: shuffle(['the thinnest string', 'the thickest string', 'the middle', 'the headstock']), hint: '1 is the high E.', why: 'String 1 is the thinnest (high E); string 6 is the thickest (low E).'}),
+  ],
+  frets: [
+    () => ({q: 'Pressing a string behind a higher fret makes the note:', a: 'higher', opts: shuffle(['higher', 'lower', 'quieter', 'muted']), hint: 'Shorter string = faster vibration.', why: 'Fretting shortens the vibrating length, raising the pitch one half step per fret.'}),
+    () => ({q: 'An "open" string is played:', a: 'without pressing any fret', opts: shuffle(['without pressing any fret', 'at the 12th fret', 'while muted', 'with a capo']), hint: 'Nothing held down.', why: 'An open string rings at full length with no finger on the board.'}),
+    () => ({q: 'Position-marker dots usually sit at frets:', a: '3, 5, 7, 9, 12', opts: shuffle(['3, 5, 7, 9, 12', '2, 4, 6, 8, 10', '1, 3, 6, 9, 11', '4, 8, 12, 16']), hint: 'The 12th gets a double dot.', why: 'Dots at 3, 5, 7, 9 and a double dot at 12 help you find your place.'}),
+    () => ({q: 'Moving up one fret changes the pitch by:', a: 'a half step', opts: shuffle(['a half step', 'a whole step', 'an octave', 'a fifth']), hint: 'One fret is the smallest step.', why: 'Each fret is one half step; two frets make a whole step.'}),
+    () => ({q: 'Playing the 12th fret gives the open note:', a: 'one octave higher', opts: shuffle(['one octave higher', 'two octaves higher', 'a fifth higher', 'unchanged']), hint: 'The 12th fret halves the string.', why: 'Halving the string doubles the frequency — the same note one octave up.'}),
+  ],
+  halfsteps: [
+    () => ({q: 'A half step is:', a: 'one fret', opts: shuffle(['one fret', 'two frets', 'three frets', 'half a string']), hint: 'The smallest move on the guitar.', why: 'A half step (semitone) is one fret — the smallest distance between two notes.'}),
+    () => ({q: 'A whole step is:', a: 'two frets', opts: shuffle(['two frets', 'one fret', 'three frets', 'an octave']), hint: 'Two half steps.', why: 'A whole step is two half steps — two frets. C to D is a whole step.'}),
+    () => { const pc = rnd(12), b = SH[pc], a = SH[(pc + 2) % 12]; return {q: `A whole step above ${b} is:`, a, opts: nOpts(a), hint: 'Up two frets.', why: `Two frets above ${b} is ${a}.`}; },
+    () => { const pc = rnd(12), b = SH[pc], a = SH[(pc + 1) % 12]; return {q: `A half step above ${b} is:`, a, opts: nOpts(a), hint: 'Up one fret — mind the B–C and E–F pairs.', why: `One fret above ${b} is ${a}.`}; },
+    () => ({q: 'How many half steps are in a whole step?', a: '2', opts: shuffle(['2', '1', '3', '4']), hint: 'Whole = two halves.', why: 'A whole step is exactly two half steps.'}),
+  ],
+  accidentals: [
+    () => ({q: 'A sharp (♯) does what to a note?', a: 'raises it one half step', opts: shuffle(['raises it one half step', 'lowers it one half step', 'raises it a whole step', 'makes it louder']), hint: 'Sharp = up.', why: 'A sharp raises a note one fret. F♯ is one fret above F.'}),
+    () => ({q: 'A flat (♭) does what to a note?', a: 'lowers it one half step', opts: shuffle(['lowers it one half step', 'raises it one half step', 'lowers it a whole step', 'makes it quieter']), hint: 'Flat points down.', why: 'A flat lowers a note one fret. B♭ is one fret below B.'}),
+    () => ({q: 'A "natural" note is:', a: 'a plain letter with no sharp or flat', opts: shuffle(['a plain letter with no sharp or flat', 'any open-string note', 'a soft note', 'a scale root']), hint: 'The piano white keys.', why: 'Naturals are A B C D E F G with no accidental.'}),
+    () => ({q: 'F♯ and G♭ are:', a: 'the same pitch, two names', opts: shuffle(['the same pitch, two names', 'two different pitches', 'a whole step apart', 'the same as F and G']), hint: 'Same fret, two spellings.', why: 'They are enharmonic — one pitch with two names; the key decides which you use.'}),
+    () => ({q: 'Which natural notes have NO note between them?', a: 'B–C and E–F', opts: shuffle(['B–C and E–F', 'A–B and C–D', 'G–A and D–E', 'C–D and F–G']), hint: 'Only one fret apart.', why: 'B–C and E–F are already a half step apart, so there is no B♯ or E♯ in normal naming.'}),
+  ],
+  neck: [
+    () => { const s = rnd(6), f = 1 + rnd(11), o = SH[OPEN_PC[s] % 12], a = SH[(OPEN_PC[s] + f) % 12]; return {q: `What note is at the ${STRINGS[s]} string, fret ${f}?`, a, opts: nOpts(a), hint: `Start at open ${STRINGS[s]} (${o}) and count up ${f}, one letter per fret (watch B–C, E–F).`, why: `Open ${STRINGS[s]} is ${o}; ${f} half step${f > 1 ? 's' : ''} up is ${a}.`}; },
+    () => { const s = rnd(6), a = SH[OPEN_PC[s] % 12]; return {q: `What note does the open ${STRINGS[s]} string play?`, a, opts: nOpts(a), hint: 'It is the string name.', why: `The open ${STRINGS[s]} string is ${a}.`}; },
+    () => ({q: 'After G, the musical alphabet:', a: 'starts over at A', opts: shuffle(['starts over at A', 'continues to H', 'goes to G♯', 'stops']), hint: 'Only seven letters.', why: 'Notes are A B C D E F G, then repeat — there is no H.'}),
+    () => ({q: 'Which natural pairs sit only one fret apart on the neck?', a: 'B–C and E–F', opts: shuffle(['B–C and E–F', 'A–B and C–D', 'F–G and C–D', 'D–E and G–A']), hint: 'The two natural half-steps.', why: 'B–C and E–F are a half step apart, so there is nothing between them on the neck.'}),
+    () => { const s = rnd(6), a = SH[OPEN_PC[s] % 12]; return {q: `Which fret repeats the open ${STRINGS[s]} note (${a}) one octave higher?`, a: '12', opts: shuffle(['12', '7', '5', '10']), hint: 'Halfway up the string.', why: `The 12th fret is one octave above the open string, so it is ${a} again.`}; },
+  ],
+  octaves: [
+    () => ({q: 'The 12th fret of any string plays:', a: 'the open note, one octave higher', opts: shuffle(['the open note, one octave higher', 'a brand-new note', 'a fifth higher', 'the open note, two octaves higher']), hint: 'The string is halved there.', why: 'Halving the string doubles the frequency — the same note one octave up.'}),
+    () => ({q: 'How many half steps are in an octave?', a: '12', opts: shuffle(['12', '7', '8', '6']), hint: 'Count frets 1–12.', why: 'An octave spans 12 half steps — hence the 12th-fret octave.'}),
+    () => { const s = rnd(5), o = SH[OPEN_PC[s] % 12], no = SH[OPEN_PC[s + 1] % 12], f = (OPEN_PC[s + 1] - OPEN_PC[s] + 12) % 12; return {q: `Tuning by ear: fret ${f} of the ${STRINGS[s]} string should match the open:`, a: `${STRINGS[s + 1]} string`, opts: shuffle([`${STRINGS[s + 1]} string`, ...sample(STRINGS.filter(x => x !== STRINGS[s + 1]), 3).map(x => `${x} string`)]), hint: 'The 5th-fret method; G–B is the exception at fret 4.', why: `${o} up ${f} frets is ${no}, the next open string. Most pairs match at fret 5; G–B matches at fret 4.`}; },
+    () => ({q: 'The 6th string (low E) and 1st string (high E) are apart by:', a: 'two octaves', opts: shuffle(['two octaves', 'one octave', 'a fifth', 'a fourth']), hint: 'Both are E, far apart.', why: 'The two outer strings are both E, spanning two octaves.'}),
+  ],
+  interval: [
+    () => ({q: 'What is an interval?', a: 'the distance between two notes', opts: shuffle(['the distance between two notes', 'a type of chord', 'a rest', 'the song tempo']), hint: 'A measurement.', why: 'An interval is the pitch distance between two notes, named (3rd, 5th…) or counted in half steps.'}),
+    () => ({q: 'The smallest interval in Western music is:', a: 'a half step', opts: shuffle(['a half step', 'a whole step', 'a third', 'an octave']), hint: 'One fret.', why: 'A half step (semitone) is the smallest interval — one fret.'}),
+    () => ({q: 'Two notes of the same pitch form a:', a: 'unison', opts: shuffle(['unison', 'octave', 'fifth', 'third']), hint: 'Zero distance.', why: 'The same note together is a unison — an interval of zero half steps.'}),
+    () => ({q: 'Intervals are measured in:', a: 'half steps (semitones)', opts: shuffle(['half steps (semitones)', 'beats', 'decibels', 'strings']), hint: 'Count frets.', why: 'Interval size is counted in half steps — on the guitar, frets on one string.'}),
+  ],
+  intervalname: [
+    () => { const i = rnd(_IV.length); return {q: `How many half steps is a ${_IV[i][1]}?`, a: String(_IV[i][0]), opts: shuffle([String(_IV[i][0]), ...sample(_IV.filter((_, j) => j !== i), 3).map(r => String(r[0]))]), hint: 'Count frets on one string.', why: `A ${_IV[i][1]} is ${_IV[i][0]} half step${_IV[i][0] > 1 ? 's' : ''}.`}; },
+    () => { const i = rnd(_IV.length); return {q: `What interval is ${_IV[i][0]} semitone${_IV[i][0] > 1 ? 's' : ''}?`, a: _IV[i][1], opts: shuffle([_IV[i][1], ...sample(_IV.filter((_, j) => j !== i), 3).map(r => r[1])]), hint: '4 = major 3rd, 7 = fifth, 12 = octave.', why: `${_IV[i][0]} half steps is a ${_IV[i][1]}.`}; },
+    () => ({q: 'A major 3rd is how many frets?', a: '4', opts: shuffle(['4', '3', '5', '7']), hint: 'The bright third.', why: 'A major 3rd is 4 half steps; a minor 3rd is 3.'}),
+    () => ({q: 'A power chord stacks the root with the note how far above?', a: 'a perfect fifth (7 frets)', opts: shuffle(['a perfect fifth (7 frets)', 'a major third (4 frets)', 'an octave (12 frets)', 'a whole step (2 frets)']), hint: 'The "5" chord.', why: 'A power chord is root + perfect fifth (7 half steps) — written like G5.'}),
+    () => ({q: 'An octave is how many half steps?', a: '12', opts: shuffle(['12', '7', '8', '10']), hint: 'Same as the 12th fret.', why: 'An octave is 12 half steps.'}),
+  ],
+  keys: [
+    () => { const i = rnd(_COF.length); return {q: `What is the relative minor of ${_COF[i][0]} major?`, a: _COF[i][2], opts: shuffle([_COF[i][2], ...sample(_COF.filter((_, j) => j !== i), 3).map(r => r[2])]), hint: 'Three frets below the major key.', why: `${_COF[i][2]} uses ${_COF[i][0]} major's notes but centres a minor third (3 frets) lower.`}; },
+    () => { const i = rnd(_COF.length); if (_COF[i][1] === '—') return {q: 'Which major key has no sharps or flats?', a: 'C', opts: shuffle(['C', 'G', 'F', 'D']), hint: 'All naturals.', why: 'C major has no sharps or flats.'}; return {q: `How many sharps or flats does ${_COF[i][0]} major have?`, a: _COF[i][1], opts: shuffle([_COF[i][1], ...sample(_COF.filter((_, j) => j !== i && _COF[j][1] !== _COF[i][1]), 3).map(r => r[1])]), hint: 'The circle changes it by one each step.', why: `${_COF[i][0]} major has ${_COF[i][1]}.`}; },
+    () => ({q: 'A relative minor sits how far below its major key?', a: 'a minor third (3 frets)', opts: shuffle(['a minor third (3 frets)', 'a fifth (7 frets)', 'a whole step (2 frets)', 'an octave']), hint: 'A minor 3rd down.', why: 'The relative minor is 3 half steps below the major and shares its notes (A minor ↔ C major).'}),
+    () => ({q: 'The major key with exactly one sharp (F♯) is:', a: 'G major', opts: shuffle(['G major', 'D major', 'F major', 'C major']), hint: 'One step clockwise from C.', why: 'G major has one sharp, F♯ — the first key clockwise on the circle.'}),
+  ],
+  triads: [
+    () => ({q: 'A basic chord (triad) has how many notes?', a: '3', opts: shuffle(['3', '2', '4', '5']), hint: 'Tri = three.', why: 'A triad is three notes: a root, a third, and a fifth.'}),
+    () => ({q: 'A triad is built by stacking:', a: 'thirds', opts: shuffle(['thirds', 'fifths', 'octaves', 'half steps']), hint: 'Skip a letter each time.', why: 'Triads stack notes a third apart: root, up a 3rd, up another 3rd (the 5th from the root).'}),
+    () => ({q: 'A major triad is the root plus a:', a: 'major 3rd and a perfect 5th', opts: shuffle(['major 3rd and a perfect 5th', 'minor 3rd and a perfect 5th', 'major 3rd and a major 6th', 'perfect 4th and a 5th']), hint: 'The bright third makes it major.', why: 'Major = root + major 3rd (4 frets) + perfect 5th (7 frets).'}),
+    () => ({q: 'What single change turns a major triad into a minor one?', a: 'lower the 3rd by a half step', opts: shuffle(['lower the 3rd by a half step', 'raise the 5th', 'lower the root', 'add a 7th']), hint: 'The 3rd is the mood note.', why: 'Flattening the 3rd (major → minor 3rd) makes it minor; the root and 5th stay.'}),
+    () => ({q: 'The three notes of a C major chord are:', a: 'C E G', opts: shuffle(['C E G', 'C E♭ G', 'C F G', 'C E A']), hint: 'Root, major 3rd, perfect 5th.', why: 'C major = C (root), E (major 3rd), G (perfect 5th).'}),
+  ],
+  chordsinkey: [
+    () => { const tonic = _KEYS[rnd(12)], deg = rnd(7), tok = _PAL[deg], a = chordName(tonic, false, tok).name; return {q: `In ${tonic} major, the ${roman(tok, false)} chord is:`, a, opts: shuffle([a, ...sample(_PAL.filter((_, j) => j !== deg).map(t => chordName(tonic, false, t).name), 3)]), hint: `Count to degree ${deg + 1} of ${tonic}.`, why: `Built on degree ${deg + 1} of ${tonic} major, the chord is ${a}.`}; },
+    () => ({q: 'The three main chords in any major key are:', a: 'I, IV and V', opts: shuffle(['I, IV and V', 'ii, iii and vi', 'I, ii and V', 'IV, vi and vii°']), hint: 'The pillars of most songs.', why: 'I, IV and V are the three major chords that anchor a key and countless songs.'}),
+    () => { const tonic = _KEYS[rnd(12)], I = chordName(tonic, false, _PAL[0]).name, IV = chordName(tonic, false, _PAL[3]).name, V = chordName(tonic, false, _PAL[4]).name, a = `${I}  ${IV}  ${V}`, wrongs = sample(_KEYS.filter(k => k !== tonic), 3).map(k => `${chordName(k, false, _PAL[0]).name}  ${chordName(k, false, _PAL[3]).name}  ${chordName(k, false, _PAL[4]).name}`); return {q: `In ${tonic} major, the I–IV–V chords are:`, a, opts: shuffle([a, ...wrongs]), hint: 'Degrees 1, 4 and 5 of the scale.', why: `In ${tonic}: I = ${I}, IV = ${IV}, V = ${V}.`}; },
+  ],
+  qualities: [
+    () => ({q: 'In a major key, the ii, iii and vi chords are:', a: 'minor', opts: shuffle(['minor', 'major', 'diminished', 'augmented']), hint: 'Lowercase numerals = minor.', why: 'The pattern is I ii iii IV V vi vii° = Maj min min Maj Maj min dim, so ii, iii, vi are minor.'}),
+    () => ({q: 'The vii° chord in a major key is:', a: 'diminished', opts: shuffle(['diminished', 'major', 'minor', 'augmented']), hint: 'The ° symbol.', why: 'The 7th-degree chord is diminished, marked with °.'}),
+    () => { const deg = rnd(7), tok = _PAL[deg], a = tok[2] === '' ? 'major' : tok[2] === 'm' ? 'minor' : 'diminished'; return {q: `In a major key, the ${roman(tok, false)} chord is:`, a, opts: ['major', 'minor', 'diminished'], hint: 'Maj–min–min–Maj–Maj–min–dim.', why: `${roman(tok, false)} is ${a} in every major key.`}; },
+    () => ({q: 'A Roman numeral like V tells you:', a: 'which scale degree the chord is built on', opts: shuffle(['which scale degree the chord is built on', 'how loud to play', 'how many strings', 'the tempo']), hint: 'Numbers count the scale.', why: 'Roman numerals number chords by scale degree; capitals are major, lowercase minor.'}),
+    () => ({q: 'A capital Roman numeral (like IV) means the chord is:', a: 'major', opts: shuffle(['major', 'minor', 'diminished', 'a power chord']), hint: 'Case matters.', why: 'Capitals = major, lowercase = minor, lowercase with ° = diminished.'}),
+  ],
+  progressions: [
+    () => ({q: 'The most common chord progression in Western music is:', a: 'I – IV – V', opts: shuffle(['I – IV – V', 'ii – V – I', 'I – vii° – IV', 'iii – vi – ii']), hint: 'The three major chords.', why: 'I–IV–V uses the three major chords of the key and underlies folk, blues and rock.'}),
+    () => ({q: 'The famous "four-chord pop" progression is:', a: 'I – V – vi – IV', opts: shuffle(['I – V – vi – IV', 'I – IV – V – I', 'vi – IV – I – V', 'ii – V – I – vi']), hint: 'Heard in hundreds of pop songs.', why: 'I–V–vi–IV (e.g. C–G–Am–F) powers a huge share of pop hits.'}),
+    () => ({q: 'A 12-bar blues is built mostly from:', a: 'the I, IV and V chords', opts: shuffle(['the I, IV and V chords', 'the ii and vi chords', 'only the I chord', 'diminished chords']), hint: 'The three pillars again.', why: 'The 12-bar blues cycles the I, IV and V chords in a set pattern.'}),
+    () => { const tonic = _KEYS[rnd(12)], I = chordName(tonic, false, _PAL[0]).name, V = chordName(tonic, false, _PAL[4]).name, vi = chordName(tonic, false, _PAL[5]).name, IV = chordName(tonic, false, _PAL[3]).name, a = `${I}  ${V}  ${vi}  ${IV}`, wrongs = sample(_KEYS.filter(k => k !== tonic), 3).map(k => `${chordName(k, false, _PAL[0]).name}  ${chordName(k, false, _PAL[4]).name}  ${chordName(k, false, _PAL[5]).name}  ${chordName(k, false, _PAL[3]).name}`); return {q: `In ${tonic} major, the I–V–vi–IV progression is:`, a, opts: shuffle([a, ...wrongs]), hint: 'Degrees 1, 5, 6, 4.', why: `In ${tonic}: ${I} – ${V} – ${vi} – ${IV}.`}; },
+    () => ({q: 'A "turnaround" at the end of a progression:', a: 'leads back to the I chord', opts: shuffle(['leads back to the I chord', 'ends the song', 'changes key permanently', 'mutes the strings']), hint: 'It sets up the loop.', why: 'A turnaround (often V, or ii–V) pulls the ear back to the I chord to repeat the progression.'}),
+  ],
+  scalewhat: [
+    () => ({q: 'What is a scale?', a: 'a set of notes in order within an octave', opts: shuffle(['a set of notes in order within an octave', 'three notes played together', 'a strumming pattern', 'two notes a fifth apart']), hint: 'A ladder of notes.', why: 'A scale is an ordered set of notes inside an octave — the material for melodies and chords.'}),
+    () => ({q: 'A major scale has how many different notes?', a: '7', opts: shuffle(['7', '5', '8', '12']), hint: 'One per letter.', why: 'Seven notes; the 8th is the octave repeat of the 1st.'}),
+    () => ({q: 'The 8th note of a scale is:', a: 'the octave of the 1st', opts: shuffle(['the octave of the 1st', 'a brand-new note', 'the 5th', 'a half step up']), hint: 'Back to the start, higher.', why: 'The 8th degree is the root again, one octave up — which is why scales feel complete there.'}),
+    () => ({q: 'The note a scale is named after and resolves to is the:', a: 'root (tonic)', opts: shuffle(['root (tonic)', 'fifth', 'leading tone', 'third']), hint: 'Home base.', why: 'The root (tonic) is the home note the scale is named after.'}),
+  ],
+  majmin: [
+    () => ({q: 'What mainly makes a scale or chord sound minor rather than major?', a: 'a lowered (minor) 3rd', opts: shuffle(['a lowered (minor) 3rd', 'a higher root', 'more notes', 'a faster tempo']), hint: 'The 3rd is the mood note.', why: 'A major 3rd (4 frets) sounds bright; lowering it to a minor 3rd (3 frets) sounds sad.'}),
+    () => ({q: 'A major 3rd is how many frets above the root?', a: '4', opts: shuffle(['4', '3', '5', '2']), hint: 'Bright and happy.', why: 'Major 3rd = 4 half steps; minor 3rd = 3.'}),
+    () => ({q: 'A minor 3rd is how many frets above the root?', a: '3', opts: shuffle(['3', '4', '2', '5']), hint: 'Dark and moody.', why: 'Minor 3rd = 3 half steps, one fret below the major 3rd.'}),
+    () => { const i = rnd(_SCL.length), s = _SCL[i], a = s.steps.includes(4) ? 'major' : 'minor'; return {q: `Does the ${s.name} have a major or minor 3rd?`, a, opts: ['major', 'minor'], hint: 'Major 3rd = 4 frets, minor = 3.', why: `The ${s.name} has a ${a} 3rd, giving it a ${a === 'major' ? 'brighter' : 'darker'} sound.`}; },
+  ],
+  modes: [
+    () => ({q: 'The modes come from:', a: 'starting the major scale on different degrees', opts: shuffle(['starting the major scale on different degrees', 'adding sharps to a chord', 'playing faster', 'tuning down']), hint: 'Same notes, new home.', why: 'Each mode uses the major-scale notes but centres on a different degree, shifting the mood.'}),
+    () => { const i = rnd(_SCL.length), s = _SCL[i]; return {q: `Which scale is described as "${s.mood}"?`, a: s.name, opts: shuffle([s.name, ...sample(_SCL.filter((_, j) => j !== i), 3).map(x => x.name)]), hint: 'Match the feeling.', why: `"${s.mood}" is the ${s.name}.`}; },
+    () => { const i = rnd(_SCL.length), s = _SCL[i], a = s.steps.includes(11) ? 'natural 7' : '♭7'; return {q: `Does the ${s.name} have a natural 7 or a ♭7?`, a, opts: ['natural 7', '♭7'], hint: 'A ♭7 softens the pull home.', why: `The ${s.name} has a ${a}.`}; },
+    () => ({q: 'Dorian differs from the natural minor scale by:', a: 'a raised 6th', opts: shuffle(['a raised 6th', 'a lowered root', 'a raised 3rd', 'nothing']), hint: 'One note sets it apart.', why: 'Dorian is natural minor with a raised 6th — that one note gives it its brighter, jazzy colour.'}),
+  ],
+});
 // Build a chapter quiz: mostly the chapter's topic, with a few review questions woven in from the previous chapter.
 function buildQuiz(primary, review, n) {
   const out = [], seen = new Set(); let g = 0;
@@ -2101,8 +2235,8 @@ function buildQuiz(primary, review, n) {
 function quizView(v, ch, idx) {
   pageScroll = true;
   const id = chapKey(ch);
-  const primary = ch.exam ? COURSE.filter(c => c.topic).map(c => c.topic) : [ch.topic];
-  const review = (!ch.exam && idx > 0 && COURSE[idx - 1].topic) ? [COURSE[idx - 1].topic] : [];
+  const primary = ch.exam ? LESSONS.filter(c => c.topic).map(c => c.topic) : [ch.topic];
+  const review = (!ch.exam && idx > 0 && LESSONS[idx - 1].topic) ? [LESSONS[idx - 1].topic] : [];
   const back = () => { const s = state('course', {}); s.open = -1; keep('course', s); redraw(); };
   const again = () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); };
   const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
@@ -2143,7 +2277,7 @@ function quizView(v, ch, idx) {
       h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => { i++; render(); window.scrollTo && $('#page') && ($('#page').scrollTop = 0); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
   function finish() {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
-    const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, COURSE.length - 1)}; }
+    const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; }
     sage.replaceChildren(mageTile(passed ? 2 : 0, 72)); fill.style.width = '100%'; counter.textContent = ''; hintRow.replaceChildren();
     qh.textContent = passed ? 'Chapter cleared!' : 'So close.'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${qs.length}. ${passed ? 'The next chapter is open.' : `Reach ${need} to pass — give it another go.`}`}),
@@ -2254,59 +2388,40 @@ function drawCastle(ctx, cx, by, st) { const x = cx - 8, y = by - 18, body = st 
   ctx.fillStyle = MP.door; ctx.fillRect(cx - 2, y + 11, 5, 7);
   ctx.fillStyle = st === 'done' ? MP.panelDone : MP.flag; ctx.fillRect(cx + 1, y - 4, 5, 3); ctx.fillStyle = dk; ctx.fillRect(cx + 1, y - 4, 1, 7); }
 
+// the Learn map, Duolingo-style: 5 module sections, each a banner + a winding column of lesson nodes; the wizard marks where you are
 function roadView(v) {
-  pageScroll = false;
+  pageScroll = true;
   if (mageTimer) { clearInterval(mageTimer); mageTimer = null; }
-  const cleared = courseGot(), best = store.get('course.best', {});
-  const fo = COURSE.findIndex(ch => !cleared[chapKey(ch)]), firstOpen = fo < 0 ? COURSE.length - 1 : fo;
-  const done = COURSE.filter(ch => cleared[chapKey(ch)]).length, pct = Math.round(done / COURSE.length * 100);
-  v.append(h('div', {style: 'max-width:880px;margin:0 auto 8px;width:100%;text-align:center'},
-    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `Cleared ${done} of ${COURSE.length} chapters · ${pct}%`),
+  const cleared = courseGot();
+  const foIdx = LESSONS.findIndex(l => !cleared[chapKey(l)]), firstOpen = foIdx < 0 ? LESSONS.length - 1 : foIdx;
+  const done = LESSONS.filter(l => cleared[chapKey(l)]).length, pct = Math.round(done / LESSONS.length * 100);
+  v.append(h('div', {style: 'max-width:600px;margin:0 auto 12px;width:100%;text-align:center'},
+    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `${done} of ${LESSONS.length} lessons cleared · ${pct}%`),
     (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
-
-  // Super-Mario-World-style board on a 16px tile grid: tan ground, pale dotted paths, numbered panels, a castle finale
-  const T = 16, cols = 15, rows = 9, W = cols * T, H = rows * T;
-  const CELL = [[1, 7], [4, 7], [7, 7], [10, 7], [10, 5], [7, 5], [4, 5], [1, 5], [1, 3], [4, 3]];
-  const nodes = COURSE.map((ch, i) => ({c: CELL[i][0], r: CELL[i][1], x: CELL[i][0] * T + T / 2, y: CELL[i][1] * T + T / 2, ch, i}));
-  const pathCells = new Set(), dots = [];
-  for (let i = 1; i < nodes.length; i++) { const a = nodes[i - 1], b = nodes[i];
-    if (a.r === b.r) { for (let c = Math.min(a.c, b.c); c <= Math.max(a.c, b.c); c++) { pathCells.add(c + ',' + a.r); if (c !== a.c && c !== b.c) dots.push([c, a.r]); } }
-    else { for (let r = Math.min(a.r, b.r); r <= Math.max(a.r, b.r); r++) { pathCells.add(a.c + ',' + r); if (r !== a.r && r !== b.r) dots.push([a.c, r]); } } }
-  const BUSHES = [[5, 0], [8, 1], [2, 1], [13, 4], [12, 6], [8, 6]], ROCKS = [[13, 7], [7, 8]];
-
-  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: `image-rendering:pixelated;width:min(880px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:${isMoon() ? '#2b2f52' : '#e0a84c'};cursor:pointer`});
-  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  function drawScene(frame, wiz) {
-    MP = mapPal();
-    drawGround(ctx, W, H);
-    drawWater(ctx, 11 * T, 1 * T, 3 * T, 3 * T);
-    drawPath(ctx, pathCells, dots, T);
-    BUSHES.forEach(([c, r]) => drawBush(ctx, c * T, r * T)); ROCKS.forEach(([c, r]) => drawRocks(ctx, c * T, r * T));
-    ctx.fillStyle = MP.border[0]; ctx.fillRect(0, 0, W, 2); ctx.fillRect(0, H - 2, W, 2); ctx.fillRect(0, 0, 2, H); ctx.fillRect(W - 2, 0, 2, H);
-    ctx.fillStyle = MP.border[1]; ctx.fillRect(2, 2, W - 4, 1); ctx.fillRect(2, H - 3, W - 4, 1); ctx.fillRect(2, 2, 1, H - 4); ctx.fillRect(W - 3, 2, 1, H - 4);
-    nodes.forEach(nd => { const st = cleared[chapKey(nd.ch)] ? 'done' : (nd.i <= firstOpen ? 'open' : 'lock');
-      if (nd.ch.exam) drawCastle(ctx, nd.x, nd.y + 5, st); else drawPanel(ctx, nd.x, nd.y, st, String(nd.i + 1)); });
-    const cur = nodes[firstOpen] || nodes[0], wx = wiz ? wiz.x : cur.x, wy = wiz ? wiz.y : cur.y;
-    if (MAGE.complete && MAGE.naturalWidth) {
-      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(wx, wy + 4, 5, 2, 0, 0, 7); ctx.fill();
-      ctx.drawImage(mageSrc(), (frame % 4) * 16, 0, 16, 16, wx - 8, wy - 11, 16, 16); } }
-
-  const walk = walkAnim && nodes[walkAnim.to] ? {from: nodes[walkAnim.from], to: nodes[walkAnim.to], t: 0} : null;
-  let frame = 0; drawScene(0, walk ? {x: walk.from.x, y: walk.from.y} : null);
-  if (!MAGE.complete) MAGE.addEventListener('load', () => drawScene(frame, null), {once: true});
-  mageTimer = setInterval(() => { if (!document.body.contains(cv)) { clearInterval(mageTimer); mageTimer = null; return; }
-    frame = (frame + 1) % 4; let wiz = null;
-    if (walk && walk.t < 1) { walk.t = Math.min(1, walk.t + 0.1); wiz = {x: walk.from.x + (walk.to.x - walk.from.x) * walk.t, y: walk.from.y + (walk.to.y - walk.from.y) * walk.t}; if (walk.t >= 1) walkAnim = null; }
-    drawScene(frame, wiz); }, 150);
-  cv.addEventListener('click', e => { const r = cv.getBoundingClientRect(), lx = (e.clientX - r.left) / r.width * W, ly = (e.clientY - r.top) / r.height * H;
-    let hit = null, bd = 1e9; nodes.forEach(nd => { const d = (nd.x - lx) ** 2 + (nd.y - ly) ** 2; if (d < bd) { bd = d; hit = nd; } });
-    if (hit && bd < 90 && (hit.i <= firstOpen || cleared[chapKey(hit.ch)])) { const s = state('course', {}); s.open = hit.i; keep('course', s); redraw(); } });
-  v.append(cv);
-  v.append(h('div', {style: 'max-width:880px;margin:10px auto 0;width:100%;display:flex;flex-wrap:wrap;gap:6px;justify-content:center'},
-    ...COURSE.map((ch, i) => { const id = chapKey(ch), isDone = cleared[id], unlocked = i <= firstOpen || isDone;
-      return h('button', {class: 'btn' + (i === firstOpen ? ' acc' : ''), disabled: !unlocked, style: 'min-height:34px;font-size:12px' + (unlocked ? '' : ';opacity:.5'),
-        on: unlocked ? {click: () => { const s = state('course', {}); s.open = i; keep('course', s); redraw(); }} : {}},
-        (isDone ? '✓ ' : unlocked ? '' : '🔒 ') + ch.name); })));
+  const wrap = h('div', {style: 'max-width:560px;margin:0 auto;width:100%'});
+  v.append(wrap);
+  const offs = [0, 56, 0, -56];
+  let gi = 0, wizHolder = null;
+  MODULES.forEach((m, mi) => {
+    const mDone = m.lessons.filter(l => cleared[chapKey(l)]).length;
+    wrap.append(h('div', {style: `margin:${mi ? 30 : 6}px 0 16px;padding:12px 16px;border-radius:14px;background:${m.acc};color:#fff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 0 rgba(0,0,0,.22)`},
+      h('div', {}, h('div', {style: 'font-size:11px;font-weight:800;letter-spacing:.16em;opacity:.85'}, `MODULE ${mi + 1}`), h('div', {style: 'font-size:19px;font-weight:900'}, m.name)),
+      h('div', {style: 'font-weight:900;font-size:15px'}, `${mDone}/${m.lessons.length}`)));
+    m.lessons.forEach(l => {
+      const idx = gi++, st = cleared[chapKey(l)] ? 'done' : (idx <= firstOpen ? 'open' : 'lock'), unlocked = st !== 'lock', off = offs[idx % offs.length];
+      const node = h('button', {class: 'btn', disabled: !unlocked, 'aria-label': l.name,
+        style: `width:64px;height:64px;min-width:64px;border-radius:50%;padding:0;font-size:24px;font-weight:900;display:grid;place-items:center;flex:none;`
+          + `background:${st === 'done' ? 'var(--sage)' : st === 'open' ? m.acc : 'var(--rule)'};color:${st === 'lock' ? 'var(--mute)' : '#fff'};border:4px solid rgba(0,0,0,.16);box-shadow:0 3px 0 rgba(0,0,0,.16);` + (unlocked ? '' : 'opacity:.55;cursor:default'),
+        on: unlocked ? {click: () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); }} : {}},
+        st === 'done' ? '✓' : st === 'open' ? (l.exam ? '★' : '▶') : '🔒');
+      const nodeWrap = h('div', {style: 'position:relative;flex:none'}, node);
+      if (idx === firstOpen) { wizHolder = h('div', {style: 'position:absolute;left:50%;top:-42px;transform:translateX(-50%);z-index:3;pointer-events:none'}, mageTile(0, 46)); nodeWrap.append(wizHolder); }
+      wrap.append(h('div', {style: `display:flex;align-items:center;gap:16px;margin:14px 0;transform:translateX(${off}px)`},
+        nodeWrap, h('div', {style: `font-weight:800;font-size:15px;max-width:230px;color:${unlocked ? 'var(--ink)' : 'var(--mute)'}`}, l.name)));
+    });
+  });
+  if (wizHolder) { let f = 0; mageTimer = setInterval(() => { if (!document.body.contains(wizHolder)) { clearInterval(mageTimer); mageTimer = null; return; } f = (f + 1) % 4; wizHolder.replaceChildren(mageTile(f, 46)); }, 240); }
+  setTimeout(() => { const pg = $('#page'); if (pg && wizHolder) { const r = wizHolder.getBoundingClientRect(), pr = pg.getBoundingClientRect(); pg.scrollTop += (r.top - pr.top) - pr.height * 0.4; } }, 30);
 }
 
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
@@ -2316,7 +2431,7 @@ PAGES.push({id: 'learn', no: 'V', name: 'Learn', blurb: 'a path from first chord
   v.append(h('div', {class: 'toolbar'},
     h('label', {class: 'pick'}, h('span', {}, 'Sound'), h('button', {class: 'btn' + (soundOn() ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { store.set('course.sound', !soundOn()); redraw(); }}}, soundOn() ? 'On' : 'Off'))));
   const s = state('course', {open: -1});
-  if (s.open >= 0 && s.open < COURSE.length) quizView(v, COURSE[s.open], s.open);
+  if (s.open >= 0 && s.open < LESSONS.length) quizView(v, LESSONS[s.open], s.open);
   else roadView(v);
 }});
 
