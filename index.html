@@ -1352,10 +1352,12 @@ PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'how songs are bu
   const bar = h('div', {class: 'toolbar'}, seg('Working on', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
   v.append(bar);
   if (chordsMode) {
-  const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major'});
-  if (!['build', 'sev', 'minor', 'moves'].includes(st.topic)) st.topic = 'build';
+  const st = state('harmony', {topic: 'build', key: 0, root: 0, form: 'major', inkey: 'major'});
+  if (st.topic === 'sev') { st.topic = 'inkey'; st.inkey = 'major'; }
+  if (st.topic === 'minor') { st.topic = 'inkey'; st.inkey = 'minor'; }
+  if (!['build', 'inkey', 'moves'].includes(st.topic)) st.topic = 'build';
   const sv = () => keep('harmony', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
-  const topics = [['build', 'Build any chord'], ['sev', 'Seventh chords in a key'], ['minor', 'Writing in minor'], ['moves', 'How chords move']];
+  const topics = [['build', 'Build any chord'], ['inkey', 'Chords in a key'], ['moves', 'How chords move']];
   bar.append(pick('Topic', topics, st.topic, x => set('topic', x)));
   const tools = bar;
   const body = h('div', {class: 'body', style: 'align-content:start'});
@@ -1373,24 +1375,31 @@ PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'how songs are bu
     const famCards = fam.map(({q, sh}) => chordCard({...sh, name: D.harm.roots[st.root] + q, root: rpc}, {color: 'var(--navy)', sub: q || 'major'}));
     body.append(h('div', {style: 'grid-column:1/-1'}, sec2(`${D.harm.roots[st.root]}, every colour`, 'one root, ten chords · tap to hear what each added note does', 'var(--gold)', h('div', {class: 'cgrid', style: `--n:${fam.length};--cw:110px`}, famCards))));
     setFocus({label: `${D.harm.roots[st.root]} through every colour`, play: cycleChords(famCards, fam.map(x => x.sh))});
-  } else if (st.topic === 'sev' || st.topic === 'minor') {
-    const minor = st.topic === 'minor';
-    tools.append(pick('Key', (minor ? D.minKeys : D.majKeys).map((k, i) => [i, k + (minor ? ' minor' : ' major')]), st.key, x => set('key', +x)));
+  } else if (st.topic === 'inkey') {
+    const minor = st.inkey === 'minor';
+    tools.append(seg('Flavour', [['major', 'Major · 7ths'], ['minor', 'Minor']], st.inkey || 'major', x => set('inkey', x)),
+      pick('Key', (minor ? D.minKeys : D.majKeys).map((k, i) => [i, k + (minor ? ' minor' : ' major')]), st.key, x => set('key', +x)));
     const tn = (minor ? D.minKeys : D.majKeys)[st.key], toks = minor ? D.palette.minor.slice(0, 8) : D.harm.sevenths.major;
     const cs = toks.map(t => ({t, ...chordName(tn, minor, t)})), cards = cs.map(c => { const sh = shapeOf(c.pc, c.q); return chordCard({...sh, name: c.name, root: c.pc}, {color: 'var(--gold)', sub: roman(c.t, minor)}); });
     body.append(sec2(minor ? `Writing in ${tn} minor` : `Seventh chords in ${tn}`, minor ? 'i ii° III iv v → V VI VII · raise the v to a major V7: the pull home almost every minor song uses' : 'maj7 · m7 · m7 · maj7 · 7 · m7 · m7♭5 · swap any chord for its 7th', 'var(--gold)',
       h('div', {class: 'cgrid', style: `--n:${cards.length};--cw:140px`}, cards)));
     setFocus({label: `walk the chords of ${tn}`, play: cycleChords(cards, cs.map(c => shapeOf(c.pc, c.q)))});
-  } else {   // 'moves' — borrowed chords, secondary dominants, substitutions, key changes and cadences, all on one page
+  } else {   // 'moves' — all harmonic moves in one fixed-layout table, so every column and Hear button lines up
     tools.append(pick('Key', D.majKeys.map((k, i) => [i, k + ' major']), st.key, x => set('key', +x)));
     const allChords = [];
+    const table = h('table', {class: 't', style: '--c:var(--rust);width:100%;table-layout:fixed',
+      }, h('colgroup', {}, h('col', {style: 'width:16%'}), h('col', {style: 'width:20%'}), h('col', {style: 'width:26%'}), h('col', {style: 'width:30%'}), h('col', {style: 'width:8%'})));
     Object.keys(D.harm.moves).forEach(cat => {
-      const rows = D.harm.moves[cat];
-      const list = h('table', {class: 't', style: '--c:var(--rust)'}, rows.map(m => { const cs = m.toks.map(t => chordName(tonic, false, t)); cs.forEach(c => allChords.push(c));
-        return h('tr', {}, h('td', {class: 'l'}, m.name), h('td', {style: 'font-weight:800'}, m.num.replaceAll('–', ' → ')), h('td', {style: 'font-size:19px;font-weight:900'}, cs.map(c => c.name).join(' → ')), h('td', {class: 'muted'}, m.desc),
-          h('td', {}, h('button', {class: 'btn small play', on: {click: () => { audio(); const step = .9, t0 = A.ctx.currentTime + .05; cs.forEach((c, k) => { const sh = shapeOf(c.pc, c.q); strum(sh.frets, 'D', t0 + k * step); }); }}}, 'Hear'))); }));
-      body.append(sec2(cat.charAt(0).toUpperCase() + cat.slice(1), `in ${tonic} · tap Hear · re-spells for any key`, 'var(--rust)', list));
+      table.append(h('tr', {}, h('td', {colspan: 5, style: 'padding:14px 0 2px;font-weight:900;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--rust)'}, cat)));
+      D.harm.moves[cat].forEach(m => { const cs = m.toks.map(t => chordName(tonic, false, t)); cs.forEach(c => allChords.push(c));
+        table.append(h('tr', {},
+          h('td', {class: 'l', style: 'font-weight:800'}, m.name),
+          h('td', {style: 'font-weight:800'}, m.num.replaceAll('–', ' → ')),
+          h('td', {style: 'font-size:17px;font-weight:900'}, cs.map(c => c.name).join(' → ')),
+          h('td', {class: 'muted', style: 'font-size:13px'}, m.desc),
+          h('td', {style: 'text-align:right'}, h('button', {class: 'btn small play', on: {click: () => { audio(); const step = .9, t0 = A.ctx.currentTime + .05; cs.forEach((c, k) => { const sh = shapeOf(c.pc, c.q); strum(sh.frets, 'D', t0 + k * step); }); }}}, 'Hear')))); });
     });
+    body.append(sec2('How chords move', `in ${tonic} · tap Hear · every example re-spells for the key you pick`, 'var(--rust)', table));
     setFocus({label: `chord moves in ${tonic}`, play: cycleChords([], allChords.map(c => shapeOf(c.pc, c.q)))});
   }
   v.append(body);
