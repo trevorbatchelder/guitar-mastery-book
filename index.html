@@ -2172,7 +2172,7 @@ function drawCrystal(ctx, cx, baseY, state) {   // state: 'done' | 'open' | 'loc
 function mageTile(frame, px) {
   const cv = h('canvas', {width: 16, height: 16, style: `image-rendering:pixelated;width:${px}px;height:${px}px;display:inline-block`});
   const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
-  const draw = () => { g.clearRect(0, 0, 16, 16); g.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, 0, 0, 16, 16); };
+  const draw = () => { g.clearRect(0, 0, 16, 16); g.drawImage(mageSrc(), (frame % 4) * 16, 0, 16, 16, 0, 0, 16, 16); };
   if (MAGE.complete && MAGE.naturalWidth) draw(); else MAGE.addEventListener('load', draw, {once: true});
   return cv; }
 function drawTerrain(ctx, W, H, pathY) {
@@ -2187,33 +2187,72 @@ function drawTerrain(ctx, W, H, pathY) {
     if ((x * 7) % 17 === 0) { ctx.fillStyle = '#ad8149'; ctx.fillRect(x, py + ((x * 3) % 5 - 2), 1, 1); } } }
 
 let walkAnim = null;   // {from,to} set when a chapter is cleared, so the wizard strolls to the next node
+const isMoon = () => document.documentElement.getAttribute('data-theme') === 'moon';
+// the map re-skins for night: a nocturnal palette instead of the daytime Super-Mario-World tan
+function mapPal() { return isMoon() ? {
+    bg: '#2b2f52', g1: '#232746', g2: '#3a3f68', tuft: '#3a6f6a', flowerA: '#dbe7ff', flowerB: '#8fb8e0',
+    path: '#5b668f', pathEdge: '#3a4166', dot: '#bfe0ff',
+    bush: ['#163230', '#2f6f5f', '#4fa088'], rock: ['#24243a', '#40405a', '#58566f'], water: ['#1e4a6a', '#143650', '#8fb8e0'],
+    panelDone: '#6ad48e', panelOpen: '#f3cf52', panelLock: '#4a4f6a', face: '#10131f', faceLock: '#262a40', num: '#e8ecff', pennant: '#4a8fe0',
+    castle: ['#9aa0c8', '#6a6f94'], door: '#16182a', flag: '#d8564a', border: ['#141830', '#3a4068'] }
+  : { bg: '#e0a84c', g1: '#d2963a', g2: '#edbb63', tuft: '#4f7e34', flowerA: '#ef5f5f', flowerB: '#f4d03f',
+    path: '#efcf93', pathEdge: '#c79a52', dot: '#f6d33a',
+    bush: ['#235223', '#4f9b3f', '#73c257'], rock: ['#5a3b22', '#8a5a33', '#a9743f'], water: ['#3f8ec0', '#2f6f9c', '#bfe6f2'],
+    panelDone: '#6ad48e', panelOpen: '#f3cf52', panelLock: '#7a7f84', face: '#20242c', faceLock: '#4a4e54', num: '#fff', pennant: '#2b6fd6',
+    castle: ['#cdd1d6', '#9aa0a6'], door: '#3a2a1a', flag: '#b93b2e', border: ['#7a4a22', '#c99a4a'] }; }
+let MP = mapPal();
+
+// a cream-robed "light" wizard for day — recolour the dark hooded sprite; night keeps the original dark mage
+let MAGE_DAY = null;
+function buildMageDay() { if (MAGE_DAY || !MAGE.naturalWidth) return;
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 32; const g = cv.getContext('2d');
+  g.drawImage(MAGE, 0, 0); const im = g.getImageData(0, 0, 128, 32), d = im.data;
+  const map = [[10, 14, 20, 150, 132, 86], [43, 56, 84, 236, 227, 198], [0, 0, 0, 94, 74, 44], [78, 102, 151, 255, 247, 228]];   // robe navy→cream, outline→brown, hi→near-white; sash + eyes kept
+  for (let p = 0; p < d.length; p += 4) { if (!d[p + 3]) continue; for (const m of map) if (d[p] === m[0] && d[p + 1] === m[1] && d[p + 2] === m[2]) { d[p] = m[3]; d[p + 1] = m[4]; d[p + 2] = m[5]; break; } }
+  g.putImageData(im, 0, 0); MAGE_DAY = cv; }
+if (MAGE.complete) buildMageDay(); else MAGE.addEventListener('load', buildMageDay);
+const mageSrc = () => (!isMoon() && MAGE_DAY) ? MAGE_DAY : MAGE;
+
 const DISC = (ctx, cx, cy, r, col) => { ctx.fillStyle = col; for (let dy = -r; dy <= r; dy++) { const w = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy))); ctx.fillRect(cx - w, cy + dy, 2 * w + 1, 1); } };
-function drawGround(ctx, W, H) { ctx.fillStyle = '#e0a84c'; ctx.fillRect(0, 0, W, H);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { if ((x * 3 + y * 5) % 17 === 0) { ctx.fillStyle = '#d2963a'; ctx.fillRect(x, y, 1, 1); } else if ((x * 5 + y * 3) % 31 === 0) { ctx.fillStyle = '#edbb63'; ctx.fillRect(x, y, 1, 1); } } }
+function drawGround(ctx, W, H) { ctx.fillStyle = MP.bg; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if ((x * 3 + y * 5) % 17 === 0) { ctx.fillStyle = MP.g1; ctx.fillRect(x, y, 1, 1); }
+    else if ((x * 5 + y * 3) % 29 === 0) { ctx.fillStyle = MP.g2; ctx.fillRect(x, y, 1, 1); }
+    if ((x * 7 + y * 11) % 61 === 0) { ctx.fillStyle = MP.tuft; ctx.fillRect(x, y, 1, 2); ctx.fillRect(x + 1, y - 1, 1, 2); ctx.fillRect(x + 2, y, 1, 2); }                 // grass tufts
+    else if ((x * 13 + y * 9) % 139 === 0) { ctx.fillStyle = MP.flowerB; ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y - 1, 1, 3); ctx.fillStyle = MP.flowerA; ctx.fillRect(x, y, 1, 1); } } }   // flowers by day, little stars by night
 function drawBush(ctx, x, y) { const hs = [[x + 4, y + 5, 4], [x + 9, y + 4, 5], [x + 14, y + 5, 4]];
-  ctx.fillStyle = '#235223'; ctx.fillRect(x + 2, y + 8, 15, 1);
-  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r + 1, '#235223'));
-  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r, '#4f9b3f'));
-  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy - 1, Math.max(1, r - 2), '#73c257')); }
-function drawRocks(ctx, x, y) { [[x + 5, y + 6, 4], [x + 11, y + 7, 4], [x + 8, y + 3, 3]].forEach(([cx, cy, r]) => { DISC(ctx, cx, cy, r + 1, '#5a3b22'); DISC(ctx, cx, cy, r, '#8a5a33'); DISC(ctx, cx, cy - 1, Math.max(1, r - 2), '#a9743f'); }); }
+  ctx.fillStyle = MP.bush[0]; ctx.fillRect(x + 2, y + 8, 15, 1);
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r + 1, MP.bush[0]));
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy, r, MP.bush[1]));
+  hs.forEach(([cx, cy, r]) => DISC(ctx, cx, cy - 1, Math.max(1, r - 2), MP.bush[2])); }
+function drawRocks(ctx, x, y) { [[x + 5, y + 6, 4], [x + 11, y + 7, 4], [x + 8, y + 3, 3]].forEach(([cx, cy, r]) => { DISC(ctx, cx, cy, r + 1, MP.rock[0]); DISC(ctx, cx, cy, r, MP.rock[1]); DISC(ctx, cx, cy - 1, Math.max(1, r - 2), MP.rock[2]); }); }
 function drawWater(ctx, x, y, w, hh) { for (let j = 0; j < hh; j++) for (let i = 0; i < w; i++) {
-  const edge = j === 0 || j === hh - 1 || i === 0 || i === w - 1; ctx.fillStyle = edge ? '#bfe6f2' : ((i + j) % 4 === 0 ? '#5aa9d4' : '#3f8ec0'); ctx.fillRect(x + i, y + j, 1, 1); } }
+    const edge = j === 0 || j === hh - 1 || i === 0 || i === w - 1; ctx.fillStyle = edge ? MP.water[2] : ((i + j) % 4 === 0 ? MP.water[1] : MP.water[0]); ctx.fillRect(x + i, y + j, 1, 1); }
+  ctx.fillStyle = MP.water[2]; for (let i = 3; i < w - 3; i += 7) { ctx.fillRect(x + i, y + 3 + (i % 3), 2, 1); ctx.fillRect(x + i + 2, y + hh - 5, 2, 1); } }   // ripples
+function drawPath(ctx, cells, dots, T) {
+  cells.forEach(k => { const [c, r] = k.split(',').map(Number), x = c * T, y = r * T;
+    ctx.fillStyle = MP.path; ctx.fillRect(x + 1, y + 1, T - 2, T - 2); ctx.fillStyle = MP.pathEdge;
+    if (!cells.has(c + ',' + (r - 1))) ctx.fillRect(x + 1, y + 1, T - 2, 2);
+    if (!cells.has(c + ',' + (r + 1))) ctx.fillRect(x + 1, y + T - 3, T - 2, 2);
+    if (!cells.has((c - 1) + ',' + r)) ctx.fillRect(x + 1, y + 1, 2, T - 2);
+    if (!cells.has((c + 1) + ',' + r)) ctx.fillRect(x + T - 3, y + 1, 2, T - 2); });
+  dots.forEach(([c, r]) => { ctx.fillStyle = MP.dot; ctx.fillRect(c * T + T / 2 - 1, r * T + T / 2 - 1, 2, 2); }); }
 const DIG = {'1': ["010", "110", "010", "010", "111"], '2': ["111", "001", "111", "100", "111"], '3': ["111", "001", "111", "001", "111"], '4': ["101", "101", "111", "001", "001"],
-  '5': ["111", "100", "111", "001", "111"], '6': ["111", "100", "111", "101", "111"], '7': ["111", "001", "010", "010", "010"], '8': ["111", "101", "111", "101", "111"]};
+  '5': ["111", "100", "111", "001", "111"], '6': ["111", "100", "111", "101", "111"], '7': ["111", "001", "010", "010", "010"], '8': ["111", "101", "111", "101", "111"], '9': ["111", "101", "111", "001", "111"]};
 function drawNum(ctx, x, y, ch, col) { const g = DIG[ch] || DIG['1']; ctx.fillStyle = col; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r][c] === '1') ctx.fillRect(x + c, y + r, 1, 1); }
 function drawPanel(ctx, cx, cy, st, num) {
-  const border = st === 'done' ? '#6ad48e' : st === 'open' ? '#f3cf52' : '#7a7f84', s = 13, x = cx - 6, y = cy - 6;
-  ctx.fillStyle = st === 'open' ? '#2b6fd6' : border; ctx.fillRect(x + 1, y - 4, 4, 3); ctx.fillStyle = border; ctx.fillRect(x + 1, y - 4, 1, 4);   // pennant
+  const border = st === 'done' ? MP.panelDone : st === 'open' ? MP.panelOpen : MP.panelLock, s = 13, x = cx - 6, y = cy - 6;
+  ctx.fillStyle = st === 'open' ? MP.pennant : border; ctx.fillRect(x + 1, y - 4, 4, 3); ctx.fillStyle = border; ctx.fillRect(x + 1, y - 4, 1, 4);   // pennant
   ctx.fillStyle = border; ctx.fillRect(x - 1, y - 1, s + 2, s + 2);
-  ctx.fillStyle = st === 'lock' ? '#4a4e54' : '#20242c'; ctx.fillRect(x, y, s, s);
-  if (st === 'lock') { ctx.fillStyle = '#9aa0a4'; ctx.fillRect(cx - 2, cy, 5, 4); ctx.fillRect(cx - 1, cy - 2, 3, 2); }
-  else drawNum(ctx, cx - 1, cy - 2, num, st === 'done' ? '#c8f6d6' : '#fff'); }
-function drawCastle(ctx, cx, by, st) { const x = cx - 8, y = by - 18, body = st === 'lock' ? '#8a8f93' : '#cdd1d6', dk = st === 'lock' ? '#5f6469' : '#9aa0a6';
+  ctx.fillStyle = st === 'lock' ? MP.faceLock : MP.face; ctx.fillRect(x, y, s, s);
+  if (st === 'lock') { ctx.fillStyle = MP.num; ctx.globalAlpha = .55; ctx.fillRect(cx - 2, cy, 5, 4); ctx.fillRect(cx - 1, cy - 2, 3, 2); ctx.globalAlpha = 1; }
+  else drawNum(ctx, cx - 1, cy - 2, num, MP.num); }
+function drawCastle(ctx, cx, by, st) { const x = cx - 8, y = by - 18, body = st === 'lock' ? MP.castle[1] : MP.castle[0], dk = st === 'lock' ? '#45495f' : MP.castle[1];
   ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(x, y + 18, 17, 1);
   ctx.fillStyle = body; ctx.fillRect(x - 1, y + 3, 4, 15); ctx.fillRect(x + 14, y + 3, 4, 15); ctx.fillRect(x + 2, y + 5, 13, 13);
   ctx.fillStyle = dk; for (let i = 0; i < 18; i += 3) ctx.fillRect(x - 1 + i, y + 2, 2, 2);
-  ctx.fillStyle = '#3a2a1a'; ctx.fillRect(cx - 2, y + 11, 5, 7);
-  ctx.fillStyle = st === 'done' ? '#6ad48e' : '#b93b2e'; ctx.fillRect(cx + 1, y - 4, 5, 3); ctx.fillStyle = dk; ctx.fillRect(cx + 1, y - 4, 1, 7); }
+  ctx.fillStyle = MP.door; ctx.fillRect(cx - 2, y + 11, 5, 7);
+  ctx.fillStyle = st === 'done' ? MP.panelDone : MP.flag; ctx.fillRect(cx + 1, y - 4, 5, 3); ctx.fillStyle = dk; ctx.fillRect(cx + 1, y - 4, 1, 7); }
 
 function roadView(v) {
   pageScroll = false;
@@ -2235,22 +2274,22 @@ function roadView(v) {
     else { for (let r = Math.min(a.r, b.r); r <= Math.max(a.r, b.r); r++) { pathCells.add(a.c + ',' + r); if (r !== a.r && r !== b.r) dots.push([a.c, r]); } } }
   const BUSHES = [[5, 0], [8, 1], [2, 1], [13, 4], [12, 6], [8, 6]], ROCKS = [[13, 7], [7, 8]];
 
-  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: 'image-rendering:pixelated;width:min(880px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:#e0a84c;cursor:pointer'});
+  const cv = h('canvas', {width: W, height: H, 'aria-label': 'course map', style: `image-rendering:pixelated;width:min(880px,100%);height:auto;display:block;margin:0 auto;border:3px solid var(--navy);border-radius:6px;background:${isMoon() ? '#2b2f52' : '#e0a84c'};cursor:pointer`});
   const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
   function drawScene(frame, wiz) {
+    MP = mapPal();
     drawGround(ctx, W, H);
     drawWater(ctx, 11 * T, 1 * T, 3 * T, 3 * T);
-    pathCells.forEach(k => { const [c, r] = k.split(',').map(Number); ctx.fillStyle = '#efcf93'; ctx.fillRect(c * T + 1, r * T + 1, T - 2, T - 2); });
-    dots.forEach(([c, r]) => { ctx.fillStyle = '#f6d33a'; ctx.fillRect(c * T + T / 2 - 1, r * T + T / 2 - 1, 2, 2); });
+    drawPath(ctx, pathCells, dots, T);
     BUSHES.forEach(([c, r]) => drawBush(ctx, c * T, r * T)); ROCKS.forEach(([c, r]) => drawRocks(ctx, c * T, r * T));
-    ctx.fillStyle = '#7a4a22'; ctx.fillRect(0, 0, W, 2); ctx.fillRect(0, H - 2, W, 2); ctx.fillRect(0, 0, 2, H); ctx.fillRect(W - 2, 0, 2, H);
-    ctx.fillStyle = '#c99a4a'; ctx.fillRect(2, 2, W - 4, 1); ctx.fillRect(2, H - 3, W - 4, 1); ctx.fillRect(2, 2, 1, H - 4); ctx.fillRect(W - 3, 2, 1, H - 4);
+    ctx.fillStyle = MP.border[0]; ctx.fillRect(0, 0, W, 2); ctx.fillRect(0, H - 2, W, 2); ctx.fillRect(0, 0, 2, H); ctx.fillRect(W - 2, 0, 2, H);
+    ctx.fillStyle = MP.border[1]; ctx.fillRect(2, 2, W - 4, 1); ctx.fillRect(2, H - 3, W - 4, 1); ctx.fillRect(2, 2, 1, H - 4); ctx.fillRect(W - 3, 2, 1, H - 4);
     nodes.forEach(nd => { const st = cleared[chapKey(nd.ch)] ? 'done' : (nd.i <= firstOpen ? 'open' : 'lock');
       if (nd.ch.exam) drawCastle(ctx, nd.x, nd.y + 5, st); else drawPanel(ctx, nd.x, nd.y, st, String(nd.i + 1)); });
     const cur = nodes[firstOpen] || nodes[0], wx = wiz ? wiz.x : cur.x, wy = wiz ? wiz.y : cur.y;
     if (MAGE.complete && MAGE.naturalWidth) {
       ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(wx, wy + 4, 5, 2, 0, 0, 7); ctx.fill();
-      ctx.drawImage(MAGE, (frame % 4) * 16, 0, 16, 16, wx - 8, wy - 11, 16, 16); } }
+      ctx.drawImage(mageSrc(), (frame % 4) * 16, 0, 16, 16, wx - 8, wy - 11, 16, 16); } }
 
   const walk = walkAnim && nodes[walkAnim.to] ? {from: nodes[walkAnim.from], to: nodes[walkAnim.to], t: 0} : null;
   let frame = 0; drawScene(0, walk ? {x: walk.from.x, y: walk.from.y} : null);
