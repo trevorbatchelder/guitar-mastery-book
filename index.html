@@ -205,7 +205,7 @@ textarea{width:100%;min-height:80px;border:1.5px solid var(--rule);border-radius
 .tile2 b{font-size:30px;font-weight:900;line-height:1}
 .pg{gap:14px}
 .hd2{display:flex;flex-direction:column;gap:6px}
-.hd2 .band{height:12px;opacity:.55}   /* inner pages: a quieter band than the cover's */
+.hd2 .band{height:20px;opacity:1}   /* full band on every page, matching the cover */
 .hrow{display:flex;align-items:flex-end;gap:14px;min-width:0}
 .hrow .no{font-family:var(--display);font-size:44px;line-height:.82;color:var(--acc);letter-spacing:.04em;flex:none}
 .hrow h1{flex:1;min-width:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,3.4vw,40px);line-height:.92;letter-spacing:.1em;text-transform:uppercase;margin:0;white-space:nowrap}
@@ -237,7 +237,8 @@ select:hover{border-bottom-color:var(--acc)}
 table.t td.l{font-weight:800}
 .lede{line-height:1.5}
 /* the practice bar */
-.pbar{gap:12px;padding-top:9px;padding-bottom:calc(9px + env(safe-area-inset-bottom,0px));min-height:0;border-top:1.5px solid var(--rule);flex-wrap:nowrap}
+.pbar{gap:12px;padding-top:9px;padding-bottom:calc(9px + env(safe-area-inset-bottom,0px));min-height:0;flex-wrap:nowrap}
+.footband{flex:none;width:100%;line-height:0}   /* the Southwestern band above the nav, where the thin rule used to be */
 .tempo2{display:flex;align-items:center;border:1.5px solid var(--ink);border-radius:999px;height:46px;padding:0 3px;gap:0;flex:none}
 .tempo2 button{border:0;background:transparent;width:40px;height:40px;border-radius:50%;font-size:22px;font-weight:600;display:grid;place-items:center;color:var(--ink)}
 .tempo2 button:active{background:var(--panel)}
@@ -365,6 +366,7 @@ input[type=range]{accent-color:var(--rust);width:140px}.note{font-family:var(--d
 </style>
 </head><body><div class="book">
   <div class="page" id="page"><div class="pg" id="pg"></div></div>
+  <div class="footband" id="footband" aria-hidden="true"></div>
   <div class="pbar" id="pbar"></div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -911,6 +913,7 @@ let sessionStart = null, sessionAcc = store.get('session:' + today(), 0), clockT
 function setBpm(v) { M.bpm = Math.max(30, Math.min(240, v)); store.set('metro', {bpm: M.bpm, beats: M.beats}); Seq.stop(); drawBar(); }
 function drawBar() {
   const bar = $('#pbar'); bar.innerHTML = '';
+  const fband = $('#footband'); if (fband) fband.innerHTML = band();
   const bpm = h('div', {class: 'bpm', 'aria-live': 'polite'}, String(M.bpm));
   const dots = h('div', {class: 'beats', 'aria-hidden': 'true'}); for (let i = 0; i < M.beats; i++) dots.append(h('i', {class: i === 0 ? 'one' : ''}));
   const setB = v => { M.bpm = Math.max(30, Math.min(240, v)); bpm.textContent = M.bpm; store.set('metro', {bpm: M.bpm, beats: M.beats}); if (M.on) startMetro(); };
@@ -1119,7 +1122,7 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const brand = h('div', {style: 'display:flex;align-items:center;gap:16px 24px;justify-content:space-between;flex-wrap:wrap'},
     h('div', {style: 'display:flex;align-items:center;gap:8px'}, markBtn, titleBlock),
     coverTuner());
-  const refPick = pick('Reference', [['fretboard', 'The fretboard'], ['key', 'Chords in a key'], ['cof', 'Circle of fifths'], ['capo', 'The capo'], ['scales', 'What’s in each scale'], ['iv', 'Intervals'], ['tunings', 'Alternate tunings']], st.ref, x => { st.ref = x; sv(); redraw(); });
+  const refPick = pick('Reference', [['fretboard', 'The fretboard'], ['key', 'Chords in a key'], ['cof', 'Circle of fifths'], ['capo', 'The capo'], ['scales', 'What’s in each scale'], ['iv', 'Intervals'], ['tunings', 'Alternate tunings'], ['index', 'The Index']], st.ref, x => { st.ref = x; sv(); redraw(); });
   const refBody = h('div', {style: 'display:flex;flex-direction:column;gap:10px;min-width:0'});
   const tools = h('div', {class: 'toolbar'}, refPick);
   if (st.ref === 'fretboard') {
@@ -1170,17 +1173,26 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
       bt.append(h('tr', {}, h('th', {}, 'barre at'), tn.barre.map((_, f) => h('th', {}, String(f)))), h('tr', {}, h('td', {class: 'k'}, tn.name), tn.barre.map((n, f) => h('td', {class: [5, 7, 12].includes(f) ? 'h' : ''}, n))));
       refBody.append(sec2('One finger, every chord', 'a flat finger or a slide over any fret is a new chord · I IV V = 0, 5, 7', 'var(--ink)', bt)); }
     setFocus({label: `cycle the ${tn.name} chords`, play: cycleChords(tcards, tn.chords, {midi: tn.midi})});
+  } else if (st.ref === 'index') {
+    // the Index lives here on the home page, under the reference shelf: the A–Z basics plus the facts behind every topic
+    const ix = state('index', {sub: 'glossary'});
+    tools.append(pick('In the index', INDEX_SUBS, ix.sub, x => { ix.sub = x; keep('index', ix); redraw(); }, 'coverindex'));
+    if (ix.sub === 'glossary') {
+      const rows = (D.concepts || []).map(c => h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short)));
+      refBody.append(sec2('The Index', 'every term the pages assume you know · tap one to open it', 'var(--navy)', h('div', {class: 'gloss', style: 'max-height:320px;overflow:auto'}, rows)));
+    } else {
+      const name = (INDEX_SUBS.find(s => s[0] === ix.sub) || [])[1], facts = (D.theory.facts || []).filter(f => f.tag === ix.sub);
+      refBody.append(sec2('The Index · ' + name, 'the ideas behind the lessons · tap any term to open it', 'var(--navy)', h('div', {class: 'facts', style: 'max-height:320px;overflow:auto'}, facts.map(f => h('div', {class: 'fact'}, h('h3', {}, f.t), h('p', {html: glossify(f.b)}))))));
+    }
   }
-  // tie the quick reference to the deeper material: jump to this topic's facts in the Index, or straight to its drill
+  // tie the quick reference to the deeper material: jump to this topic's facts in the Index, or into the course
   const deepTopic = {fretboard: 'fretboard', key: 'key', cof: 'cof', capo: 'capo', scales: 'scales', iv: 'intervals'}[st.ref];
   if (deepTopic) {
-    const learnIdx = PAGES.findIndex(p => p.id === 'learn');
-    const goFacts = () => { const L = state('learn', {}); L.index = true; keep('learn', L); const ix = state('index', {}); ix.sub = deepTopic; keep('index', ix); page(learnIdx); };
-    const goDrill = () => { const L = state('learn', {}); L.index = false; L.topic = deepTopic; keep('learn', L); const t = state('theory', {}); t.mode = 'drill'; keep('theory', t); page(learnIdx); };
+    const goFacts = () => { st.ref = 'index'; const ix = state('index', {}); ix.sub = deepTopic; keep('index', ix); sv(); redraw(); };
     refBody.append(h('div', {class: 'lede', style: 'display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:2px'},
       h('span', {class: 'muted', style: 'font-weight:700'}, 'Go deeper'),
-      h('button', {class: 'term', on: {click: goFacts}}, 'the facts'),
-      h('button', {class: 'term', on: {click: goDrill}}, 'drill it')));
+      h('button', {class: 'term', on: {click: goFacts}}, 'look it up in the Index'),
+      h('button', {class: 'term', on: {click: () => page(PAGES.findIndex(p => p.id === 'learn'))}}, 'play the course')));
   }
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
@@ -2102,12 +2114,9 @@ function roadView(v) {
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
 PAGES.push({id: 'learn', no: 'V', name: 'Learn', blurb: 'a path from first chord to fluent', acc: 'var(--navy)', draw(v) {
   pageScroll = false;
-  const L = state('learn', {index: false});
   v.append(header('V', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
-    h('label', {class: 'pick'}, h('span', {}, 'Sound'), h('button', {class: 'btn' + (soundOn() ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { store.set('course.sound', !soundOn()); redraw(); }}}, soundOn() ? 'On' : 'Off')),
-    h('label', {class: 'pick'}, h('span', {}, 'Look it up'), h('button', {class: 'btn' + (L.index ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { L.index = !L.index; keep('learn', L); redraw(); }}}, 'The Index'))));
-  if (L.index) { indexView(v); return; }
+    h('label', {class: 'pick'}, h('span', {}, 'Sound'), h('button', {class: 'btn' + (soundOn() ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { store.set('course.sound', !soundOn()); redraw(); }}}, soundOn() ? 'On' : 'Off'))));
   const s = state('course', {open: -1});
   if (s.open >= 0 && s.open < COURSE.length) quizView(v, COURSE[s.open], s.open);
   else roadView(v);
