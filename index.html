@@ -1167,9 +1167,15 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
       refBody.append(sec2('One finger, every chord', 'a flat finger or a slide over any fret is a new chord · I IV V = 0, 5, 7', 'var(--ink)', bt)); }
     setFocus({label: `cycle the ${tn.name} chords`, play: cycleChords(tcards, tn.chords, {midi: tn.midi})});
   }
+  // the dashboard button: straight to the next lesson waiting on the road
+  const nxt = LESSONS.find(l => !courseGot()[chapKey(l)]);
+  const cont = h('button', {class: 'btn acc', style: 'min-height:46px;font-size:15.5px;font-weight:800;align-self:flex-start', on: {click: () => {
+    const s = state('course', {}); s.open = nxt ? LESSONS.indexOf(nxt) : -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn')); }}},
+    nxt ? `► Continue learning · ${nxt.name}` : '★ Course complete · back to the road');
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
-      sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc),
+      h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, cont,
+        sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc)),
       h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, tools, refBody)));
 }});
 
@@ -1183,10 +1189,10 @@ function progView(toks, tonic, minor, pattern, capo = 0) {
 }
 
 /* ================================================================ I CHORDS (open shapes + moveable barre shapes) */
-PAGES.push({id: 'chords', no: 'I', name: 'Chords', blurb: 'open shapes and moveable barre shapes', acc: 'var(--rust)', draw(v) {
+PAGES.push({id: 'chords', no: 'II', name: 'Chords', blurb: 'open shapes and moveable barre shapes', acc: 'var(--rust)', draw(v) {
   const ui = state('chordmode', {mode: 'open'});
   const openMode = ui.mode === 'open';
-  v.append(header('I', 'Chords',
+  v.append(header('II', 'Chords',
     openMode ? `every useful open shape in the first five ${tm('fret', 'frets')}` : 'moveable shapes · one grip plays every key up the neck',
     openMode ? `○ open string · <span style="color:var(--bad)">✕</span> don’t play · numbers = fingers · coloured note = ${tm('root')}` : `bar = one finger flat · number left = ${tm('fret')} · the E/A/D shapes are your open chords moved up`,
     openMode ? 'var(--rust)' : 'var(--teal)'));
@@ -1237,11 +1243,11 @@ function slide(c, d) {   // move a closed shape up d frets; names re-spelled, an
 }
 
 /* ================================================================ IV SCALES */
-PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
   const st = state('scales', {scale: 'Minor Pentatonic', k: 4, pos: 0, label: 'num'});
   const sv = () => keep('scales', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const scale = scaleBy(st.scale), kd = keyData(scale, st.k), box = kd.boxes[st.pos];
-  v.append(header('II', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
+  v.append(header('III', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
     pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
@@ -1261,10 +1267,10 @@ PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'five positions · an
 }});
 
 /* ================================================================ V THE RIGHT HAND (strumming + fingerstyle) */
-PAGES.push({id: 'righthand', no: 'III', name: 'The Right Hand', blurb: 'strumming and fingerstyle · the hand that makes the rhythm', acc: 'var(--rust)', draw(v) {
+PAGES.push({id: 'righthand', no: 'IV', name: 'Right Hand Technique', blurb: 'strumming and fingerstyle · the hand that makes the rhythm', acc: 'var(--rust)', draw(v) {
   const ui = state('righthand', {mode: 'strum'});
   const strumming = ui.mode === 'strum';
-  v.append(header('III', 'The Right <em>Hand</em>',
+  v.append(header('IV', 'Right Hand <em>Technique</em>',
     strumming ? 'strumming · count out loud, the hand never stops' : 'fingerstyle · p·i·m·a under the tab is which finger picks',
     strumming ? '↓ down · ↑ up · <span style="color:var(--bad)">red</span> accent · ✕ muted chuck · <b>B</b> bass · <b>M</b> palm mute'
               : '<b style="color:var(--rust)">p</b> thumb · <b style="color:var(--navy)">i</b> index · <b style="color:var(--teal)">m</b> middle · <b style="color:var(--plum)">a</b> ring',
@@ -1316,10 +1322,10 @@ PAGES.push({id: 'righthand', no: 'III', name: 'The Right Hand', blurb: 'strummin
 }});
 
 /* ================================================================ VI WRITING MUSIC (harmony + songwriting) */
-PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'how songs are built · progressions and shapes', acc: 'var(--gold)', draw(v) {
+PAGES.push({id: 'writing', no: 'V', name: 'Structure', blurb: 'how songs are built · progressions and shapes', acc: 'var(--gold)', draw(v) {
   const wm = state('writingmode', {mode: 'songs'});
   const chordsMode = wm.mode === 'chords';
-  v.append(header('IV', 'Structure',
+  v.append(header('V', 'Structure',
     chordsMode ? `how ${tm('chord', 'chords')} are built and how they move` : `${tm('progression', 'progressions')} to borrow · song shapes · making it bigger`,
     chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
   const bar = h('div', {class: 'toolbar'}, seg('Working on', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
@@ -2431,9 +2437,9 @@ function roadView(v) {
 }
 
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
-PAGES.push({id: 'learn', no: 'V', name: 'Learn', blurb: 'a path from first chord to fluent', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'a path from first chord to fluent', acc: 'var(--navy)', draw(v) {
   pageScroll = false;
-  v.append(header('V', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
+  v.append(header('I', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
     h('label', {class: 'pick'}, h('span', {}, 'Sound'), h('button', {class: 'btn' + (soundOn() ? ' acc' : ''), style: 'min-height:40px', on: {click: () => { store.set('course.sound', !soundOn()); redraw(); }}}, soundOn() ? 'On' : 'Off'))));
   const s = state('course', {open: -1});
@@ -2490,6 +2496,9 @@ PAGES.push({id: 'index', no: 'VII', name: 'The Index', blurb: 'every term and id
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(185px,.3fr) minmax(0,1fr);align-items:start'}, nav, body));
 }});
 
+// the book's reading order: the course up front, then the reference pages, then the tools
+const PAGE_ORDER = ['cover', 'learn', 'chords', 'scales', 'righthand', 'writing', 'sketch', 'index'];
+PAGES.sort((a, b) => PAGE_ORDER.indexOf(a.id) - PAGE_ORDER.indexOf(b.id));
 PAGES.forEach(p => p.blurb = p.blurb || '');
 const start = (location.hash || '').slice(1), si = PAGES.findIndex(p => p.id === start);
 page(si >= 0 ? si : store.get('at', 0));
