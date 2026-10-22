@@ -848,7 +848,6 @@ function header(no, title, sub, key, acc) {
   return h('header', {class: 'hd2'},
     h('div', {class: 'hrow'}, no && no !== '✎' ? h('div', {class: 'no'}, no) : '', h('h1', {html: title}),
       run && no !== '✎' ? h('div', {class: 'run'}, h('b', {}, run)) : ''),
-    h('div', {html: band()}),
     (sub || key) ? h('div', {class: 'meta'}, h('span', {class: 'sub', html: sub || ''}), h('span', {class: 'key', html: key || ''})) : '');
 }
 function pick(label, options, value, onChange, id) {
@@ -913,7 +912,7 @@ let sessionStart = null, sessionAcc = store.get('session:' + today(), 0), clockT
 function setBpm(v) { M.bpm = Math.max(30, Math.min(240, v)); store.set('metro', {bpm: M.bpm, beats: M.beats}); Seq.stop(); drawBar(); }
 function drawBar() {
   const bar = $('#pbar'); bar.innerHTML = '';
-  const fband = $('#footband'); if (fband) fband.innerHTML = band();
+  const fband = $('#footband'); if (fband) fband.innerHTML = (PAGES[at] && PAGES[at].id === 'cover') ? band() : '';   // bands only on the homepage
   const bpm = h('div', {class: 'bpm', 'aria-live': 'polite'}, String(M.bpm));
   const dots = h('div', {class: 'beats', 'aria-hidden': 'true'}); for (let i = 0; i < M.beats; i++) dots.append(h('i', {class: i === 0 ? 'one' : ''}));
   const setB = v => { M.bpm = Math.max(30, Math.min(240, v)); bpm.textContent = M.bpm; store.set('metro', {bpm: M.bpm, beats: M.beats}); if (M.on) startMetro(); };
@@ -1019,7 +1018,7 @@ function closeConcept() { const e = $('#cpop'); if (e) e.remove(); const r = _cp
 // where a concept sends you to actually use it: ['drill', <theory topic>] trains it, ['page', <page id>] opens the page
 const CONCEPT_GOTO = {
   'circle-of-fifths': ['drill', 'cof', 'Drill the circle'], 'relative-minor': ['drill', 'cof', 'Drill the circle'], 'key-signature': ['drill', 'cof', 'Drill the keys'], 'key': ['drill', 'cof', 'Drill the keys'],
-  'interval': ['drill', 'intervals', 'Train your ear'], 'third': ['drill', 'intervals', 'Train your ear'], 'fifth': ['drill', 'intervals', 'Train your ear'], 'tritone': ['drill', 'intervals', 'Train your ear'], 'octave': ['drill', 'intervals', 'Train your ear'], 'half-step': ['drill', 'intervals', 'Train your ear'],
+  'interval': ['drill', 'intervals', 'Drill intervals'], 'third': ['drill', 'intervals', 'Drill intervals'], 'fifth': ['drill', 'intervals', 'Drill intervals'], 'tritone': ['drill', 'intervals', 'Drill intervals'], 'octave': ['drill', 'intervals', 'Drill intervals'], 'half-step': ['drill', 'intervals', 'Drill intervals'],
   'fret': ['drill', 'fretboard', 'Find it on the neck'], 'note': ['drill', 'fretboard', 'Find it on the neck'],
   'capo': ['drill', 'capo', 'Drill the capo'], 'roman-numerals': ['drill', 'key', 'Drill chords in a key'], 'tonic': ['drill', 'key', 'Drill chords in a key'],
   'scale': ['page', 'scales', 'Open Scales & Modes'], 'major-scale': ['page', 'scales', 'Open Scales & Modes'], 'minor-scale': ['page', 'scales', 'Open Scales & Modes'], 'pentatonic': ['page', 'scales', 'Open Scales & Modes'], 'mode': ['page', 'scales', 'Open Scales & Modes'],
@@ -1029,8 +1028,10 @@ const CONCEPT_GOTO = {
 };
 function conceptGoto(g) {
   const learnIdx = PAGES.findIndex(p => p.id === 'learn');
-  if (g[0] === 'drill') { const L = state('learn', {}); L.index = false; L.topic = g[1]; keep('learn', L); const t = state('theory', {}); t.mode = 'drill'; keep('theory', t); page(learnIdx); }
-  else { if (g[1] === 'learn') { const L = state('learn', {}); L.index = false; L.topic = 'reading'; keep('learn', L); } page(PAGES.findIndex(p => p.id === g[1])); }
+  // the old Theory-Lab drills live on as course lessons; a drill link opens that lesson's quiz
+  if (g[0] === 'drill') { const QUIZ = {cof: 'cof', intervals: 'intervalname', key: 'chordsinkey', scales: 'modes', capo: 'capo', fretboard: 'neck'};
+    const s = state('course', {}); s.open = LESSONS.findIndex(l => l.topic === QUIZ[g[1]]); keep('course', s); page(learnIdx); }
+  else { if (g[1] === 'learn') { const s = state('course', {}); s.open = LESSONS.findIndex(l => l.reading); keep('course', s); } page(PAGES.findIndex(p => p.id === g[1])); }
 }
 function openConcept(id) {
   const c = CMAP[id]; if (!c) return;
@@ -1588,6 +1589,8 @@ function readingView(v, bar) {
     v.append(h('div', {class: 'toolbar'},
       pick('Lesson', lessons.map((x, i) => [i, x.title]), st.lesson, x => { st.lesson = +x; sv(); redraw(); }, 'lesson'),
       h('label', {class: 'pick'}, h('span', {}, 'Layers'), toggles)));
+    if (!courseGot().reading) v.append(h('div', {class: 'muted', style: 'font-weight:800;margin:-4px 0 6px'},
+      `Learn with the layers, then switch Mode to a game — ${PASS} of ${QN} right clears this chapter.`));
     const big = h('div', {class: 'big', style: 'width:100%;max-width:1100px'});
     const draw = lit => big.innerHTML = tabStaffSVG(L, {lay: st.lay, lit}); draw(-1);
     const caps = h('div', {style: 'display:flex;flex-direction:column;gap:5px;margin-top:4px'}, STAFF_LAYERS.filter(([k]) => st.lay[k] && L.captions[k]).map(([k, lab]) =>
@@ -1609,11 +1612,17 @@ function readingView(v, bar) {
     const grade = (midi, ok) => { const b = SBOX(); b[midi] = ok ? Math.min((b[midi] || 0) + 1, 5) : 0; sSave(b); };
     const mastered = () => { const b = SBOX(); return PITCHES.filter(n => (b[n.midi] || 0) >= 3).length; };
     let streak = 0;
+    // the course rule, same as every other chapter: 8 right out of a rolling 10 clears Reading Music on the road
+    let rRight = 0, rTotal = 0;
+    const roundTick = ok => { if (courseGot().reading) return; rRight += ok ? 1 : 0; rTotal++;
+      if (rTotal >= QN) { if (rRight >= PASS) { courseClear('reading'); sfx(true); } rRight = 0; rTotal = 0; } };
     const score = h('div', {class: 'muted', 'aria-live': 'polite', style: 'font-weight:800;margin:2px 0 10px'});
-    const upd = () => score.textContent = `Streak ${streak} · learned ${mastered()} of ${PITCHES.length} notes`; upd();
+    const upd = () => score.textContent = `Streak ${streak} · learned ${mastered()} of ${PITCHES.length} notes`
+      + (courseGot().reading ? ' · chapter cleared ✓' : rTotal ? ` · this round ${rRight} of ${rTotal}` : ''); upd();
     const host = h('div', {});
+    const blurb = GAME_HINT[mode] + (mode !== 'read' && !courseGot().reading ? ` Get ${PASS} of ${QN} right to clear the chapter.` : '');
     v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1fr);align-items:start'},
-      sec2(STAFF_MODES.find(m => m[0] === mode)[1], GAME_HINT[mode], 'var(--teal)', score, host)));
+      sec2(STAFF_MODES.find(m => m[0] === mode)[1], blurb, 'var(--teal)', score, host)));
 
     if (mode === 'sf') {
       let target, answered;
@@ -1622,7 +1631,7 @@ function readingView(v, bar) {
         h('div', {style: 'display:flex;flex-direction:column;align-items:center'}, h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, 'Where does this note live? Tap the fret.'), qc),
         board), fb);
       const ask = () => { answered = false; target = pickNote(); qc.innerHTML = gStaffCard(target.step, target.show); board.replaceChildren(gNeck((s, f) => answer(s, f))); fb.textContent = ''; };
-      const answer = (s, f) => { if (answered) return; answered = true; const ok = (OPEN_MIDI[s] + f) === target.midi; grade(target.midi, ok); streak = ok ? streak + 1 : 0; upd();
+      const answer = (s, f) => { if (answered) return; answered = true; const ok = (OPEN_MIDI[s] + f) === target.midi; grade(target.midi, ok); roundTick(ok); streak = ok ? streak + 1 : 0; upd();
         fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
         board.replaceChildren(gNeck(null, {picked: s + ':' + f, correctMidi: ok ? null : target.midi}));
         fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`}, ok ? `Right — that’s ${target.name}.` : `Not quite — ${target.name} is the green fret.`),
@@ -1637,7 +1646,7 @@ function readingView(v, bar) {
         const choices = shuffle([target, ...shuffle(PITCHES.filter(p => p.step !== target.step)).slice(0, 3)]);
         opts.replaceChildren(...choices.map(c => h('button', {class: 'thumb', style: 'padding:6px', on: {click: () => answer(c)}}, h('div', {html: gStaffCard(c.step, c.show)}))));
         fb.textContent = ''; };
-      const answer = c => { if (answered) return; answered = true; const ok = c.midi === target.midi; grade(target.midi, ok); streak = ok ? streak + 1 : 0; upd();
+      const answer = c => { if (answered) return; answered = true; const ok = c.midi === target.midi; grade(target.midi, ok); roundTick(ok); streak = ok ? streak + 1 : 0; upd();
         fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
         fb.replaceChildren(h('span', {style: `color:var(--${ok ? 'sage' : 'rust'})`}, ok ? `Right — ${target.name}.` : `That one is ${c.name}. The lit fret is ${target.name}.`),
           h('button', {class: 'btn', style: 'margin-left:16px', on: {click: ask}}, 'Next')); };
@@ -1897,6 +1906,8 @@ const MODULES = [
     {topic: 'accidentals', name: 'Sharps, Flats & Naturals'},
     {topic: 'neck', name: 'Reading Notes on the Fretboard'},
     {topic: 'octaves', name: 'Octaves & Tuning'}]},
+  {name: 'Reading Music', acc: '#7a4a34', lessons: [
+    {reading: true, name: 'From Tab to Staff'}]},
   {name: 'Intervals & Keys', acc: '#2f8f86', lessons: [
     {topic: 'interval', name: 'What Is an Interval'},
     {topic: 'intervalname', name: 'Naming Intervals'},
