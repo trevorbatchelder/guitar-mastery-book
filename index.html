@@ -1888,25 +1888,35 @@ const MODULES = [
     {topic: 'anatomy', name: 'Parts of the Guitar'},
     {topic: 'strings', name: 'The Six Strings'},
     {topic: 'frets', name: 'Frets, Dots & Open Strings'},
+    {topic: 'diagrams', name: 'Reading Chord Boxes'},
+    {topic: 'tabread', name: 'Reading Tab'},
     {topic: 'capo', name: 'The Capo'}]},
   {name: 'Notes on the Neck', acc: '#c99a2e', lessons: [
     {topic: 'halfsteps', name: 'Half Steps & Whole Steps'},
     {topic: 'accidentals', name: 'Sharps, Flats & Naturals'},
     {topic: 'neck', name: 'Reading Notes on the Fretboard'},
+    {topic: 'landmarks', name: 'Landmarks & Octave Shapes'},
     {topic: 'octaves', name: 'Octaves & Tuning'}]},
   {name: 'Chords & Harmony', acc: '#3a5a9c', lessons: [
     {topic: 'triads', name: 'How Chords Are Built'},
+    {topic: 'sevenths', name: 'Seventh Chords'},
     {topic: 'chordsinkey', name: 'Chords in a Key'},
     {topic: 'qualities', name: 'Roman Numerals & Qualities'},
-    {topic: 'progressions', name: 'Common Progressions'}]},
+    {topic: 'progressions', name: 'Common Progressions'},
+    {topic: 'cadences', name: 'Cadences: How Phrases End'}]},
   {name: 'Intervals & Keys', acc: '#2f8f86', lessons: [
     {topic: 'interval', name: 'What Is an Interval'},
     {topic: 'intervalname', name: 'Naming Intervals'},
+    {topic: 'intervalquality', name: 'Interval Quality & Inversion'},
     {topic: 'cof', name: 'The Circle of Fifths'},
+    {topic: 'keysigs', name: 'Spelling Key Signatures'},
     {topic: 'keys', name: 'Keys & Relative Minors'}]},
   {name: 'Scales & Modes', acc: '#4f8f4a', lessons: [
     {topic: 'scalewhat', name: 'What Is a Scale'},
     {topic: 'majmin', name: 'Major vs Minor'},
+    {topic: 'minorscales', name: 'The Three Minor Scales'},
+    {topic: 'pentatonic', name: 'Pentatonics & the Blues Scale'},
+    {topic: 'scaledegrees', name: 'Scale Degree Names'},
     {topic: 'modes', name: 'Scales & Modes'}]},
   // the final boss: learn to read standard notation chapter by chapter, then face the exam
   {name: 'Reading Music', acc: '#7a4a34', lessons: [
@@ -1914,6 +1924,7 @@ const MODULES = [
     {reading: ['naturals', 'steps'], name: 'First-Position Notes'},
     {reading: ['rhythm', 'eighths'], name: 'Rhythm: Lengths, Rests & Beams'},
     {reading: ['waltz', 'jig'], name: 'Time Signatures: Waltz & Jig'},
+    {topic: 'notation', name: 'Rhythm Math & Markings'},
     {reading: ['keyC', 'keyG', 'keyF'], name: 'Key Signatures: C, G & F'},
     {reading: ['ode', 'twinkle'], name: 'Read Real Tunes'},
     {exam: true, name: 'Final Challenge'}]},
@@ -2231,6 +2242,127 @@ Object.assign(QBANK, {
     () => ({q: 'Dorian differs from the natural minor scale by:', a: 'a raised 6th', opts: shuffle(['a raised 6th', 'a lowered root', 'a raised 3rd', 'nothing']), hint: 'One note sets it apart.', why: 'Dorian is natural minor with a raised 6th — that one note gives it its brighter, jazzy colour.'}),
   ],
 });
+// --- the deep-course expansion (Oct 2026): the lessons that teach the book itself, plus the theory the
+// short course skipped — sevenths, cadences, interval quality, key-signature spelling, the minor scales,
+// pentatonics, degree names, and rhythm math. Music facts computed from D.* wherever the data reaches.
+const _SHARP_ORDER = ['F♯', 'C♯', 'G♯', 'D♯', 'A♯', 'E♯', 'B♯'], _FLAT_ORDER = ['B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'C♭', 'F♭'];
+const _sigOf = r => { const m = /^(\d)([♯♭])$/.exec(r[1]); return m ? {key: r[0], n: +m[1], acc: m[2]} : null; };
+const _SIGS = _COF.map(_sigOf).filter(Boolean);
+const _sclBy = re => _SCL.find(s => re.test(s.name));
+const FINGERS = ['index (1)', 'middle (2)', 'ring (3)', 'pinky (4)'];
+Object.assign(QBANK, {
+  diagrams: [
+    () => ({q: 'In a chord box, an X above a string means:', a: 'don’t play that string', opts: shuffle(['don’t play that string', 'play it open', 'barre it', 'bend it']), hint: 'X crosses it out.', why: 'An X marks a string you leave out — mute it or avoid it with the strum.'}),
+    () => ({q: 'In a chord box, an O above a string means:', a: 'play it open', opts: shuffle(['play it open', 'skip that string', 'play it at the 12th fret', 'play it twice']), hint: 'O = open.', why: 'An O means the string rings open — no finger on it, but it is part of the chord.'}),
+    () => { const i = rnd(4); return {q: `In this book's chord boxes, the number ${i + 1} in a dot means press with your:`, a: FINGERS[i], opts: shuffle(FINGERS.slice()), hint: '1 starts at the index finger.', why: `Fingers are numbered 1–4 from index to pinky, so ${i + 1} is the ${FINGERS[i]} finger.`}; },
+    () => ({q: 'A thick bar drawn across several strings in a chord box is:', a: 'a barre — one finger flattened across them', opts: shuffle(['a barre — one finger flattened across them', 'a capo', 'strings to skip', 'a slide']), hint: 'One finger, many strings.', why: 'The bar shows a barre: one finger laid flat pressing several strings at the same fret.'}),
+    () => ({q: 'In this book’s scale diagrams, the gold-ringed dot is:', a: 'the home note (root)', opts: shuffle(['the home note (root)', 'the highest note', 'an open string', 'a note to avoid']), hint: 'Home wears gold.', why: 'The gold ring marks the root — the note the scale is named after and resolves to.'}),
+    () => ({q: 'In the scale diagrams, a hollow ring to the left of the nut is:', a: 'an open string in the scale', opts: shuffle(['an open string in the scale', 'a muted string', 'the root', 'a fret marker']), hint: 'Left of the nut = no fret.', why: 'Hollow rings before the nut are open strings that belong to the scale.'}),
+    () => ({q: 'The numbers on the dots of a scale diagram show:', a: 'the playing order, climbing in pitch', opts: shuffle(['the playing order, climbing in pitch', 'which finger to use', 'the fret number', 'how loud to play']), hint: 'Follow 1, 2, 3…', why: 'Scale dots are numbered in ascending playing order, root to root — follow the numbers to walk the scale.'}),
+    () => ({q: 'In a chord box, the vertical lines are the strings and the horizontal lines are:', a: 'the frets', opts: shuffle(['the frets', 'the beats', 'other chords', 'the fingers']), hint: 'You are looking at the neck face-on.', why: 'A chord box pictures the neck upright: strings run vertically, frets horizontally.'}),
+  ],
+  tabread: [
+    () => ({q: 'The six lines of tab represent:', a: 'the six strings', opts: shuffle(['the six strings', 'the first six frets', 'six beats', 'six fingers']), hint: 'One line per string.', why: 'Tab draws one line per string — it is a picture of the strings, not a staff.'}),
+    () => ({q: 'The TOP line of tab is:', a: 'the thin high E string', opts: shuffle(['the thin high E string', 'the thick low E string', 'the A string', 'whichever string plays first']), hint: 'High pitch sits high.', why: 'Tab puts the thin high E on top and the thick low E at the bottom — highest pitch highest on the page.'}),
+    () => ({q: 'A number on a tab line tells you:', a: 'which fret to press on that string', opts: shuffle(['which fret to press on that string', 'which finger to use', 'how many times to play it', 'the beat it lands on']), hint: 'Numbers are places, not fingers.', why: 'Tab numbers are frets. A 3 on the top line means fret 3 on the high E string.'}),
+    () => ({q: 'A 0 on a tab line means:', a: 'play that string open', opts: shuffle(['play that string open', 'skip that string', 'mute the string', 'slide down']), hint: 'Zero frets pressed.', why: '0 is the open string — struck, but with no finger down.'}),
+    () => ({q: 'Numbers stacked vertically in tab are played:', a: 'together, as a chord', opts: shuffle(['together, as a chord', 'one after another', 'only the top one', 'as a drum hit']), hint: 'Same moment, same column.', why: 'A vertical stack means the notes sound at once — that is how tab writes a chord.'}),
+    () => ({q: 'Reading left to right, tab numbers in a row are played:', a: 'one after another, in order', opts: shuffle(['one after another, in order', 'all at once', 'in any order', 'right to left']), hint: 'Like reading words.', why: 'Tab reads left to right in time, like text — each new column is the next moment.'}),
+    () => ({q: 'An x on a tab line means:', a: 'a muted, percussive hit on that string', opts: shuffle(['a muted, percussive hit on that string', 'fret 10', 'an open string', 'a harmonic']), hint: 'Not a number — no pitch.', why: 'An x is a dead note: the string is struck while damped, giving a click instead of a pitch.'}),
+    () => ({q: 'Compared with the staff, plain tab does NOT show you:', a: 'how long each note lasts', opts: shuffle(['how long each note lasts', 'which string to play', 'which fret to press', 'which notes sound together']), hint: 'It is why the Reading Music module exists.', why: 'Tab shows where, not how long. Rhythm lives on the staff — which is why learning both is worth it.'}),
+  ],
+  landmarks: [
+    () => { const f = 1 + rnd(10), a = SH[(OPEN_PC[0] + f) % 12]; return {q: `Barre roots live on the low strings. What note is at fret ${f} of the low E string?`, a, opts: nOpts(a), hint: 'Count up from E, one half step per fret.', why: `Open low E plus ${f} half steps is ${a}. E-shape barres take their name from this string.`}; },
+    () => { const f = 1 + rnd(10), a = SH[(OPEN_PC[1] + f) % 12]; return {q: `What note is at fret ${f} of the A string?`, a, opts: nOpts(a), hint: 'Count up from A.', why: `Open A plus ${f} half steps is ${a}. A-shape barres are named from this string.`}; },
+    () => { const f = 1 + rnd(10), a = SH[(OPEN_PC[0] + f) % 12]; return {q: `An E-shape barre chord at fret ${f} plays which major chord?`, a, opts: nOpts(a), hint: 'The chord is named by the low-E note under the barre.', why: `The barre moves the open E shape up ${f} frets, so the root — and the chord — is ${a}.`}; },
+    () => { const f = 1 + rnd(10), a = SH[(OPEN_PC[1] + f) % 12]; return {q: `An A-shape barre chord at fret ${f} plays which major chord?`, a, opts: nOpts(a), hint: 'Named by the A-string note under the barre.', why: `The A shape rooted at fret ${f} of the A string is ${a}.`}; },
+    () => ({q: 'From the low E or A string, the octave of a note sits:', a: 'two strings over, two frets up', opts: shuffle(['two strings over, two frets up', 'one string over, five frets up', 'two strings over, three frets up', 'three strings over, two frets up']), hint: 'The classic octave shape.', why: 'From the 6th or 5th string, jump two strings toward the floor and two frets up — same note, one octave higher.'}),
+    () => ({q: 'From the D or G string, the octave shape stretches to:', a: 'two strings over, three frets up', opts: shuffle(['two strings over, three frets up', 'two strings over, two frets up', 'one string over, four frets up', 'three strings over, one fret up']), hint: 'Something bends near the B string.', why: 'Crossing the B string costs one extra fret, because the B string is tuned a third (not a fourth) above the G.'}),
+    () => ({q: 'Why do shapes shift by one fret when they cross the B string?', a: 'the B string is tuned a third above the G, not a fourth', opts: shuffle(['the B string is tuned a third above the G, not a fourth', 'the B string is thinner', 'the frets are closer together there', 'it is tuned an octave off']), hint: 'Five of the six gaps are fourths.', why: 'String-to-string gaps are perfect fourths except G→B, which is a major third — one fret narrower, so patterns bend there.'}),
+  ],
+  sevenths: [
+    () => ({q: 'A seventh chord has how many different notes?', a: '4', opts: shuffle(['4', '3', '7', '5']), hint: 'A triad plus one.', why: 'A seventh chord stacks one more third on a triad: root, 3rd, 5th and 7th — four notes.'}),
+    () => ({q: 'A dominant 7th (like G7) is a major triad plus:', a: 'a ♭7', opts: shuffle(['a ♭7', 'a natural 7', 'a 6th', 'a 9th']), hint: 'The bluesy one.', why: 'Dominant 7 = major triad + flat 7. That ♭7 against the major 3rd creates the restless, bluesy pull.'}),
+    () => ({q: 'A major 7th chord (like Cmaj7) sounds:', a: 'dreamy and settled', opts: shuffle(['dreamy and settled', 'tense and bluesy', 'dark and heavy', 'dissonant and scary']), hint: 'Jazz ballads live here.', why: 'Major 7 = major triad + natural 7 — soft and dreamy, happy to sit still.'}),
+    () => ({q: 'A minor 7th chord (like Am7) is:', a: 'a minor triad plus a ♭7', opts: shuffle(['a minor triad plus a ♭7', 'a major triad plus a ♭7', 'a minor triad plus a natural 7', 'a triad with no 5th']), hint: 'Minor, mellowed.', why: 'Minor 7 = minor triad + flat 7 — the mellow, rounded version of a minor chord.'}),
+    () => ({q: 'Which seventh chord pulls hardest back to the home chord?', a: 'the dominant 7 (V7)', opts: shuffle(['the dominant 7 (V7)', 'the major 7 (Imaj7)', 'the minor 7 (ii7)', 'they all pull equally']), hint: 'It hides a tritone.', why: 'The V7 contains a tritone between its 3rd and ♭7; that tension resolves straight into the I chord.'}),
+    () => { const tonic = _KEYS[rnd(12)], t7 = D.palette.major[7], a = chordName(tonic, false, t7).name; return {q: `In ${tonic} major, the V7 chord is:`, a, opts: shuffle([a, ...sample(_KEYS.filter(k => k !== tonic).map(k => chordName(k, false, t7).name), 3)]), hint: 'Build a 7th chord on the 5th degree.', why: `The dominant seventh of ${tonic} major is ${a} — degree 5 with a ♭7 on top.`}; },
+    () => ({q: 'The ø symbol (as in iiø) marks which chord?', a: 'half-diminished — a diminished triad with a ♭7', opts: shuffle(['half-diminished — a diminished triad with a ♭7', 'a power chord', 'a suspended chord', 'an augmented chord']), hint: 'Half of a diminished 7th.', why: 'ø is half-diminished (m7♭5): diminished triad + minor 7th — the ii chord in minor keys.'}),
+    () => ({q: 'G7 and Gmaj7 differ by:', a: 'one note — the 7th (♭7 vs natural 7)', opts: shuffle(['one note — the 7th (♭7 vs natural 7)', 'their root', 'their 3rd', 'their 5th']), hint: 'Same triad underneath.', why: 'Both start from a G major triad; G7 adds F (♭7) while Gmaj7 adds F♯ (natural 7) — one half step changes the whole mood.'}),
+  ],
+  cadences: [
+    () => ({q: 'A cadence is:', a: 'the way a musical phrase comes to rest', opts: shuffle(['the way a musical phrase comes to rest', 'a fast scale run', 'a strumming pattern', 'a key change']), hint: 'Think punctuation.', why: 'Cadences are music’s punctuation — the chord moves that end a phrase with a full stop, comma, or question mark.'}),
+    () => ({q: 'The V → I cadence is called:', a: 'authentic (perfect)', opts: shuffle(['authentic (perfect)', 'plagal', 'half', 'deceptive']), hint: 'The strongest "the end."', why: 'V to I is the authentic cadence — the strongest, most final-sounding close in tonal music.'}),
+    () => ({q: 'The IV → I cadence is known as:', a: 'the plagal ("Amen") cadence', opts: shuffle(['the plagal ("Amen") cadence', 'the authentic cadence', 'the deceptive cadence', 'the blues turnaround']), hint: 'Sung at the end of hymns.', why: 'IV–I is the plagal cadence — the gentle "A-men" ending of hymn tradition.'}),
+    () => ({q: 'A phrase that pauses ON the V chord makes a:', a: 'half cadence', opts: shuffle(['half cadence', 'full cadence', 'plagal cadence', 'false start']), hint: 'It feels like a comma.', why: 'Stopping on V is a half cadence — open-ended, asking for the next phrase to answer.'}),
+    () => ({q: 'When V resolves to vi instead of the expected I, it is a:', a: 'deceptive cadence', opts: shuffle(['deceptive cadence', 'plagal cadence', 'perfect cadence', 'turnaround']), hint: 'A dodge at the last moment.', why: 'V–vi is the deceptive cadence: the ear expects home and gets the relative minor — a soft surprise that keeps the music going.'}),
+    () => { const tonic = _KEYS[rnd(12)], V = chordName(tonic, false, _PAL[4]).name, I = chordName(tonic, false, _PAL[0]).name, a = `${V} → ${I}`; return {q: `In ${tonic} major, the authentic cadence is:`, a, opts: shuffle([a, ...sample(_KEYS.filter(k => k !== tonic), 3).map(k => `${chordName(k, false, _PAL[4]).name} → ${chordName(k, false, _PAL[0]).name}`)]), hint: 'Degree 5 falling home to 1.', why: `In ${tonic} major, V is ${V} and I is ${I} — so the authentic cadence is ${a}.`}; },
+    () => ({q: 'Why does the V chord pull so strongly to I?', a: 'it contains the leading tone, a half step below home', opts: shuffle(['it contains the leading tone, a half step below home', 'it is the loudest chord', 'it shares no notes with I', 'it is always played last']), hint: 'One note aches to rise.', why: 'V contains the 7th scale degree — the leading tone — one half step under the tonic, straining upward to resolve.'}),
+  ],
+  intervalquality: [
+    () => ({q: 'Counting letter names C up to E (C, D, E) makes what generic interval?', a: 'a third', opts: shuffle(['a third', 'a second', 'a fourth', 'a fifth']), hint: 'Count both ends.', why: 'Generic intervals count letters inclusively: C–D–E is three letters, a third.'}),
+    () => ({q: 'Which interval numbers are called "perfect"?', a: 'unisons, 4ths, 5ths and octaves', opts: shuffle(['unisons, 4ths, 5ths and octaves', '2nds, 3rds, 6ths and 7ths', 'only octaves', '3rds and 5ths']), hint: 'The hollow, open-sounding ones.', why: 'Unison, 4th, 5th and octave are the perfect intervals; 2nds, 3rds, 6ths and 7ths come in major and minor.'}),
+    () => ({q: 'Shrink a major interval by one half step and it becomes:', a: 'minor', opts: shuffle(['minor', 'diminished', 'perfect', 'augmented']), hint: 'Major’s smaller sibling.', why: 'Major − half step = minor. (Minor − another half step = diminished.)'}),
+    () => ({q: 'Shrink a perfect interval by one half step and it becomes:', a: 'diminished', opts: shuffle(['diminished', 'minor', 'augmented', 'major']), hint: 'Perfect intervals skip "minor."', why: 'Perfect intervals have no minor version: smaller is diminished, larger is augmented.'}),
+    () => ({q: 'Stretch any interval one half step beyond major or perfect and it is:', a: 'augmented', opts: shuffle(['augmented', 'diminished', 'doubled', 'dominant']), hint: 'Aug = enlarged.', why: 'One half step past major or perfect is augmented — like the augmented 4th, better known as the tritone.'}),
+    () => { const pairs = [['2nd', '7th'], ['3rd', '6th'], ['4th', '5th']], p = pairs[rnd(3)], flip = rnd(2); return {q: `Turned upside down (inverted), a ${p[flip]} becomes a:`, a: p[1 - flip], opts: shuffle([p[1 - flip], ...sample(['2nd', '3rd', '4th', '5th', '6th', '7th'].filter(x => x !== p[1 - flip]), 3)]), hint: 'The two numbers always add to 9.', why: `Inverted intervals sum to 9: a ${p[flip]} flips into a ${p[1 - flip]}.`}; },
+    () => ({q: 'When a major interval is inverted, it becomes:', a: 'minor', opts: shuffle(['minor', 'major', 'perfect', 'augmented']), hint: 'Quality flips; perfect stays.', why: 'Inversion swaps major ↔ minor and augmented ↔ diminished; only perfect stays perfect.'}),
+    () => ({q: 'The tritone — six half steps — splits the octave:', a: 'exactly in half', opts: shuffle(['exactly in half', 'into a 3rd and a 5th', 'into two perfect fourths', 'unevenly']), hint: '6 + 6 = 12.', why: 'Six half steps is half of twelve: the tritone divides the octave exactly in half, which is why it inverts into itself.'}),
+  ],
+  keysigs: [
+    () => ({q: 'Sharps enter a key signature in the fixed order:', a: 'F♯ C♯ G♯ D♯ A♯ E♯ B♯', opts: shuffle(['F♯ C♯ G♯ D♯ A♯ E♯ B♯', 'C♯ D♯ E♯ F♯ G♯ A♯ B♯', 'B♯ E♯ A♯ D♯ G♯ C♯ F♯', 'G♯ D♯ A♯ E♯ B♯ F♯ C♯']), hint: '"Father Charles Goes Down And Ends Battle."', why: 'Sharps always arrive in fifths: F♯ C♯ G♯ D♯ A♯ E♯ B♯. A key with two sharps has exactly F♯ and C♯.'}),
+    () => ({q: 'Flats enter in the order:', a: 'B♭ E♭ A♭ D♭ G♭ C♭ F♭', opts: shuffle(['B♭ E♭ A♭ D♭ G♭ C♭ F♭', 'F♭ C♭ G♭ D♭ A♭ E♭ B♭', 'A♭ B♭ C♭ D♭ E♭ F♭ G♭', 'E♭ B♭ A♭ G♭ D♭ C♭ F♭']), hint: 'The sharp order, reversed.', why: 'Flats are the sharps backwards: B♭ E♭ A♭ D♭ G♭ C♭ F♭ — "Battle Ends And Down Goes Charles’ Father."'}),
+    () => { const s = _SIGS.filter(x => x.acc === '♯' && x.n <= 5), r = s[rnd(s.length)], a = _SHARP_ORDER.slice(0, r.n).join(' '); return {q: `${r.key} major has ${r.n} sharp${r.n > 1 ? 's' : ''}. Which?`, a, opts: shuffle([a, ...sample([1, 2, 3, 4, 5, 6].filter(n => n !== r.n), 3).map(n => _SHARP_ORDER.slice(0, n).join(' '))]), hint: 'Take them from the front of the sharp order.', why: `Sharps stack in order, so ${r.key} major’s ${r.n} are ${a}.`}; },
+    () => { const s = _SIGS.filter(x => x.acc === '♭' && x.n <= 5), r = s[rnd(s.length)], a = _FLAT_ORDER.slice(0, r.n).join(' '); return {q: `${r.key} major has ${r.n} flat${r.n > 1 ? 's' : ''}. Which?`, a, opts: shuffle([a, ...sample([1, 2, 3, 4, 5].filter(n => n !== r.n), 3).map(n => _FLAT_ORDER.slice(0, n).join(' '))]), hint: 'Take them from the front of the flat order.', why: `Flats stack in order, so ${r.key} major’s ${r.n} are ${a}.`}; },
+    () => { const s = _SIGS.filter(x => x.acc === '♯' && x.n <= 5), r = s[rnd(s.length)], last = _SHARP_ORDER[r.n - 1]; return {q: `A key signature’s last sharp is ${last}. The major key is:`, a: r.key, opts: shuffle([r.key, ...sample(_COF.map(x => x[0]).filter(k => k !== r.key), 3)]), hint: 'Go up one half step from the last sharp.', why: `The major key sits a half step above its final sharp: ${last} + 1 = ${r.key}.`}; },
+    () => { const s = _SIGS.filter(x => x.acc === '♭' && x.n >= 2 && x.n <= 5), r = s[rnd(s.length)]; return {q: `In flat keys, the key’s name is simply:`, a: 'the second-to-last flat', opts: shuffle(['the second-to-last flat', 'the last flat', 'the first flat', 'a half step above the last flat']), hint: `Try it: ${r.key} major has ${_FLAT_ORDER.slice(0, r.n).join(' ')}.`, why: `Read the second-to-last flat and you have the key — ${r.key} major’s flats are ${_FLAT_ORDER.slice(0, r.n).join(' ')}, and the second-to-last one is ${_FLAT_ORDER[r.n - 2]}: the key itself.`}; },
+    () => ({q: 'A major key and its relative minor share:', a: 'the exact same key signature', opts: shuffle(['the exact same key signature', 'the same tonic', 'nothing', 'only the sharps, not the flats']), hint: 'Same notes, different home.', why: 'Relative keys use identical notes, so one key signature serves both — context tells you which is home.'}),
+  ],
+  minorscales: [
+    () => ({q: 'The natural minor scale is the major scale:', a: 'started from its 6th degree', opts: shuffle(['started from its 6th degree', 'played backwards', 'with every note flattened', 'started from its 5th degree']), hint: 'The relative-minor trick.', why: 'Run C major from A to A and you get A natural minor — same notes, darker home.'}),
+    () => ({q: 'Compared to major, the natural minor scale has:', a: '♭3, ♭6 and ♭7', opts: shuffle(['♭3, ♭6 and ♭7', 'only a ♭3', '♭2 and ♭5', 'sharps everywhere']), hint: 'Three notes sink.', why: 'Natural minor lowers the 3rd, 6th and 7th of the parallel major — the ♭3 does most of the darkening.'}),
+    () => ({q: 'The harmonic minor scale raises which note of natural minor?', a: 'the 7th', opts: shuffle(['the 7th', 'the 3rd', 'the 5th', 'the root']), hint: 'It rebuilds the leading tone.', why: 'Harmonic minor sharpens the 7th so it leads home again — and leaves the exotic step-and-a-half gap after the ♭6.'}),
+    () => ({q: 'WHY raise the 7th in harmonic minor?', a: 'so the V chord turns major and pulls home', opts: shuffle(['so the V chord turns major and pulls home', 'to make it easier to finger', 'to match the relative major', 'to avoid open strings']), hint: 'Think about the cadence.', why: 'With a natural 7th, the chord on V becomes major (or V7) — restoring the strong V→i cadence minor keys would otherwise lack.'}),
+    () => ({q: 'The classical melodic minor raises the 6th and 7th:', a: 'on the way up, reverting on the way down', opts: shuffle(['on the way up, reverting on the way down', 'in both directions always', 'only on the way down', 'only in flat keys']), hint: 'Smooth climb, natural descent.', why: 'Melodic minor smooths the climb to the tonic by raising 6 and 7 ascending, then falls back to natural minor descending.'}),
+    () => { const i = rnd(_COF.length); return {q: `${_COF[i][2]} (natural minor) shares all of its notes with:`, a: `${_COF[i][0]} major`, opts: shuffle([`${_COF[i][0]} major`, ...sample(_COF.filter((_, j) => j !== i), 3).map(r => `${r[0]} major`)]), hint: 'Its relative major, three frets up.', why: `${_COF[i][2]} is the relative minor of ${_COF[i][0]} major — one set of notes, two homes.`}; },
+    () => ({q: 'The signature sound of harmonic minor is:', a: 'the step-and-a-half leap between ♭6 and the raised 7', opts: shuffle(['the step-and-a-half leap between ♭6 and the raised 7', 'all whole steps', 'a missing 5th', 'two roots']), hint: 'The "snake-charmer" gap.', why: 'Raising the 7th leaves an augmented 2nd (3 half steps) between degrees 6 and 7 — the scale’s dramatic, Eastern-tinged leap.'}),
+  ],
+  pentatonic: [
+    () => ({q: 'A pentatonic scale has how many different notes?', a: '5', opts: shuffle(['5', '7', '6', '4']), hint: 'Penta = five.', why: 'Pentatonic means five notes — two fewer than the full major or minor scale.'}),
+    () => ({q: 'The major pentatonic is the major scale minus:', a: 'the 4th and 7th', opts: shuffle(['the 4th and 7th', 'the 2nd and 6th', 'the 3rd and 5th', 'the root and octave']), hint: 'Drop the two tense notes.', why: 'Removing the 4th and 7th deletes the scale’s two half-step tensions — what is left can hardly play a wrong note.'}),
+    () => ({q: 'The minor pentatonic is the natural minor scale minus:', a: 'the 2nd and ♭6', opts: shuffle(['the 2nd and ♭6', 'the 4th and 7th', 'the ♭3 and 5th', 'the root and 5th']), hint: 'Again, the half-step makers go.', why: 'Minor pentatonic drops the 2nd and ♭6, keeping 1 ♭3 4 5 ♭7 — the backbone of rock and blues soloing.'}),
+    () => ({q: 'Add which note to the minor pentatonic to get the blues scale?', a: 'the ♭5 ("blue note")', opts: shuffle(['the ♭5 ("blue note")', 'the major 7th', 'the 2nd', 'the ♭2']), hint: 'The crunchiest passing tone.', why: 'Blues scale = minor pentatonic + ♭5. That blue note is a passing sting between the 4 and the 5.'}),
+    () => ({q: 'Why are pentatonics the classic first soloing scale?', a: 'no note sits a half step against the key, so nothing clashes hard', opts: shuffle(['no note sits a half step against the key, so nothing clashes hard', 'they use only open strings', 'they are the loudest scales', 'they need only one finger']), hint: 'No half steps inside.', why: 'With the half-step tensions removed, every pentatonic note sounds at least acceptable over the key — a safety net for improvising.'}),
+    () => { const i = rnd(_COF.length); return {q: `${_COF[i][2]} pentatonic and ${_COF[i][0]} major pentatonic contain:`, a: 'the exact same five notes', opts: shuffle(['the exact same five notes', 'no shared notes', 'the same notes except one', 'different scales entirely']), hint: 'Relative keys strike again.', why: `Relative major and minor share notes, pentatonics included — ${_COF[i][2]} pentatonic is ${_COF[i][0]} major pentatonic heard from a darker home.`}; },
+    () => ({q: 'The five notes of the minor pentatonic are:', a: '1 ♭3 4 5 ♭7', opts: shuffle(['1 ♭3 4 5 ♭7', '1 2 3 5 6', '1 ♭2 4 ♭5 ♭7', '1 3 4 5 7']), hint: 'Root, dark third, and the strong degrees.', why: 'Minor pentatonic is 1 ♭3 4 5 ♭7. (Major pentatonic is 1 2 3 5 6 — the same shape starting elsewhere.)'}),
+  ],
+  scaledegrees: [
+    () => ({q: 'Scale degree 1 — home — is called the:', a: 'tonic', opts: shuffle(['tonic', 'dominant', 'mediant', 'leading tone']), hint: 'Gin and ….', why: 'Degree 1 is the tonic: home base, the note of rest, the key’s name.'}),
+    () => ({q: 'Scale degree 5 is called the:', a: 'dominant', opts: shuffle(['dominant', 'subdominant', 'supertonic', 'tonic']), hint: 'It dominates the pull back home.', why: 'Degree 5 is the dominant — the second most important note, and the root of the V chord.'}),
+    () => ({q: 'Scale degree 4 is the:', a: 'subdominant', opts: shuffle(['subdominant', 'submediant', 'dominant', 'leading tone']), hint: 'One below the dominant.', why: 'Degree 4 is the subdominant — a fifth below the tonic, as the dominant is a fifth above.'}),
+    () => ({q: 'The 7th degree, a half step below the tonic, is the:', a: 'leading tone', opts: shuffle(['leading tone', 'subtonic', 'mediant', 'supertonic']), hint: 'It leads somewhere.', why: 'A natural 7th is the leading tone — it aches upward into the tonic, powering the V→I cadence.'}),
+    () => { const names = [['2', 'supertonic'], ['3', 'mediant'], ['6', 'submediant']], p = names[rnd(3)]; return {q: `Scale degree ${p[0]} is called the:`, a: p[1], opts: shuffle([p[1], ...sample(['tonic', 'supertonic', 'mediant', 'subdominant', 'dominant', 'submediant', 'leading tone'].filter(x => x !== p[1]), 3)]), hint: 'Super = above the tonic; mediant = midway to the dominant.', why: `Degree ${p[0]} is the ${p[1]}. Supertonic sits above the tonic; mediant halfway to the dominant; submediant mirrors it below.`}; },
+    () => { const tonic = _KEYS[rnd(12)], a = chordName(tonic, false, _PAL[4]).name; return {q: `What is the dominant (5th degree) of ${tonic} major?`, a, opts: nOpts(a), hint: 'Count five letters up from the tonic.', why: `Five scale steps up from ${tonic} is ${a} — its dominant, and the root of its V chord.`}; },
+    () => ({q: 'The chord built on the dominant degree is numbered:', a: 'V', opts: shuffle(['V', 'I', 'IV', 'vii°']), hint: 'Dominant = degree 5.', why: 'Chords take their numeral from their degree: the dominant chord is V.'}),
+  ],
+  notation: [
+    () => ({q: 'In 4/4 time, a quarter note lasts:', a: '1 beat', opts: shuffle(['1 beat', '2 beats', 'half a beat', '4 beats']), hint: 'It is the counting unit.', why: 'In 4/4 the quarter note gets the beat — four of them fill a bar.'}),
+    () => ({q: 'A whole note in 4/4 lasts:', a: '4 beats — the full bar', opts: shuffle(['4 beats — the full bar', '2 beats', '1 beat', '8 beats']), hint: 'The name says it.', why: 'A whole note fills the whole 4/4 bar: four beats of sound.'}),
+    () => ({q: 'Two eighth notes together equal:', a: 'one quarter note', opts: shuffle(['one quarter note', 'one half note', 'one sixteenth', 'one whole note']), hint: 'Two halves of a beat.', why: 'Each eighth is half a beat, so a pair fills one quarter-note beat — counted "1 &".'}),
+    () => ({q: 'A dot after a note:', a: 'adds half the note’s own length', opts: shuffle(['adds half the note’s own length', 'doubles the note', 'makes it staccato', 'repeats it']), hint: 'Half again as long.', why: 'A dot adds 50%: a dotted half = 2 + 1 = 3 beats; a dotted quarter = 1 + ½ = 1½.'}),
+    () => ({q: 'A dotted half note lasts:', a: '3 beats', opts: shuffle(['3 beats', '2½ beats', '4 beats', '2 beats']), hint: '2 plus half of 2.', why: 'Half note (2) + its half (1) = 3 beats — a full bar of 3/4.'}),
+    () => ({q: 'A curved tie joining two notes of the same pitch means:', a: 'hold them as one unbroken note', opts: shuffle(['hold them as one unbroken note', 'play them twice as fast', 'slide between them', 'play them louder']), hint: 'One attack, added lengths.', why: 'A tie glues durations together: strike once, hold for the combined length — how long notes cross a bar line.'}),
+    () => ({q: '6/8 time is usually felt as:', a: 'two big beats of three eighths each', opts: shuffle(['two big beats of three eighths each', 'six equal heavy beats', 'four beats', 'three slow beats']), hint: 'ONE-two-three FOUR-five-six.', why: '6/8 is compound time: six eighths grouped in threes, giving a lilting two-beat feel — the jig and the slow ballad.'}),
+    () => ({q: 'The dynamic markings p and f mean:', a: 'soft (piano) and loud (forte)', opts: shuffle(['soft (piano) and loud (forte)', 'pause and fast', 'pick and fingers', 'perfect and flat']), hint: 'Italian words.', why: 'p = piano = soft; f = forte = loud. mp and mf sit in between; crescendo hairpins grow between them.'}),
+    () => ({q: 'A tempo of 120 BPM means:', a: '120 beats per minute — two every second', opts: shuffle(['120 beats per minute — two every second', '120 notes in the song', '120 bars', 'as fast as possible']), hint: 'Set the metronome to it.', why: 'BPM counts beats per minute: at 120, beats tick twice a second — a bright walking pace.'}),
+  ],
+});
+// deepen the thinnest original pools
+QBANK.chordsinkey.push(
+  () => ({q: 'Which numeral names the "home" chord of a key?', a: 'I', opts: shuffle(['I', 'V', 'IV', 'vi']), hint: 'Built on the tonic.', why: 'The I chord sits on the tonic — the chord the song wants to end on.'}),
+  () => { const tonic = _KEYS[rnd(12)], a = chordName(tonic, false, _PAL[5]).name; return {q: `In ${tonic} major, the vi chord — the relative minor — is:`, a, opts: shuffle([a, ...sample(_KEYS.filter(k => k !== tonic).map(k => chordName(k, false, _PAL[5]).name), 3)]), hint: 'Build on degree 6.', why: `Degree 6 of ${tonic} major carries the relative minor chord, ${a}.`}; });
+QBANK.keys.push(
+  () => ({q: 'C major and C minor are called ____ keys: same tonic, different scales.', a: 'parallel', opts: shuffle(['parallel', 'relative', 'enharmonic', 'chromatic']), hint: 'Not the "relative" pair.', why: 'Parallel keys share a tonic (C major / C minor); relative keys share notes (C major / A minor).'}));
 // Build a chapter quiz: mostly the chapter's topic, with a few review questions woven in from the previous chapter.
 function buildQuiz(primary, review, n) {
   const out = [], seen = new Set(); let g = 0;
@@ -2269,22 +2401,33 @@ function quizView(v, ch, idx) {
   wrap.append(sage, barOuter, counter, qh, opts, hintRow, fb);
 
   const qs = buildQuiz(primary, review, ch.exam ? 16 : 12), need = Math.max(1, Math.ceil(qs.length * 0.75));
+  // the recall bonus: every chapter past Module 1 ends with one question pulled back from an EARLIER
+  // module. It cannot hurt the pass mark — but a right answer banks a turquoise, counted on the map.
+  const gems = () => store.get('course.gems', 0);
+  let bonusQ = null;
+  if (!ch.exam && ch.mod > 0) {
+    const early = LESSONS.filter(l => l.topic && l.mod < ch.mod && QBANK[l.topic]);
+    if (early.length) { const src = early[rnd(early.length)], facs = QBANK[src.topic];
+      for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName}); }
+      if (bonusQ) qs.push(bonusQ); } }
+  const baseN = qs.length - (bonusQ ? 1 : 0);
   let i = 0, right = 0, answered = false;
   function render() { if (i >= qs.length) return finish();
     answered = false; const Q = qs[i]; fill.style.width = (i / qs.length * 100) + '%';
-    counter.textContent = `Question ${i + 1} of ${qs.length} · ${right} right · pass ${need}` + (Q.review ? ' · review' : '');
+    counter.textContent = Q.bonus ? `★ Bonus · a memory from ${Q.from} · worth a turquoise ✦`
+      : `Question ${i + 1} of ${baseN} · ${right} right · pass ${need}` + (Q.review ? ' · review' : '');
     qh.textContent = Q.q;
     opts.replaceChildren(...Q.opts.map(o => h('button', {class: 'btn', style: 'font-size:16px;min-height:52px;padding:8px 18px;white-space:normal;max-width:320px', on: {click: () => pick(o, Q)}}, String(o))));
     hintRow.replaceChildren(Q.hint ? h('button', {class: 'btn', style: 'min-height:32px;font-size:13px', on: {click: e => e.currentTarget.replaceWith(h('span', {class: 'muted', style: 'font-size:13px;font-weight:700'}, '💡 ' + Q.hint))}}, '💡 Hint') : '');
     fb.textContent = ''; }
   function pick(o, Q) { if (answered) return; answered = true;
-    const ok = String(o) === String(Q.a); if (ok) right++; sfx(ok);
+    const ok = String(o) === String(Q.a); if (ok && !Q.bonus) right++; if (ok && Q.bonus) store.set('course.gems', gems() + 1); sfx(ok);
     sage.replaceChildren(mageTile(ok ? 2 : 0, 72));
     [...opts.children].forEach(btn => { btn.disabled = true; if (btn.textContent === String(Q.a)) btn.classList.add('acc'); else if (btn.textContent === String(o) && !ok) btn.style.opacity = '.45'; });
     hintRow.replaceChildren();
     fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
     fb.replaceChildren(
-      h('div', {style: `font-weight:800;font-size:16px;color:var(--${ok ? 'sage' : 'rust'})`, html: ok ? '✓ Right!' : `✗ Not quite — the answer is <b>${Q.a}</b>.`}),
+      h('div', {style: `font-weight:800;font-size:16px;color:var(--${ok ? 'sage' : 'rust'})`, html: ok ? (Q.bonus ? '✓ Remembered! <b>+1 turquoise ✦</b>' : '✓ Right!') : (Q.bonus ? `✗ No turquoise this time — it was <b>${Q.a}</b>.` : `✗ Not quite — the answer is <b>${Q.a}</b>.`)}),
       Q.why ? h('div', {class: 'lede', style: 'font-size:14px;margin:6px auto 0;max-width:54ch'}, Q.why) : '',
       h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => { i++; render(); window.scrollTo && $('#page') && ($('#page').scrollTop = 0); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
   function finish() {
@@ -2292,7 +2435,7 @@ function quizView(v, ch, idx) {
     const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; }
     sage.replaceChildren(mageTile(passed ? 2 : 0, 72)); fill.style.width = '100%'; counter.textContent = ''; hintRow.replaceChildren();
     qh.textContent = passed ? 'Chapter cleared!' : 'So close.'; opts.replaceChildren();
-    fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${qs.length}. ${passed ? 'The next chapter is open.' : `Reach ${need} to pass — give it another go.`}`}),
+    fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${baseN}. ${passed ? 'The next chapter is open.' : `Reach ${need} to pass — give it another go.`}`}),
       h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
         h('button', {class: 'btn', on: {click: again}}, 'Try again'),
         h('button', {class: 'btn acc', on: {click: back}}, 'Back to the map'))); }
@@ -2408,7 +2551,8 @@ function roadView(v) {
   const foIdx = LESSONS.findIndex(l => !cleared[chapKey(l)]), firstOpen = foIdx < 0 ? LESSONS.length - 1 : foIdx;
   const done = LESSONS.filter(l => cleared[chapKey(l)]).length, pct = Math.round(done / LESSONS.length * 100);
   v.append(h('div', {style: 'max-width:600px;margin:0 auto 12px;width:100%;text-align:center'},
-    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `${done} of ${LESSONS.length} lessons cleared · ${pct}%`),
+    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `${done} of ${LESSONS.length} lessons cleared · ${pct}%`
+      + (store.get('course.gems', 0) ? ` · ✦ ${store.get('course.gems', 0)} turquoise` : '')),
     (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
   const wrap = h('div', {style: 'max-width:560px;margin:0 auto;width:100%'});
   v.append(wrap);
