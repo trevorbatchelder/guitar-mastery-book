@@ -1167,15 +1167,6 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
       refBody.append(sec2('One finger, every chord', 'a flat finger or a slide over any fret is a new chord · I IV V = 0, 5, 7', 'var(--ink)', bt)); }
     setFocus({label: `cycle the ${tn.name} chords`, play: cycleChords(tcards, tn.chords, {midi: tn.midi})});
   }
-  // tie the quick reference to the deeper material: jump to this topic's facts on the Index page, or into the course
-  const deepTopic = {fretboard: 'fretboard', key: 'key', cof: 'cof', capo: 'capo', scales: 'scales', iv: 'intervals'}[st.ref];
-  if (deepTopic) {
-    const goFacts = () => { const ix = state('indexpage', {}); ix.sec = 'facts:' + deepTopic; keep('indexpage', ix); page(PAGES.findIndex(p => p.id === 'index')); };
-    refBody.append(h('div', {class: 'lede', style: 'display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:2px'},
-      h('span', {class: 'muted', style: 'font-weight:700'}, 'Go deeper'),
-      h('button', {class: 'term', on: {click: goFacts}}, 'look it up in the Index'),
-      h('button', {class: 'term', on: {click: () => page(PAGES.findIndex(p => p.id === 'learn'))}}, 'play the course')));
-  }
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
       sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc),
