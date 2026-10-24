@@ -3343,32 +3343,103 @@ PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'a path from first chord
     roadView(v); }
 }});
 
-/* ================================================================ THE ROAD SONGS: original chiptunes for the Learn map
-   Written for this book in the style of 8-bit overworld themes (not a copy of any game's tune), one for the day map
-   and one for the night map. Synthesised live like the guitar sounds, so there is no recording to license. A song
-   plays only while the Learn page is open and the toggle is on, and ducks under any other sound the book makes.
-   Each song is chords + tune written as degrees of its mode; every strong-beat tune note is asserted to be a chord tone. */
+/* ================================================================ THE SONGS: original chiptunes, one per place
+   Written for this book in the style of 8-bit platformer themes (none copies any game's tune): a day and a night
+   song for the map, and one theme for each world's battles, in the mood of that world. Synthesised live like the
+   guitar sounds, so there is no recording to license. Each song is chords + tune as degrees of its mode
+   ("+" an octave up, "_" an octave down, "-" holds, "." rests), one token per eighth note, and an arrangement:
+     lead  {base, duty, gain, echo, vib, stac}         the tune on a pulse wave
+     harm  {kind: stab|arp|drone, base, duty, gain, slots, full, echo}   the chords
+     bass  {kind: bounce|pump|long|oompah|waltz|pulse, base, gain, hits} on the triangle
+     drums a string per bar: k kick · s snare · h hat · H open hat · . nothing
+   Every strong-beat tune note is asserted to be a tone of its chord, and each mode is asserted to be what it says. */
+const MODES = {ionian: [0, 2, 4, 5, 7, 9, 11], dorian: [0, 2, 3, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11], mixolydian: [0, 2, 4, 5, 7, 9, 10],
+  aeolian: [0, 2, 3, 5, 7, 8, 10], harmonic: [0, 2, 3, 5, 7, 8, 11], phrygdom: [0, 1, 4, 5, 7, 8, 10]};
 const SONGS = {
-  // day: G major (Ionian), bright and bouncy — swung eighths, 25% pulse lead, off-beat stabs, root–fifth bass, snare on 2 and 4
-  day: {name: 'Sunny Road', bpm: 138, swing: .62, mode: [0, 2, 4, 5, 7, 9, 11], lead: 67, harm: 55, bass: 43, style: 'bounce',
+  // the map by day: G major, bright and bouncy
+  day: {name: 'Sunny Road', bpm: 138, swing: .62, mode: 'ionian', lead: {base: 67, duty: .25, gain: .13}, harm: {kind: 'stab', base: 55, slots: [1, 3, 5, 7]},
+    bass: {kind: 'bounce', base: 43}, drums: '.hsh.hsh',
     chords: [1, 6, 4, 5, 1, 6, 2, 5, 4, 5, 3, 6, 2, 5, 1, 5],
     tune: ['5 . 3 5 1+ - 7 5', '6 - 5 3 1 - . .', '4 . 6 1+ 6 - 4 6', '5 - . 7 2+ - 7 5',
            '3 . 5 1+ 3+ - 2+ 1+', '3+ - 1+ 6 3 - . 6', '2 . 4 6 2+ - 6 4', '5 - 7 2+ 5+ - . .',
            '1+ . 6 4 6 - 1+ 6', '7 . 5 2 5 - 7 2+', '3+ - 2+ 7 5 - 7 3+', '1+ - 6 3 6 - . 1+',
            '6 . 4 2 4 - 6 1+', '2+ - 1+ 7 5 - 2 4', '3 - 5 1+ 3+ - - .', '2+ . 7 5 2 . 5 7']},
-  // night: D Dorian — minor with the raised 6th (B), the cool, hovering mode. The major IV (G) is Dorian's signature colour,
-  // and there is no major V, so the loop never quite lands: it drifts i–IV and ♭VII–IV. Slower, a soft square lead with an
-  // echo and a late vibrato, a twinkling 12.5% arpeggio, long triangle bass notes, only a whisper of hats
-  night: {name: 'Moonlit Road', bpm: 100, swing: .56, mode: [0, 2, 3, 5, 7, 9, 10], lead: 62, harm: 62, bass: 38, style: 'drift',
+  // the map by night: D Dorian — the raised 6th and the major IV make it cool and hovering; no major V, so it never lands
+  night: {name: 'Moonlit Road', bpm: 100, swing: .56, mode: 'dorian', lead: {base: 62, duty: .5, gain: .085, echo: .55, vib: 1}, harm: {kind: 'arp', base: 74, duty: .125, gain: .028, echo: .4},
+    bass: {kind: 'long', base: 38, gain: .26}, drums: '.h.h.h.h', drumGain: .5,
     chords: [1, 4, 1, 4, 7, 4, 1, 5, 3, 7, 4, 1, 7, 4, 5, 4],
     tune: ['5 - - 3 1+ - - .', '6 - - 5 4 - 1+ -', '3+ - - 1+ 5 - - 3', '4 - 6 - 1+ - 6 -',
            '7 - - 2+ 4+ - - 2+', '1+ - - 6 4 - - .', '5 - 3 - 1 - - -', '2 - 5 - 7 - - .',
            '3 - 5 - 7 - 5 -', '2+ - - 7 4 - - 7', '6 - - 4 1+ - 6 4', '5 - - - 3 - - .',
            '4 - 7 - 2+ - 4+ -', '6 - 4 - 1+ - - 6', '5 - 7 - 2+ - 1+ 7', '6 - - - 4 - - .']},
-  // battle: A harmonic minor — the raised 7th (G♯) makes V a major chord, so every bar of E strains back toward A.
-  // Played while a lesson is open: 160 BPM straight eighths, a 25% pulse lead, syncopated root–fifth stabs,
-  // a pumping octave triangle bass, a kick on 1 and 3, snare on 2 and 4, a hat on every eighth
-  battle: {name: 'Boss Road', bpm: 160, swing: .5, mode: [0, 2, 3, 5, 7, 8, 11], lead: 69, harm: 57, bass: 33, style: 'battle',
+  // World 1 · The Meadow: F major polka — a hopping 2-step with oom-pah bass, a skipping tune that climbs every hill
+  meadow: {name: 'Hilltop Hop', bpm: 160, swing: .5, mode: 'ionian', lead: {base: 65, duty: .25, gain: .12}, harm: {kind: 'stab', base: 53, slots: [2, 6], full: 1, gain: .04},
+    bass: {kind: 'bounce', base: 41}, drums: 'khshkhsh',
+    chords: [1, 1, 4, 1, 5, 5, 1, 1, 4, 4, 1, 6, 2, 5, 1, 1],
+    tune: ['1 . 3 5 1+ . 5 3', '5 - 3 1 3 - . .', '4 . 6 1+ 6 . 4 6', '5 - . 3 5 - . .',
+           '2+ . 7 5 7 . 5 2', '5 - 7 2+ 5+ - . .', '3+ . 1+ 5 3 . 5 1+', '1+ - - . 5 - . .',
+           '6 . 6 4 6 . 1+ 6', '4 - 6 1+ 4+ - . .', '3+ . 1+ 5 1+ . 5 3', '6 - 1+ 3+ 6 - . .',
+           '2+ . 6 4 6 . 4 2', '7 . 5 2 5 . 7 2+', '1+ . 5 3 5 . 3 5', '1+ - - - . . 5 7']},
+  // World 2 · Sunbaked Dunes: E Phrygian dominant — the flat 2nd over a major chord is the desert's sound; a camel-walk
+  // hand-drum, a droning open fifth, a lead that sways with vibrato
+  dunes: {name: 'Mirage March', bpm: 116, swing: .5, mode: 'phrygdom', lead: {base: 64, duty: .5, gain: .095, vib: 1, echo: .25}, harm: {kind: 'drone', base: 52, gain: .03},
+    bass: {kind: 'pulse', base: 40, hits: [0, 3, 4, 6], gain: .26}, drums: 'k.hks.h.',
+    chords: [1, 1, 2, 1, 1, 1, 4, 1, 7, 7, 2, 1, 4, 2, 1, 1],
+    tune: ['5 - 6 5 3 - 2 1', '1 - - 2 3 - . .', '2 - 4 2 6 - 4 2', '1 - - . 5 - 3 -',
+           '1+ - 7 6 5 - 6 7', '1+ - - . 3+ - 2+ 1+', '6 - 1+ 6 4 - 6 7', '5 - - - 3 - 2 -',
+           '7 - 2+ 7 4 - 2 4', '2+ - 1+ 7 2+ - . .', '2+ - 1+ 7 6 - 4 6', '5 - - . 3 - 5 -',
+           '4 - 6 1+ 6 - 4 3', '2 - 4 6 4 - 2 1', '1 - 3 5 3 - 2 1', '1 - - - . . 7_ 1']},
+  // World 3 · Giant's Garden: C major, slow and stomping — a tuba bass on 1 and 3, fat chords on 2 and 4, a big-footed march
+  giant: {name: 'Big Steps', bpm: 100, swing: .5, mode: 'ionian', lead: {base: 60, duty: .5, gain: .11}, harm: {kind: 'stab', base: 48, slots: [2, 6], full: 1, gain: .05},
+    bass: {kind: 'oompah', base: 36, gain: .34}, drums: 'k.s.k.s.', drumGain: 1.2,
+    chords: [1, 1, 5, 5, 1, 6, 4, 5, 4, 4, 1, 6, 2, 5, 1, 1],
+    tune: ['1 - 1 - 3 - 5 -', '1+ - - - 5 - - -', '7_ - 7_ - 2 - 5 -', '5 - - - 2 - - -',
+           '3 - 3 - 5 - 1+ -', '1+ - - - 6 - - -', '4 - 6 - 1+ - 6 -', '5 - - - 7_ - 2 -',
+           '6 - 6 - 4 - 6 -', '1+ - - - 4 - - -', '5 - 5 - 3 - 1 -', '6_ - 1 - 3 - 6 -',
+           '2 - 4 - 6 - 4 -', '5 - 2 - 7_ - 5_ -', '1 - 3 - 5 - 3 -', '1 - - - 1_ - . .']},
+  // World 4 · The Shoals: D Lydian waltz in 3/4 — the raised 4th (G♯) floats like light on water; I–II rocks like a boat
+  shoals: {name: 'Tidewater Waltz', bpm: 138, swing: .5, slots: 6, mode: 'lydian', lead: {base: 62, duty: .125, gain: .1, echo: .5, vib: 1}, harm: {kind: 'stab', base: 62, slots: [2, 4], gain: .035},
+    bass: {kind: 'waltz', base: 38, gain: .28}, drums: '..h.h.', drumGain: .6,
+    chords: [1, 2, 1, 2, 6, 3, 2, 2, 1, 2, 6, 3, 5, 2, 1, 1],
+    tune: ['5 - 3 5 1+ -', '4+ - 2+ - 6 -', '3+ - 1+ - 5 -', '2+ - - - 4 6',
+           '1+ - 6 - 3 -', '7 - 5 - 3 -', '6 - 4 - 2 -', '4 - - - . .',
+           '5 - 1+ - 3+ -', '2+ - 1+ - 6 -', '6 - 1+ - 3+ -', '5+ - 3+ - 1+ 7',
+           '5 - 7 - 2+ -', '4+ - - 2+ 6 4', '3 - 5 - 1+ -', '1+ - - - . .']},
+  // World 5 · Cloudtops: F major, airy — the tune leaps by intervals (5ths, octaves) like stepping cloud to cloud
+  sky: {name: 'Sky Steps', bpm: 144, swing: .58, mode: 'ionian', lead: {base: 65, duty: .25, gain: .1, echo: .35}, harm: {kind: 'arp', base: 77, duty: .125, gain: .024},
+    bass: {kind: 'long', base: 41, gain: .24}, drums: 'k.h.s.h.', drumGain: .55,
+    chords: [1, 5, 6, 4, 1, 5, 4, 4, 6, 3, 4, 1, 2, 5, 1, 5],
+    tune: ['1 . 5 . 1+ . 3+ -', '2+ - 7 5 7 - . .', '1+ . 6 . 3+ - 1+ -', '6 - 4 . 1+ - 6 -',
+           '5 . 1+ . 3+ . 5+ -', '5+ - 2+ - 7 - 5 -', '4+ - 1+ - 6 - 4 -', '1+ - - - . . 5 6',
+           '1+ . 3+ . 6 . 1+ -', '7 - 5 . 3+ - 7 -', '6 . 1+ . 4+ - 1+ -', '5 - - - 3 - 1 -',
+           '2 . 4 . 6 . 2+ -', '7 - 5 . 2+ - 5+ -', '3+ - 1+ - 5 - 3 -', '2 - 5 - 7 - 2+ -']},
+  // World 6 · Frostfall: E minor in 6/8 — a music box: a thin 12.5% pulse, a glassy arpeggio, sleigh-bell hats
+  frost: {name: 'Snowglass', bpm: 104, swing: .5, slots: 6, compound: 1, mode: 'aeolian', lead: {base: 64, duty: .125, gain: .1, echo: .45}, harm: {kind: 'arp', base: 76, duty: .25, gain: .025},
+    bass: {kind: 'long', base: 40, gain: .24}, drums: 'h.hh.h', drumGain: .45,
+    chords: [1, 6, 7, 1, 1, 6, 4, 5, 6, 7, 1, 1, 4, 7, 1, 1],
+    tune: ['5 - 3 1+ - 5', '6 - 1+ 3+ - 1+', '7 - 2+ 4+ - 2+', '3+ - - 1+ - -',
+           '1+ - 7 5 - 3', '3 - 1 6_ - 1', '4 - 6 1+ - 6', '5 - - 7 - 2+',
+           '1+ - 6 3+ - 1+', '2+ - 7 4+ - 2+', '5+ - 3+ 1+ - 5', '3+ - - - . .',
+           '6 - 4 1+ - 6', '7 - 2+ 4+ - 7', '1+ - 5 3 - 5', '1 - - - . .']},
+  // World 7 · Copperworks: A Mixolydian — a machine: staccato repeated notes, a pumping bass, clanking hats; the ♭VII (G) is the gear change
+  pipes: {name: 'Clockwork', bpm: 132, swing: .5, mode: 'mixolydian', lead: {base: 69, duty: .25, gain: .1, stac: .45}, harm: {kind: 'stab', base: 57, slots: [2, 6], fifth: 1, gain: .035},
+    bass: {kind: 'pump', base: 33, gain: .25}, drums: 'khshkhsH',
+    chords: [1, 1, 7, 7, 1, 1, 4, 4, 1, 7, 4, 1, 5, 7, 1, 1],
+    tune: ['1 1 3 1 5 5 3 1', '1 . 3 . 5 . 6 7', '7 7 2+ 7 4 4 2 7', '2+ . 7 . 4 . 2 .',
+           '3 3 5 3 1+ 1+ 5 3', '5 . 3 . 1 . 7_ .', '4 4 6 4 1+ 1+ 6 4', '6 . 4 . 1 . 2 3',
+           '5 5 1+ 5 3 3 1 3', '4 4 7 4 2+ 2+ 7 4', '1+ 1+ 6 4 6 6 4 6', '5 . 3 . 1 . . .',
+           '5 5 7 5 2+ 2+ 7 5', '7 . 2+ . 4 . 2 .', '1 3 5 1+ 5 3 1 3', '1 . . . 1_ . . .']},
+  // World 8 · Twilight Grove: C minor in 6/8 — hushed and mysterious, ♭VI–♭VII drifting home, fireflies in the arpeggio
+  grove: {name: 'Firefly Hollow', bpm: 92, swing: .5, slots: 6, compound: 1, mode: 'aeolian', lead: {base: 60, duty: .5, gain: .085, echo: .5, vib: 1}, harm: {kind: 'arp', base: 72, duty: .125, gain: .024, echo: .3},
+    bass: {kind: 'long', base: 36, gain: .24}, drums: '..h..h', drumGain: .4,
+    chords: [1, 1, 6, 7, 1, 4, 6, 5, 6, 7, 1, 1, 4, 6, 7, 1],
+    tune: ['5 - - 3 - -', '1+ - 7 5 - 3', '6 - - 1+ - 3+', '2+ - - 7 - 4',
+           '5 - 3 1+ - 5', '6 - 4 1+ - -', '3+ - 1+ 6 - 1+', '7 - - 5 - .',
+           '1+ - 3+ 6 - 1+', '2+ - 4+ 7 - 2+', '5+ - 3+ 1+ - 5', '3+ - - - . .',
+           '4+ - 1+ 6 - 4', '3+ - 1+ 6 - 3', '2+ - 7 4 - 2', '1 - - - . .']},
+  // World 9 · Shadow Keep (and the Final Challenge): A harmonic minor — the raised G♯ makes V major, so every E bar strains home
+  keep: {name: 'Boss Road', bpm: 160, swing: .5, mode: 'harmonic', lead: {base: 69, duty: .25, gain: .12}, harm: {kind: 'stab', base: 69, slots: [3, 7], fifth: 1, gain: .04},
+    bass: {kind: 'pump', base: 33, gain: .27}, drums: 'khshkhsh',
     chords: [1, 1, 6, 5, 1, 1, 4, 5, 6, 4, 1, 5, 6, 4, 5, 5],
     tune: ['1 . 1 5 3 . 1 3', '5 - 4 3 5 - . .', '6 . 6 5 6 - 1+ -', '7 - 5 - 2 - 7 -',
            '1+ . 1+ 7 1+ - 5 3', '5 - 3 1 3 - 5 -', '4 . 4 6 1+ - 6 4', '5 - 7 2+ 7 - 5 7',
@@ -3376,20 +3447,26 @@ const SONGS = {
            '6 . 1+ 3+ 6 - 1+ -', '4 . 6 1+ 4 - 6 -', '5 . 5 7 2+ - 7 5', '7 - 7 - 7 7 2+ 7']},
 };
 for (const [id, S] of Object.entries(SONGS)) {
-  S.tune = S.tune.map(b => b.split(' '));
-  console.assert(S.chords.length === 16 && S.tune.length === 16, 'road song: 16 bars', id);
-  S.tune.forEach((bar, b) => { console.assert(bar.length === 8, 'road song: bar length', id, b + 1);
-    const tri = [0, 2, 4].map(k => (S.chords[b] - 1 + k) % 7);   // the diatonic triad on that degree
-    [0, 4].forEach(k => { const t = bar[k]; if (/^\d/.test(t)) console.assert(tri.includes((parseInt(t) - 1) % 7), 'road song: non-chord tone on a strong beat', id, b + 1, k, t); }); });
+  S.slots = S.slots || 8; S.M = MODES[S.mode]; S.tune = S.tune.map(b => b.split(' ')); S.len = S.tune.length * S.slots;
+  console.assert(S.M && S.chords.length === S.tune.length, 'song: chords and bars', id);
+  const strong = S.slots === 8 ? [0, 4] : S.compound ? [0, 3] : [0];
+  S.tune.forEach((bar, b) => { console.assert(bar.length === S.slots, 'song: bar length', id, b + 1);
+    const tri = [0, 2, 4].map(k => (S.chords[b] - 1 + k) % 7);   // the triad on that degree of the mode
+    strong.forEach(k => { const t = bar[k]; if (/^\d/.test(t)) console.assert(tri.includes((parseInt(t) - 1) % 7), 'song: non-chord tone on a strong beat', id, b + 1, k, t); }); });
+  console.assert(S.drums.length === S.slots, 'song: drum pattern length', id);
 }
-// the night song must really be Dorian: a minor third and a major sixth over the tonic
-console.assert(SONGS.night.mode[2] === 3 && SONGS.night.mode[5] === 9, 'night song: not Dorian');
-console.assert(SONGS.battle.mode[2] === 3 && SONGS.battle.mode[5] === 8 && SONGS.battle.mode[6] === 11, 'battle song: not harmonic minor');
+// the modes are what their names say
+console.assert(MODES.dorian[2] === 3 && MODES.dorian[5] === 9, 'dorian'); console.assert(MODES.lydian[3] === 6, 'lydian'); console.assert(MODES.mixolydian[6] === 10, 'mixolydian');
+console.assert(MODES.harmonic[5] === 8 && MODES.harmonic[6] === 11, 'harmonic minor'); console.assert(MODES.phrygdom[1] === 1 && MODES.phrygdom[2] === 4, 'phrygian dominant');
+console.assert(ARENAS.every(A => SONGS[A.scene]), 'every world has a song');
 const Music = (() => {
   const VOL = .5;
   let on = store.get('course.music', false), playing = null, ctx = null, master = null, echo = null, noise = null, pulse = {}, timer = 0, nextT = 0, step = 0, duckUntil = 0;
   const inLesson = () => { const c = state('course', {open: -1}); return (c.open >= 0 && c.open < LESSONS.length) || (c.challenge >= 0 && c.challenge < MODULES.length); };
-  const want = () => inLesson() ? 'battle' : resolveTheme() === 'moon' ? 'night' : 'day';
+  const want = () => { const c = state('course', {open: -1});
+    if (c.challenge >= 0 && c.challenge < MODULES.length) return ARENAS[Math.min(ARENAS.length - 1, c.challenge)].scene;
+    if (c.open >= 0 && c.open < LESSONS.length) { const L = LESSONS[c.open]; return L.exam ? 'keep' : ARENAS[Math.min(ARENAS.length - 1, L.mod)].scene; }
+    return resolveTheme() === 'moon' ? 'night' : 'day'; };
   function wave(duty) {   // an NES-style pulse wave of the given duty cycle, built from its Fourier series
     if (pulse[duty]) return pulse[duty];
     const n = 40, re = new Float32Array(n), im = new Float32Array(n);
@@ -3413,49 +3490,54 @@ const Music = (() => {
     g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
     s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
   }
-  function kick(t) {   // the NES had no kick drum; a triangle diving in pitch is how composers faked one
+  function kick(t, lvl = 1) {   // the NES had no kick drum; a triangle diving in pitch is how composers faked one
     const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle';
     o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + .09);
-    g.gain.setValueAtTime(.34, t); g.gain.exponentialRampToValueAtTime(.001, t + .12);
+    g.gain.setValueAtTime(.34 * lvl, t); g.gain.exponentialRampToValueAtTime(.001, t + .12);
     o.connect(g); g.connect(master); o.start(t); o.stop(t + .14);
   }
   // schedule one eighth-note slot of a song; returns that slot's length
   function play(S, i, t) {
     const beat = 60 / S.bpm, eighth = k => beat * (k % 2 ? 1 - S.swing : S.swing);
-    const b = (i >> 3) % 16, s = i & 7, bar = S.tune[b], tok = bar[s], M = S.mode, r = S.chords[b] - 1;
+    const n = S.slots, b = Math.floor(i / n) % S.tune.length, s = i % n, bar = S.tune[b], tok = bar[s], M = S.M, r = S.chords[b] - 1;
     const pc = d => M[d % 7] + 12 * Math.floor(d / 7);   // semitones above the tonic for a 0-based degree
-    const tri = [r, r + 2, r + 4];
+    const tri = [r, r + 2, r + 4], root = pc(r) % 12, fifth = pc(r + 4) % 12 + (pc(r + 4) % 12 < root ? 12 : 0);
+    const L = S.lead, H = S.harm, B = S.bass, dg = S.drumGain || 1;
     if (/^\d/.test(tok)) {   // the lead: hold through any "-" that follows
-      let dur = eighth(s), k = s + 1; while (k < 8 && bar[k] === '-') dur += eighth(k++);
-      const m = S.lead + pc(parseInt(tok) - 1) + (tok.endsWith('+') ? 12 : 0);
-      if (S.style === 'bounce') tone(m, t, dur * .94, {duty: .25, gain: .13});
-      else tone(m, t, dur * .97, {duty: .5, gain: .085, send: .55, vib: dur > beat ? .006 : 0});
+      let dur = eighth(s), k = s + 1; while (k < n && bar[k] === '-') dur += eighth(k++);
+      const m = L.base + pc(parseInt(tok) - 1) + (tok.endsWith('+') ? 12 : tok.endsWith('_') ? -12 : 0);
+      tone(m, t, dur * (L.stac || .95), {duty: L.duty, gain: L.gain, send: L.echo || 0, vib: L.vib && dur > beat ? .006 : 0});
     }
-    if (S.style === 'bounce') {
-      if (s % 2) tri.slice(1).forEach(d => { const x = pc(d) % 12; tone(S.harm + x + (x < 5 ? 12 : 0), t, .07, {duty: .5, gain: .035}); });   // off-beat stabs: the chord's 3rd and 5th
-      if (s % 2 === 0) { const root = pc(r) % 12, fifth = pc(r + 4) % 12 + (pc(r + 4) % 12 < root ? 12 : 0);
-        tone(S.bass + [root, fifth, root + 12, fifth][s / 2], t, beat * .42, {type: 'triangle', gain: .3}); }
-      if (s === 2 || s === 6) hiss(t, .09, 1800, .09); else if (s % 2) hiss(t, .025, 7000, .025);
-    } else if (S.style === 'battle') {
-      if (s === 3 || s === 7) [r, r + 4].forEach(d => tone(S.harm + 12 + pc(d) % 12, t, .09, {duty: .5, gain: .04}));   // syncopated root–fifth stabs
-      tone(S.bass + pc(r) % 12 + (s % 2 ? 12 : 0), t, eighth(s) * .8, {type: 'triangle', gain: .27});                  // the octave pump
-      if (s === 0 || s === 4) kick(t);
-      if (s === 2 || s === 6) hiss(t, .1, 1600, .1); else hiss(t, .02, 7500, .02);
-    } else {
-      // a starry arpeggio up and down the chord (root, 3rd, 5th, octave root, 5th, 3rd...), quietly echoed
-      const up = [0, 1, 2, 3, 2, 1, 0, 1][s], x = up === 3 ? pc(r) % 12 + 12 : pc(tri[up]) % 12 + (pc(tri[up]) % 12 < pc(r) % 12 ? 12 : 0);
-      tone(S.harm + 12 + x, t, eighth(s) * .8, {duty: .125, gain: .028, send: .4});
-      if (s === 0) tone(S.bass + pc(r) % 12, t, beat * 1.85, {type: 'triangle', gain: .26});   // long bass: root, then the fifth
-      if (s === 4) { const f = pc(r + 4) % 12; tone(S.bass + f + (f < pc(r) % 12 ? 12 : 0), t, beat * 1.85, {type: 'triangle', gain: .22}); }
-      if (s % 2) hiss(t, .03, 9000, .012);
+    if (H.kind === 'stab' && H.slots.includes(s)) {   // chord stabs: the 3rd and 5th, the whole triad, or root and 5th
+      const ds = H.full ? tri : H.fifth ? [r, r + 4] : tri.slice(1);
+      ds.forEach(d => { const x = pc(d) % 12; tone(H.base + x + (x < 5 && !H.fifth ? 12 : 0), t, .08, {duty: H.duty || .5, gain: H.gain || .035}); });
+    } else if (H.kind === 'arp') {   // a climbing and falling arpeggio, one chord tone per eighth
+      const shape = n === 6 ? [0, 1, 2, 3, 2, 1] : [0, 1, 2, 3, 2, 1, 0, 1], up = shape[s];
+      const x = up === 3 ? root + 12 : pc(tri[up]) % 12 + (pc(tri[up]) % 12 < root ? 12 : 0);
+      tone(H.base + x, t, eighth(s) * .8, {duty: H.duty, gain: H.gain, send: H.echo || 0});
+    } else if (H.kind === 'drone' && s === 0) {   // an open fifth held through the bar
+      const barLen = Array.from({length: n}, (_, k) => eighth(k)).reduce((a, x) => a + x, 0);
+      [0, 7].forEach(x => tone(H.base + x, t, barLen * .98, {duty: .5, gain: H.gain}));   // the drone stays on the tonic, under every chord
     }
+    const bt = (m, d) => tone(m, t, d, {type: 'triangle', gain: B.gain || .28});
+    if (B.kind === 'bounce' && s % 2 === 0 && n === 8) bt(B.base + [root, fifth, root + 12, fifth][s / 2], beat * .42);
+    else if (B.kind === 'pump') bt(B.base + root + (s % 2 ? 12 : 0), eighth(s) * .8);
+    else if (B.kind === 'oompah' && (s === 0 || s === 4)) bt(B.base + (s ? fifth : root), beat * .8);
+    else if (B.kind === 'long' && (s === 0 || s === (n === 8 ? 4 : 3))) bt(B.base + (s ? fifth : root), beat * (n === 8 ? 1.85 : 1.4));
+    else if (B.kind === 'waltz' && s === 0) bt(B.base + root, beat * 1.6);
+    else if (B.kind === 'pulse' && B.hits.includes(s)) bt(B.base + (s === 4 ? 7 : 0), eighth(s) * .9);   // a pedal on the tonic and its 5th
+    const dr = S.drums[s];
+    if (dr === 'k') kick(t, .7 * dg);
+    else if (dr === 's') hiss(t, .09, 1700, .09 * dg);
+    else if (dr === 'h') hiss(t, .025, 7500, .025 * dg);
+    else if (dr === 'H') hiss(t, .12, 6500, .03 * dg);
     return eighth(s);
   }
   function tick() {
     if (!ctx || !playing) return;
     const now = ctx.currentTime;
     if (duckUntil && now > duckUntil) { master.gain.setTargetAtTime(VOL * .22, now, .3); duckUntil = 0; }
-    while (nextT < now + .15) { nextT += play(SONGS[playing], step, nextT); step = (step + 1) % 128; }
+    while (nextT < now + .15) { nextT += play(SONGS[playing], step, nextT); step = (step + 1) % SONGS[playing].len; }
   }
   function start(id) {
     ctx = _audio0();
@@ -3515,7 +3597,18 @@ const Music = (() => {
   function duck() { if (!playing || !ctx) return; master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(VOL * .04, ctx.currentTime, .03); duckUntil = ctx.currentTime + 2.6; }
   document.addEventListener('visibilitychange', sync);
   document.addEventListener('pointerdown', () => { if (playing && ctx && ctx.state !== 'running') ctx.resume(); }, {passive: true});   // iPadOS starts audio only from a touch
-  return {sync, duck, fx, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
+  // render a song offline into a buffer (for checking levels and making preview files); the live state is put back after
+  function render(id, secs) {
+    const live = {ctx, master, echo, noise, pulse}, S = SONGS[id];
+    ctx = new OfflineAudioContext(1, Math.round(44100 * secs), 44100); pulse = {};
+    master = ctx.createGain(); master.gain.value = VOL * .22 * 2.5; master.connect(ctx.destination);
+    echo = ctx.createDelay(1); echo.delayTime.value = 60 / S.bpm * .75; const fb = ctx.createGain(), lp = ctx.createBiquadFilter();
+    fb.gain.value = .38; lp.type = 'lowpass'; lp.frequency.value = 2400; echo.connect(lp); lp.connect(fb); fb.connect(echo); lp.connect(master);
+    noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const y = noise.getChannelData(0); for (let i = 0; i < y.length; i++) y[i] = Math.random() * 2 - 1;
+    let t = .05, i = 0; while (t < secs - .6) { t += play(S, i, t); i++; }
+    const out = ctx.startRendering(); ({ctx, master, echo, noise, pulse} = live); return out;
+  }
+  return {sync, duck, fx, render, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
 })();
 // progress lives in this device's localStorage (gm.* keys); ask the browser to keep it rather than treat it as clearable cache
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
