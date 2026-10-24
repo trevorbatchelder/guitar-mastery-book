@@ -1603,7 +1603,7 @@ PAGES.push({id: 'writing', no: 'V', name: 'Structure', blurb: 'from one chord to
   const wm = state('writingmode', {mode: 'songs'});
   const chordsMode = wm.mode === 'chords';
   v.append(header('V', 'Structure',
-    chordsMode ? `build any ${tm('chord')} · find its family in a ${tm('key')} · move to the next one` : `${tm('progression', 'progressions')} to borrow · song shapes · a melody to sing over them`,
+    chordsMode ? `build any ${tm('chord', 'chord')} · find its family in a ${tm('key', 'key')} · move to the next one` : `${tm('progression', 'progressions')} to borrow · song shapes · a melody to sing over them`,
     chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
   const bar = h('div', {class: 'toolbar'}, seg('Working on', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
   v.append(bar);
