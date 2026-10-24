@@ -460,6 +460,49 @@ table.t td.l{font-weight:800}
 .found-bar b{font-size:17px;color:var(--navy)} .found-bar span{color:var(--mute);font-size:13px;font-weight:600}
 .found-meter{grid-column:1/-1;height:8px;border-radius:5px;background:var(--rule);overflow:hidden} .found-meter i{display:block;height:100%;background:var(--navy)}
 .gloss-row.unfound{opacity:.55;border-style:dashed} .gloss-row.unfound b{color:var(--mute)}
+/* the world map: lands on a sea */
+.scene.world{position:relative;width:100%;border-radius:14px;overflow:hidden;overflow:clip}
+.wmap{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:0 12%;padding:26px 6% 40px}
+.wmap.one{grid-template-columns:1fr;padding:14px 18px 26px}
+.wcol{display:flex;flex-direction:column;gap:110px} .wcol-l{padding-top:230px} .wmap.one .wcol{gap:60px}
+.isle{position:relative;padding:16px 18px 84px;display:flex;flex-direction:column;gap:8px}   /* the bottom strip is for the land's props */
+.isle-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#fff;border-radius:10px;padding:6px 10px;box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.isle-hd small{display:block;font-size:9.5px;font-weight:800;letter-spacing:.14em;opacity:.85} .isle-hd b{font-size:15px;font-weight:900}
+.isle-r{display:flex;align-items:center;gap:8px;font-weight:900;font-size:13px} .isle-r .testout{min-height:28px;padding:2px 10px;font-size:12px}
+.isle-row{display:flex;justify-content:space-around;align-items:flex-start;gap:4px} .isle-row.rev{flex-direction:row-reverse}
+.wcell{position:relative;flex:1;max-width:33%;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:6px}
+.wnode{width:42px;height:42px;border-radius:50%;padding:0;font-size:17px;font-weight:900;display:grid;place-items:center;border:3px solid rgba(0,0,0,.2);box-shadow:0 3px 0 rgba(0,0,0,.2);color:#fff;cursor:pointer}
+.wnode.done{background:var(--sage)} .wnode.lock{background:var(--rule);color:var(--mute);opacity:.6;cursor:default}
+.wlabel{font-size:11px;font-weight:800;line-height:1.15;text-align:center;background:var(--panel);color:var(--ink);padding:2px 6px;border-radius:6px;box-shadow:0 1px 0 rgba(0,0,0,.15);max-width:118px}
+.wlabel.lock{color:var(--mute)}
+.wwiz{position:absolute;top:-24px;left:50%;transform:translateX(-50%);z-index:3;pointer-events:none;line-height:0}
+/* the game bar: the Learn page's footer in Learn mode */
+.pbar.gamebar{gap:10px}
+.gb-stat{display:flex;flex-direction:column;align-items:center;line-height:1.05;position:relative;min-width:52px}
+.gb-stat b{font-size:18px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums} .gb-stat small{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.gb-stat .pts-gain{position:absolute;top:-16px;right:-6px;font-size:13px;font-weight:900;color:var(--sage)} .gb-stat .pts-gain.neg{color:var(--rust)}
+.gb-prog{display:flex;flex-direction:column;gap:4px;min-width:150px;max-width:300px}
+.gb-prog-t{display:flex;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .gb-prog-t b{font-size:15px;font-weight:900} .gb-prog-t small{font-size:12px;color:var(--mute);font-weight:700}
+.gb-meter{height:8px;border-radius:5px;background:var(--rule);overflow:hidden} .gb-meter i{display:block;height:100%;background:var(--sage)}
+.gb-hearts{display:flex;gap:4px}
+.gb-btn{display:flex;flex-direction:column;align-items:center;gap:1px;border:1.5px solid var(--ink);background:transparent;border-radius:12px;padding:4px 9px;font-size:18px;line-height:1.1;min-height:44px;justify-content:center}
+.gb-btn small{font-size:10px;font-weight:800;letter-spacing:.04em;white-space:nowrap} .gb-btn:disabled{opacity:.35;cursor:default}
+.gb-back{font-size:14px;font-weight:900;flex-direction:row}
+.music-chip.gb-music{margin:0;width:44px;height:44px;padding:7px;border-width:2px}
+@media (max-width:820px){ .gb-btn small,.gb-stat small,.gb-prog-t small{display:none} .gb-prog{min-width:90px} .pbar.gamebar{gap:6px} }
+/* Book mode / Learn mode on the cover */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode-btn{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;border:1.5px solid var(--ink);background:transparent;border-radius:14px;padding:10px 12px}
+.mode-btn .mode-ic{grid-row:1/3;font-size:26px} .mode-btn b{font-size:15.5px;font-weight:900} .mode-btn small{font-size:12px;color:var(--mute);font-weight:700}
+.mode-btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)} .mode-btn[aria-pressed="true"] small{color:color-mix(in srgb,var(--bg) 75%,transparent)}
+/* the reference supplement */
+.ref-card{max-width:880px;max-height:86vh;overflow:auto}
+.ref-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 30px 12px 0} .ref-tabs .chip{min-height:32px;padding:4px 10px;font-size:13px;opacity:.6} .ref-tabs .chip.rel{opacity:1;border-color:var(--gold)}
+.ref-tabs .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);opacity:1}
+table.ref{border-collapse:collapse;width:100%;margin:6px 0 12px;font-size:14px} table.ref th,table.ref td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+table.ref tr:first-child th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)} table.ref th{font-weight:900;white-space:nowrap}
+table.ref.grid td,table.ref.grid th{text-align:center;padding:4px 5px;font-size:13px} table.ref.grid tr>th:first-child{text-align:left}
+.ref-note{font-size:14px;line-height:1.5;margin:4px 0 8px}
 .music-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 <style>
@@ -974,6 +1017,7 @@ function safeDraw(p, v) { try { p.draw(v); placePills(v); } catch (err) { consol
     h('p', {class: 'lede'}, 'Swipe or use the arrows to move on — the rest of the book is fine.'))); } }
 function page(i, back = false) {
   Seq.stop(); if (tunerStop) tunerStop(); clearInterval(timer60);
+  if (bookMode() && (PAGES[(i + PAGES.length) % PAGES.length] || {}).id === 'learn') i += back ? -1 : 1;   // Book mode has no Learn chapter
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
@@ -1018,7 +1062,8 @@ const M = Object.assign({bpm: 80, beats: 4, on: false}, store.get('metro', {}));
 let sessionStart = null, sessionAcc = store.get('session:' + today(), 0), clockTimer = null, timer60 = null;
 function setBpm(v) { M.bpm = Math.max(30, Math.min(240, v)); store.set('metro', {bpm: M.bpm, beats: M.beats}); Seq.stop(); drawBar(); }
 function drawBar() {
-  const bar = $('#pbar'); bar.innerHTML = '';
+  const bar = $('#pbar'); bar.innerHTML = ''; bar.classList.toggle('gamebar', (PAGES[at] || {}).id === 'learn' && !bookMode());
+  if (bar.classList.contains('gamebar')) return drawGameBar(bar);   // in Learn mode the Learn page's footer is the game's HUD
   const fband = $('#footband'); if (fband) fband.innerHTML = '';   // the footer band is retired everywhere
   const bpm = h('div', {class: 'bpm', 'aria-live': 'polite'}, String(M.bpm));
   const dots = h('div', {class: 'beats', 'aria-hidden': 'true'}); for (let i = 0; i < M.beats; i++) dots.append(h('i', {class: i === 0 ? 'one' : ''}));
@@ -1250,7 +1295,7 @@ function openConcept(id) {
     c.more ? h('p', {class: 'cpop-more', html: glossify(c.more, id)}) : '',
     (c.see && c.see.length) ? h('div', {class: 'cpop-see'}, h('span', {class: 'muted', style: 'font-size:12px;letter-spacing:.08em;text-transform:uppercase'}, 'See also'),
       h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '',
-    g ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
+    g && !(bookMode() && (g[0] !== 'page' || g[1] === 'learn')) ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
   const wrap = h('div', {id: 'cpop', on: {click: closeConcept}}, card);
   wrap.addEventListener('keydown', e => { if (e.key !== 'Tab') return;   // keep Tab inside the dialog
     const f = [...wrap.querySelectorAll('button')].filter(el => !el.disabled && el.offsetParent !== null); if (!f.length) return;
@@ -1326,7 +1371,7 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const st = state('cover', {ref: 'fretboard', key: 0, note: -1, tuning: 0, tnote: -1});
   const sv = () => keep('cover', st);
   v.append(h('div', {html: band()}));
-  const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
+  const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => bookMode() && p.id === 'learn' ? '' : h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
   // the guitar mark is the day/night switch — tap it to flip the theme
   const markBtn = h('button', {title: resolveTheme() === 'moon' ? 'Tap for day' : 'Tap for night', 'aria-label': 'Switch day or night', style: 'all:unset;cursor:pointer;width:62px;flex:none;display:block',
     html: MARK, on: {click: () => setTheme(resolveTheme() === 'moon' ? 'sun' : 'moon')}});
@@ -1397,7 +1442,11 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   cont.classList.add('cont-go');
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
-      h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, cont,
+      h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'},
+        h('div', {class: 'modes', role: 'group', 'aria-label': 'How to use the book'},
+          [['learn', '🎮', 'Learn mode', 'the game: lessons unlock the book'], ['book', '📖', 'Book mode', 'every page open · no game']].map(([k, ic, t, d]) =>
+            h('button', {class: 'mode-btn', 'aria-pressed': String(store.get('mode', 'learn') === k), on: {click: () => { store.set('mode', k); redraw(); }}}, h('span', {class: 'mode-ic'}, ic), h('b', {}, t), h('small', {}, d)))),
+        bookMode() ? '' : cont,
         sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc)),
       h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, tools, refBody)));
 }});
@@ -1832,7 +1881,7 @@ function readingView(v, bar, ch) {
     // the course rule, same as every other chapter: 8 right out of a rolling 10 clears this chapter on the road
     let rRight = 0, rTotal = 0;
     const roundTick = ok => { if (clearedCh()) return; rRight += ok ? 1 : 0; rTotal++;
-      if (rTotal >= QN) { if (rRight >= PASS) { courseClear(KEY); sfx(true); } rRight = 0; rTotal = 0; } };
+      if (rTotal >= QN) { if (rRight >= PASS) { if (!courseGot()[KEY]) addPoints(PTS_READING); courseClear(KEY); sfx(true); drawBar(); } rRight = 0; rTotal = 0; } };
     const score = h('div', {class: 'muted', 'aria-live': 'polite', style: 'font-weight:800;margin:2px 0 10px'});
     const upd = () => score.textContent = `Streak ${streak} · learned ${mastered()} of ${PITCHES.length} notes`
       + (clearedCh() ? ' · chapter cleared ✓' : rTotal ? ` · this round ${rRight} of ${rTotal}` : ''); upd();
@@ -2784,10 +2833,63 @@ function buildQuiz(primary, review, n) {
     const pool = useReview ? review : primary, tp = pool[rnd(pool.length)], facs = QBANK[tp];
     if (!facs || !facs.length) continue;
     const Q = facs[rnd(facs.length)]();
-    if (!Q || seen.has(Q.q)) continue; seen.add(Q.q); if (useReview) Q.review = true; out.push(Q);
+    if (!Q || seen.has(Q.q)) continue; seen.add(Q.q); Q.topic = tp; if (useReview) Q.review = true; out.push(Q);
   }
   return shuffle(out);
 }
+
+/* ---------------- the overworld's regions: each module's stretch of road takes on its world's ground and props,
+   so the map shows the journey the battles take — meadow, dunes, giant garden, shoals, clouds, snow, copperworks,
+   the grove, the keep. Night dims the ground and keeps the lights (fireflies, lava, windows) bright. */
+const ZONE = {
+  meadow: {bg: '#7cc04a', a: '#6aae3c', b: '#94d460', c: '#3f8a2f'},
+  dunes: {bg: '#f0c070', a: '#e0a850', b: '#f8d890', c: '#c88a3a'},
+  giant: {bg: '#88cc58', a: '#70b848', b: '#a8e080', c: '#4f9b3f'},
+  shoals: {bg: '#4a9ee0', a: '#3a8ed6', b: '#d8f0ff', c: '#5aaee8'},
+  sky: {bg: '#a8d4f8', a: '#c8e4fc', b: '#ffffff', c: '#8ac0f0'},
+  frost: {bg: '#eef4fc', a: '#c8daf0', b: '#ffffff', c: '#a8c0e0'},
+  pipes: {bg: '#9a5a3a', a: '#b8704a', b: '#7a442a', c: '#6a3a22'},
+  grove: {bg: '#2f5a34', a: '#264a2a', b: '#3f6a44', c: '#1e3a24'},
+  keep: {bg: '#2a1a22', a: '#3a242c', b: '#20141a', c: '#ff6a20'},
+};
+function paintZones(ctx, W, H, bands, night) {   // bands: [{scene, y0, y1}] in art pixels, top to bottom
+  const hash = (x, y) => { let n = (x * 73856093) ^ (y * 19349663); return (n ^ (n >>> 13)) >>> 0; };
+  const dim = c => night ? nightOf(c, .5) : c;
+  const P = bands.map(b => Object.fromEntries(Object.entries(ZONE[b.scene]).map(([k, c]) => [k, b.scene === 'keep' && k === 'c' ? c : dim(c)])));
+  for (let y = 0; y < H; y++) {
+    let z = bands.findIndex(b => y < b.y1); if (z < 0) z = bands.length - 1;
+    for (let x = 0; x < W; x++) {
+      let zz = z; const into = y - bands[z].y0;   // a dithered seam where two worlds meet
+      if (z > 0 && into < 6 && ((x + y) % 2 === 0 || into < 2) && hash(x, y) % 6 > into) zz = z - 1;
+      const p = P[zz], sc = bands[zz].scene, n = hash(x, y);
+      let c = p.bg;
+      if (sc === 'pipes') { const row = Math.floor(y / 4), off = (row % 2) * 6; c = (y % 4 === 3 || (x + off) % 12 === 11) ? p.b : (y % 4 === 0 ? p.a : p.bg); }   // brick
+      else if (sc === 'shoals') { if ((y % 5 === 0) && ((x + y * 3) % 11 < 4)) c = p.b; else if (n % 7 === 0) c = p.a; }                                        // wave crests
+      else if (n % 13 === 0) c = p.a; else if (n % 23 === 1) c = p.b;
+      if (sc === 'keep' && n % 211 === 5) { ctx.fillStyle = p.c; ctx.fillRect(x, y, 4, 1); continue; }                                                        // lava cracks
+      ctx.fillStyle = c; ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+// props for each world, drawn in art pixels standing on (x, y)
+const PROPS = {
+  meadow: (g, x, y, k, d) => k % 2 ? drawBush(g, x, y) : (DISC(g, x + 4, y + 6, 1, d('#ff6a6a')), DISC(g, x + 9, y + 4, 1, d('#f4d03f')), DISC(g, x + 13, y + 7, 1, d('#ffffff'))),
+  dunes: (g, x, y, k, d) => { if (k % 2) { for (let s = 0; s < 8; s++) { g.fillStyle = d(s % 2 ? '#d89848' : '#e8b060'); g.fillRect(x + s, y + 10 - s, 16 - s * 2, 1); } }
+    else { g.fillStyle = d('#3f8a3a'); g.fillRect(x + 6, y, 2, 10); g.fillRect(x + 3, y + 3, 2, 1); g.fillRect(x + 3, y + 1, 1, 3); g.fillRect(x + 9, y + 4, 2, 1); g.fillRect(x + 10, y + 2, 1, 3); } },
+  giant: (g, x, y, k, d) => { if (k % 2) { g.fillStyle = d('#f4e8d0'); g.fillRect(x + 6, y + 4, 4, 7); DISC(g, x + 8, y + 4, 6, d('#c8302a')); g.fillStyle = d('#f4e8d0'); g.fillRect(x + 2, y + 4, 13, 3); [[5, 1], [10, 0], [8, 3]].forEach(([a, b]) => DISC(g, x + a, y + b, 1, '#ffffff')); }
+    else { g.fillStyle = d('#3f9a3a'); g.fillRect(x + 7, y + 2, 2, 10); [[-3, 0], [3, 0], [0, -3], [0, 3]].forEach(([a, b]) => DISC(g, x + 8 + a, y + b, 2, d(['#ff6aa0', '#ffd040', '#9a6aff'][k % 3]))); DISC(g, x + 8, y, 1, d('#c86a20')); } },
+  shoals: (g, x, y, k, d) => { DISC(g, x + 8, y + 9, 6, d('#e8c878')); g.fillStyle = d('#8a5a2a'); g.fillRect(x + 8, y, 1, 9); g.fillStyle = d('#2f8a3a'); g.fillRect(x + 4, y, 4, 1); g.fillRect(x + 9, y, 4, 1); g.fillRect(x + 3, y + 1, 1, 2); g.fillRect(x + 13, y + 1, 1, 2); },
+  sky: (g, x, y, k, d) => { if (k % 2) { ['#e0403a', '#f4a020', '#f4d03f', '#5fbf4a', '#3a86c0', '#8a5ad0'].forEach((c, i) => { const r = 8 - i; for (let a = 0; a <= 16; a++) { const t = Math.PI * a / 16; g.fillStyle = d(c); g.fillRect(Math.round(x + 8 - Math.cos(t) * r), Math.round(y + 11 - Math.sin(t) * r), 1, 1); } }); }   // a little rainbow
+    else { g.fillStyle = d('#4a5a78'); [[2, 4], [9, 1], [12, 7]].forEach(([a, b]) => { g.fillRect(x + a, y + b, 1, 1); g.fillRect(x + a + 1, y + b + 1, 1, 1); g.fillRect(x + a + 2, y + b, 1, 1); g.fillRect(x + a + 3, y + b - 1, 1, 1); g.fillRect(x + a - 1, y + b - 1, 1, 1); }); } },   // birds on the wing
+  frost: (g, x, y, k, d) => { if (k % 2) { g.fillStyle = d('#7fd0e8'); g.fillRect(x + 4, y + 4, 7, 7); g.fillStyle = d('#e0faff'); g.fillRect(x + 4, y + 4, 7, 1); g.fillRect(x + 4, y + 4, 1, 7); }
+    else { for (let t = 0; t < 3; t++) for (let r = 0; r < 4; r++) { g.fillStyle = d(r === 0 ? '#ffffff' : '#2f6a5a'); g.fillRect(x + 8 - r - t, y + t * 3 + r, 1 + 2 * (r + t), 1); } g.fillStyle = d('#5a3a24'); g.fillRect(x + 7, y + 12, 2, 2); } },
+  pipes: (g, x, y, k, d) => { if (k % 2) { g.fillStyle = d('#c8742a'); g.fillRect(x + 5, y, 6, 12); g.fillStyle = d('#f0a860'); g.fillRect(x + 6, y, 1, 12); g.fillStyle = d('#e08a3a'); g.fillRect(x + 4, y, 8, 3); }
+    else { for (let q = 0; q < 8; q++) { const a = q * Math.PI / 4; g.fillStyle = d('#6a7078'); g.fillRect(Math.round(x + 8 + Math.cos(a) * 6) - 1, Math.round(y + 6 + Math.sin(a) * 6) - 1, 3, 3); } DISC(g, x + 8, y + 6, 5, d('#8a9098')); DISC(g, x + 8, y + 6, 2, d('#4a4e54')); } },
+  grove: (g, x, y, k, d) => { g.fillStyle = d('#3a2418'); g.fillRect(x + 7, y + 6, 3, 8); DISC(g, x + 8, y + 4, 7, d('#14241e')); DISC(g, x + 8, y + 4, 6, d('#1e4a34')); DISC(g, x + 6, y + 2, 3, d('#2f6a48'));
+    g.fillStyle = '#fff6a0'; g.fillRect(x + 1 + k % 5, y - 2, 1, 1); g.fillRect(x + 14 - k % 4, y + 9, 1, 1); },
+  keep: (g, x, y, k, d) => { if (k % 2) { DISC(g, x + 8, y + 8, 5, '#c83a1a'); DISC(g, x + 8, y + 8, 3, '#ff8a30'); g.fillStyle = '#ffd060'; g.fillRect(x + 7, y + 7, 2, 1); }
+    else { g.fillStyle = '#120610'; g.fillRect(x + 3, y + 2, 10, 10); for (let q = 0; q < 10; q += 3) g.fillRect(x + 3 + q, y, 2, 2); g.fillStyle = '#ffb040'; g.fillRect(x + 6, y + 5, 1, 2); g.fillRect(x + 9, y + 5, 1, 2); } },
+};
 
 /* ================================================================ UNLOCKS: the game opens the book
    Soft locks: a reference item tied to a lesson stays sealed until that lesson is cleared. A sealed item is still
@@ -2808,7 +2910,7 @@ const UNLOCKS = {
   'prog:Turnarounds & Endings': 'cadences', 'prog:More Colours': 'colours',
 };
 const PEEK = new Set();   // peeks last for this session only
-const openBook = () => store.get('openbook', false);
+const openBook = () => bookMode();   // Book mode opens everything; Learn mode unlocks as you learn
 const lessonFor = key => LESSONS.find(l => chapKey(l) === UNLOCKS[key]);
 const isOpen = key => openBook() || !UNLOCKS[key] || !!courseGot()[UNLOCKS[key]];
 const lockMark = key => isOpen(key) ? '' : '🔒 ';
@@ -2826,7 +2928,7 @@ function gate(v, key, label) {
     h('div', {class: 'seal-btns'},
       h('button', {class: 'btn acc', on: {click: () => goLesson(L)}}, '⚔ Take the lesson'),
       h('button', {class: 'btn', on: {click: () => { PEEK.add(key); redraw(); }}}, '👁 Peek anyway')),
-    h('button', {class: 'seal-open', on: {click: () => { store.set('openbook', true); redraw(); }}}, '📖 Or open the whole book — unlock everything')));
+    h('button', {class: 'seal-open', on: {click: () => { store.set('mode', 'book'); redraw(); }}}, '📖 Or switch to Book mode — every page open, no game')));
   return true;
 }
 // the toggle that lives on the Learn page
@@ -2893,6 +2995,71 @@ function backupPanel() {
     area, file, confirmRow, msg);
   const wrap = h('div', {id: 'cpop', on: {click: close}}, card);
   document.body.append(wrap);
+}
+
+/* ================================================================ THE REFERENCE SUPPLEMENT: an open-book legend for every battle
+   Like the testing supplement handed out with a licensing exam, every question can be worked out from a chart instead of
+   from memory. The 📖 item in the battle bar opens the chart(s) for the question's topic — all drawn from the same
+   asserted data the pages use (D.scales, D.cof, D.intervals, D.harm.forms, D.capo, D.tunings…). It is free. */
+const REF_T = (head, rows, cls = '') => h('table', {class: 'ref ' + cls}, h('tr', {}, head.map(x => h('th', {}, x))), rows.map(r => h('tr', {}, r.map((x, i) => h(i ? 'td' : 'th', {html: String(x)})))));
+const REFS = {
+  scales: () => ['Scale formulas', 'each scale’s degrees, counted from its home note (♭ = a half step lower than in the major scale)',
+    REF_T(['Scale', 'Degrees'], D.scales.map(s => [s.name, s.degrees.join(' · ')])),
+    h('p', {class: 'ref-note', html: 'Major scale steps: <b>W W H W W W H</b> (W = 2 frets, H = 1). Modes = the major scale started on another degree: Dorian 2nd, Phrygian 3rd, Lydian 4th, Mixolydian 5th, Aeolian (natural minor) 6th.'})],
+  keys: () => ['Keys & signatures', 'the circle of fifths in order · sharps add F C G D A E B, flats add B E A D G C F',
+    REF_T(['Major key', 'Signature', 'Which notes', 'Relative minor'], D.cof.map(([k, sig, rel]) => { const m = /^(\d)([♯♭])$/.exec(sig); const which = m ? (m[2] === '♯' ? _SHARP_ORDER : _FLAT_ORDER).slice(0, +m[1]).join(' ') : 'none'; return [k, sig, which, rel]; }))],
+  intervals: () => ['Intervals', 'half steps = frets along one string · inversions add up to 9 (3rd ↔ 6th) and swap major ↔ minor',
+    REF_T(['Half steps', 'Interval', 'Sound'], [[0, 'unison', 'the same note'], ...D.intervals.map(x => [x[0], x[1], x[2] || '']), ...(D.intervals.some(x => x[0] === 12) ? [] : [[12, 'octave', 'the same note higher']])])],
+  neck: () => { const strings = [5, 4, 3, 2, 1, 0], names = ['high e', 'B', 'G', 'D', 'A', 'low E'];
+    return ['The fretboard', 'every note, frets 0–12 · the 12th fret repeats the open string an octave up',
+      REF_T(['String', ...Array.from({length: 13}, (_, f) => f || 'open')], strings.map((s, i) => [names[i], ...Array.from({length: 13}, (_, f) => SH[(OPEN_PC[s] + f) % 12])]), 'grid')]; },
+  inkey: () => ['Chords in every major key', 'the pattern never changes: I ii iii IV V vi vii° = major, minor, minor, major, major, minor, diminished',
+    REF_T(['Key', 'I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'], _KEYS.map(k => [k, ..._PAL.map(t => chordName(k, false, t).name)]), 'grid')],
+  formulas: () => ['Chord formulas', 'degrees of the root’s major scale · half steps above the root',
+    REF_T(['Chord', 'Formula', 'Half steps'], D.harm.forms.map(f => [f.label, f.formula, f.ivs.join(' ')]))],
+  degrees: () => ['Scale-degree names', 'the names every key shares',
+    REF_T(['Degree', 'Name', 'Chord in major'], [[1, 'tonic', 'I'], [2, 'supertonic', 'ii'], [3, 'mediant', 'iii'], [4, 'subdominant', 'IV'], [5, 'dominant', 'V'], [6, 'submediant', 'vi'], [7, 'leading tone (a half step below home)', 'vii°'], ['♭7', 'subtonic (a whole step below home)', '♭VII']])],
+  cadences: () => ['Cadences', 'how a phrase ends',
+    REF_T(['Move', 'Name', 'Feels like'], [['V → I', 'authentic (perfect)', 'a full stop'], ['IV → I', 'plagal', '“Amen”'], ['… → V', 'half', 'a comma or question'], ['V → vi', 'deceptive', 'a surprise']])],
+  notation: () => ['Note values & markings', 'in 4/4 the quarter note gets the beat',
+    REF_T(['Value', 'Beats in 4/4', 'Notes'], [['whole', 4, ''], ['half', 2, ''], ['quarter', 1, ''], ['eighth', '½', 'two to a beat · beamed in pairs'], ['sixteenth', '¼', 'four to a beat'], ['dot', '+ half the note', 'dotted half = 3 · dotted quarter = 1½'], ['tie', 'adds the lengths', 'play once, hold through']]),
+    REF_T(['Marking', 'Means'], [['4/4 · 3/4', '4 or 3 quarter-note beats a bar'], ['6/8', 'two beats of three eighths'], ['p · mp · mf · f', 'soft → loud'], ['BPM', 'beats per minute'], ['staccato dot', 'short, detached']])],
+  capo: () => ['The capo', 'a capo raises every shape one half step per fret',
+    REF_T(['Shape', ...Array.from({length: Math.max(...Object.values(D.capo).map(r => r.length))}, (_, f) => f ? 'capo ' + f : 'open')], Object.entries(D.capo).map(([s, row]) => [s + ' shape', ...row]), 'grid')],
+  tunings: () => ['Tunings', 'low string to high', REF_T(['Tuning', 'Notes', 'Changed from E A D G B E'], [['Standard', 'E A D G B E', '—'], ...D.tunings.map(t => [t.name, t.notes.join(' '), t.notes.map((n, i) => t.changed[i] ? `${['E', 'A', 'D', 'G', 'B', 'E'][i]}→${n}` : null).filter(Boolean).join(', ')])])],
+  rhythm: () => ['Counting & strum symbols', 'the hand never stops: down on the numbers, up on the &s',
+    REF_T(['Count', '1', '&', '2', '&', '3', '&', '4', '&'], [['Hand', '↓', '↑', '↓', '↑', '↓', '↑', '↓', '↑']], 'grid'),
+    REF_T(['Symbol', 'Means'], [['D ↓', 'downstroke'], ['U ↑', 'upstroke'], ['· or –', 'a gap — swing past the strings'], ['X (red)', 'accented stroke'], ['✕ / x', 'chuck: strings muted by the fretting hand'], ['M', 'palm mute'], ['B', 'bass note'], ['push', 'chord change one & early'], ['shuffle', 'long-short pairs from a triplet']])],
+  legend: () => ['Diagram & tab legend', 'what the symbols in this book mean',
+    REF_T(['Symbol', 'Means'], [['chord box', 'strings run up and down, frets across'], ['X above a string', 'don’t play it'], ['O above a string', 'play it open'], ['1 2 3 4 in a dot', 'index · middle · ring · pinky'], ['thick bar', 'a barre — one finger flat across'], ['gold ring (scales)', 'the home note'], ['tab lines', 'the six strings, high e on top'], ['tab number', 'the fret to press · 0 = open'], ['stacked numbers', 'played together'], ['x in tab', 'a muted hit'], ['h · p', 'hammer-on · pull-off'], ['/ · \\', 'slide up · slide down'], ['b · ½ · full', 'bend a half step / a whole step'], ['~', 'vibrato'], ['PM', 'palm mute'], ['p i m a', 'thumb · index · middle · ring']])],
+  anatomy: () => ['Parts of the guitar', '', REF_T(['Part', 'What it does'], ['headstock', 'nut', 'fretboard', 'position-markers', 'guitar-body', 'guitar-bridge', 'soundhole', 'pickup', 'string-numbers'].map(id => CMAP[id]).filter(Boolean).map(c => [c.term, c.short]))],
+  form: () => ['Song form', 'sections, letters and the 12-bar blues',
+    REF_T(['Section', 'Job'], [['verse', 'tells the story · new words, same music'], ['pre-chorus', 'builds into the chorus'], ['chorus', 'the hook · same words each time'], ['bridge', 'contrast, usually once, before the last chorus'], ['intro · outro', 'opens · closes'], ['solo', 'an instrument leads']]),
+    REF_T(['Form', 'Shape'], D.gallery.map(g => [g.name, g.secs.map(x => x[0]).join(' → ')])),
+    h('p', {class: 'ref-note', html: '12-bar blues: <b>I I I I · IV IV I I · V IV I V</b> — the last bar turns around to the top.'})],
+};
+const REF_FOR = {anatomy: ['anatomy'], strings: ['neck', 'legend'], frets: ['neck'], diagrams: ['legend'], tabread: ['legend'], capo: ['capo'],
+  halfsteps: ['neck', 'intervals'], accidentals: ['neck'], neck: ['neck'], landmarks: ['neck'], octaves: ['neck', 'intervals'],
+  strumcount: ['rhythm'], strumfeel: ['rhythm'], fingerstyle: ['legend'], travis: ['legend', 'neck'], lead: ['legend'],
+  triads: ['formulas', 'intervals'], colours: ['formulas', 'intervals'], sevenths: ['formulas', 'inkey'], slash: ['formulas', 'intervals'], chordsinkey: ['inkey'], qualities: ['inkey'], progressions: ['inkey'], cadences: ['cadences', 'inkey'],
+  interval: ['intervals'], intervalname: ['intervals'], intervalquality: ['intervals'], cof: ['keys'], keysigs: ['keys'], keys: ['keys'],
+  scalewhat: ['scales'], majmin: ['scales', 'intervals'], minorscales: ['scales'], pentatonic: ['scales'], scaledegrees: ['degrees', 'scales'], modes: ['scales'],
+  powerchords: ['formulas', 'neck', 'tunings'], barre: ['neck'], caged: ['neck', 'legend'], tunings: ['tunings'],
+  songform: ['form'], forms: ['form'], twelvebar: ['form', 'inkey'], notation: ['notation']};
+function showReference(Q) {
+  const ids = REF_FOR[Q && Q.topic] || ['scales', 'keys', 'intervals'];
+  const all = Object.keys(REFS);
+  let cur = ids[0];
+  const body = h('div', {class: 'ref-body'});
+  const tabs = h('div', {class: 'ref-tabs'});
+  const draw = () => { const [t, sub, ...kids] = REFS[cur]();
+    body.replaceChildren(h('h3', {}, '📖 ' + t), sub ? h('p', {class: 'cpop-short', style: 'font-size:14px'}, sub) : '', ...kids);
+    tabs.replaceChildren(...[...ids, ...all.filter(x => !ids.includes(x))].map(k => h('button', {class: 'chip' + (ids.includes(k) ? ' rel' : ''), 'aria-pressed': String(k === cur), on: {click: () => { cur = k; draw(); }}}, REFS[k]()[0]))); };
+  const close = () => wrap.remove();
+  const card = h('div', {class: 'cpop-card ref-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Reference', on: {click: e => e.stopPropagation()}},
+    h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: close}}, '×'), tabs, body);
+  const wrap = h('div', {id: 'cpop', on: {click: close}}, card);
+  draw(); document.body.append(wrap);
 }
 
 /* ================================================================ THE ARENAS: a pixel battleground for each module's lessons
@@ -3041,7 +3208,8 @@ function arena(mod, sage, {short = false} = {}) {
   return el;
 }
 const HEARTS = 2;   // two hits and the battle is lost
-const HINT_COST = 50, PTS_RIGHT = 10, PTS_STREAK = 5, PTS_STREAK_MAX = 10, PTS_WIN = 30, PTS_FLAWLESS = 20, PTS_START = 50;   // a lesson earns about four hints
+// a lesson pays ~350–450: about seven hints, or two heals and a hint; a test-out pays a lot more
+const HINT_COST = 50, HEAL_COST = 150, PTS_RIGHT = 15, PTS_STREAK = 5, PTS_STREAK_MAX = 20, PTS_WIN = 60, PTS_FLAWLESS = 40, PTS_START = 100, PTS_TESTOUT = 150, PTS_BONUS = 25, PTS_READING = 60;
 const points = () => store.get('course.points', PTS_START);
 const addPoints = n => store.set('course.points', Math.max(0, points() + n));
 // small pixel sprites from character bitmaps
@@ -3062,10 +3230,7 @@ function quizView(v, ch, idx) {
   const review = (!ch.exam && !ch.challenge && idx > 0 && LESSONS[idx - 1].topic) ? [LESSONS[idx - 1].topic] : [];
   const back = () => { const s = state('course', {}); s.open = -1; s.challenge = -1; keep('course', s); redraw(); };
   const again = () => { const s = state('course', {}); if (ch.challenge) s.challenge = ch.mod; else s.open = idx; keep('course', s); redraw(); };
-  const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
-    h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name), h('div', {style: 'flex:1'}), musicToggle());
-  v.append(bar);
-  if (ch.reading) { v.append(arena(ch.mod, h('div', {}, mageTile(0, 72)))); readingView(v, bar, ch); return; }
+  if (ch.reading) { GAME = {kind: 'reading', name: ch.name, back}; const bar = h('div', {class: 'toolbar'}); v.append(bar, arena(ch.mod, h('div', {}, mageTile(0, 72)))); readingView(v, bar, ch); return; }
 
   // ---- the battle: you have HEARTS hearts; the critter has one HP per right answer you need. A right answer is your
   // spell landing (−1 HP); a wrong one is the critter's attack landing on you (−1 heart). Clear its HP to win; run out
@@ -3079,10 +3244,7 @@ function quizView(v, ch, idx) {
   const hintRow = h('div', {style: 'text-align:center;min-height:1.6em'});
   const fb = h('div', {'aria-live': 'polite', style: 'min-height:40px;text-align:center'});
   const ar = arena(ch.mod, sage);
-  const ptsEl = h('div', {class: 'pts', title: 'Points — earn them with right answers, spend them on hints'});
-  bar.insertBefore(ptsEl, bar.lastChild);
-  const showPts = (gain = 0) => { ptsEl.replaceChildren(h('b', {}, '◆ ' + points()), gain ? h('span', {class: 'pts-gain'}, (gain > 0 ? '+' : '') + gain) : ''); };
-  showPts();
+  const showPts = (gain = 0) => { GAME_GAIN = gain; drawBar(); };
   wrap.append(ar, counter, qh, opts, hintRow, fb);
 
   const qs = buildQuiz(primary, review, ch.exam ? 16 : 12);
@@ -3093,30 +3255,35 @@ function quizView(v, ch, idx) {
   if (!ch.exam && !ch.challenge && ch.mod > 0) {
     const early = LESSONS.filter(l => l.topic && l.mod < ch.mod && QBANK[l.topic]);
     if (early.length) { const src = early[rnd(early.length)], facs = QBANK[src.topic];
-      for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName}); } } }
+      for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName, topic: src.topic}); } } }
   const foeMax = qs.length - (HEARTS - 1);   // enough right answers to win even after taking every hit but the last
   let i = 0, right = 0, hits = 0, streak = 0, answered = false, inBonus = false;
   ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax);
   const current = () => inBonus ? bonusQ : qs[i];
+  let hintShown = false, finished = false;
+  const hud = () => ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax);
+  GAME = {kind: 'battle', name: ch.name, back, hearts: () => HEARTS - hits, max: HEARTS, items: () => {
+    const Q = current();
+    return [
+      {icon: '📖', label: 'Reference', cost: 0, ok: !finished && !!Q, title: 'The chart for this question — free, like an exam legend', use: () => showReference(Q)},
+      {icon: '💡', label: 'Hint', cost: HINT_COST, ok: !finished && !answered && !hintShown && !!(Q && Q.hint) && points() >= HINT_COST, title: points() < HINT_COST ? `Earn ${HINT_COST} points to buy a hint` : 'A nudge toward the answer',
+        use: () => { addPoints(-HINT_COST); hintShown = true; hintRow.replaceChildren(h('span', {class: 'muted', style: 'font-size:14px;font-weight:700'}, '💡 ' + Q.hint)); Music.fx('coin'); showPts(-HINT_COST); }},
+      {icon: '🧪', label: 'Heal', cost: HEAL_COST, ok: !finished && hits > 0 && points() >= HEAL_COST, title: hits ? (points() < HEAL_COST ? `Earn ${HEAL_COST} points to heal` : 'Restore a heart') : 'Your hearts are full',
+        use: () => { addPoints(-HEAL_COST); hits--; hud(); Music.fx('coin'); showPts(-HEAL_COST); }}]; }};
   function render() {
     answered = false; const Q = current();
     counter.textContent = Q.bonus ? `★ Bonus · a memory from ${Q.from} · worth a turquoise ✦`
       : `Question ${i + 1} · ${foeMax - right} hit${foeMax - right === 1 ? '' : 's'} to win` + (streak > 1 ? ` · ${streak} in a row` : '') + (Q.review ? ' · review' : '');
     qh.textContent = Q.q;
     opts.replaceChildren(...Q.opts.map(o => h('button', {class: 'btn', style: 'font-size:16px;min-height:52px;padding:8px 18px;white-space:normal;max-width:320px', on: {click: () => pick(o, Q)}}, String(o))));
-    hintRow.replaceChildren(Q.hint ? hintButton(Q) : '');
-    fb.textContent = ''; }
-  function hintButton(Q) {
-    const can = points() >= HINT_COST;
-    return h('button', {class: 'btn', disabled: !can, title: can ? '' : `You need ${HINT_COST} points — answer right to earn them`, style: 'min-height:32px;font-size:13px',
-      on: {click: e => { if (points() < HINT_COST) return; addPoints(-HINT_COST); showPts(-HINT_COST); Music.fx('coin');
-        e.currentTarget.replaceWith(h('span', {class: 'muted', style: 'font-size:13px;font-weight:700'}, '💡 ' + Q.hint)); }}}, `💡 Hint · ${HINT_COST} ◆`); }
+    hintRow.replaceChildren(); hintShown = false;
+    fb.textContent = ''; drawBar(); }
   function pick(o, Q) { if (answered) return; answered = true;
     const ok = String(o) === String(Q.a);
     [...opts.children].forEach(btn => { btn.disabled = true; if (btn.textContent === String(Q.a)) btn.classList.add('acc'); else if (btn.textContent === String(o) && !ok) btn.style.opacity = '.45'; });
     hintRow.replaceChildren();
     let gain = 0;
-    if (Q.bonus) { if (ok) store.set('course.gems', gems() + 1); Music.fx(ok ? 'coin' : 'bump'); }
+    if (Q.bonus) { if (ok) { store.set('course.gems', gems() + 1); addPoints(PTS_BONUS); gain = PTS_BONUS; } Music.fx(ok ? 'coin' : 'bump'); }
     else if (ok) { right++; streak++; gain = PTS_RIGHT + Math.min(PTS_STREAK_MAX, PTS_STREAK * (streak - 1)); addPoints(gain); showPts(gain);
       sage.replaceChildren(mageTile(2, 72)); ar.attack(() => ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax)); }
     else { hits++; streak = 0; sage.replaceChildren(mageTile(0, 72)); ar.foeAttack(() => ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax)); }
@@ -3126,7 +3293,7 @@ function quizView(v, ch, idx) {
       h('div', {style: `font-weight:800;font-size:16px;color:var(--${ok ? 'sage' : 'rust'})`, html: Q.bonus ? (ok ? '✓ Remembered! <b>+1 turquoise ✦</b>' : `✗ No turquoise this time — it was <b>${Q.a}</b>.`)
         : ok ? `✓ Right! Your spell hits${gain ? ` · <b>+${gain} ◆</b>` : ''}` : `✗ Ouch — the answer is <b>${Q.a}</b>.${hits < HEARTS ? ` ${HEARTS - hits} heart${HEARTS - hits === 1 ? '' : 's'} left.` : ''}`}),
       Q.why ? h('div', {class: 'lede', style: 'font-size:14px;margin:6px auto 0;max-width:54ch'}, Q.why) : '',
-      h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => next(Q, over)}}, Q.bonus || over ? 'See result' : 'Next')); }
+      h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => next(Q, over)}}, Q.bonus || over ? 'See result' : 'Next')); if (!gain) drawBar(); }
   function next(Q, over) {
     $('#page') && ($('#page').scrollTop = 0);
     if (Q.bonus) return finish(true);
@@ -3135,8 +3302,8 @@ function quizView(v, ch, idx) {
   function finish(won) {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
     let bonus = 0;
-    if (won) { if (ch.challenge) MODULES[ch.mod].lessons.filter(l => !l.exam).forEach(l => courseClear(chapKey(l))); else { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; } bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS); addPoints(bonus); showPts(bonus); }
-    Music.fx(won ? 'win' : 'lose');
+    if (won) { if (ch.challenge) MODULES[ch.mod].lessons.filter(l => !l.exam).forEach(l => courseClear(chapKey(l))); else { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; } bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS) + (ch.challenge ? PTS_TESTOUT : 0); addPoints(bonus); showPts(bonus); }
+    Music.fx(won ? 'win' : 'lose'); finished = true; if (!bonus) drawBar();
     sage.replaceChildren(mageTile(won ? 2 : 0, 72)); ar.beaten(won); counter.textContent = ''; hintRow.replaceChildren();
     qh.textContent = won ? (hits ? 'Victory!' : 'Flawless victory!') : 'Defeated…'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: won
@@ -3251,96 +3418,129 @@ function drawCastle(ctx, cx, by, st) { const x = cx - 8, y = by - 18, body = st 
   ctx.fillStyle = MP.door; ctx.fillRect(cx - 2, y + 11, 5, 7);
   ctx.fillStyle = st === 'done' ? MP.panelDone : MP.flag; ctx.fillRect(cx + 1, y - 4, 5, 3); ctx.fillStyle = dk; ctx.fillRect(cx + 1, y - 4, 1, 7); }
 
-// the Learn map, Duolingo-style: 5 module sections, each a banner + a winding column of lesson nodes; the wizard marks where you are
+// the Learn map, zoomed out: a sea with one small land for each module — a grassy island, a desert island, a giant's
+// garden, a reef lagoon, a cloud bank, an ice floe, a riveted works platform, a forest isle, a volcanic keep. Lessons
+// wind across each land as small nodes; the dotted road crosses the water from land to land.
 function roadView(v) {
   pageScroll = true;
+  GAME = {kind: 'road'};
   if (mageTimer) { clearInterval(mageTimer); mageTimer = null; }
   const cleared = courseGot();
   const foIdx = LESSONS.findIndex(l => !cleared[chapKey(l)]), firstOpen = foIdx < 0 ? LESSONS.length - 1 : foIdx;
-  const done = LESSONS.filter(l => cleared[chapKey(l)]).length, pct = Math.round(done / LESSONS.length * 100);
-  v.append(h('div', {style: 'max-width:600px;margin:0 auto 12px;width:100%;text-align:center'},
-    h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `${done} of ${LESSONS.length} lessons cleared · ${pct}%`
-      + (store.get('course.gems', 0) ? ` · ✦ ${store.get('course.gems', 0)} turquoise` : '') + ` · ◆ ${points()} points`),
-    (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
-  // the pixel overworld: a full-bleed canvas painted behind the road, SMW-style
-  const scene = h('div', {class: 'scene', style: 'position:relative;width:100%;border-radius:14px'});
-  const musicDock = h('div', {class: 'music-dock'}, musicToggle());
+  const night = resolveTheme() === 'moon', narrow = innerWidth < 820;
+  const scene = h('div', {class: 'scene world'});
   const cv = h('canvas', {style: 'position:absolute;inset:0;z-index:0;image-rendering:pixelated;pointer-events:none'});
-  const wrap = h('div', {style: 'max-width:560px;margin:0 auto;width:100%;position:relative;z-index:1;padding:14px 0 26px'});
-  scene.append(musicDock, pixelTitle(resolveTheme() === 'moon'), cv, wrap);
+  const colL = h('div', {class: 'wcol wcol-l'}), colR = h('div', {class: 'wcol wcol-r'});
+  const map = h('div', {class: 'wmap' + (narrow ? ' one' : '')}, narrow ? colR : colL, narrow ? '' : colR);
+  scene.append(pixelTitle(night), cv, map);
   v.append(scene);
-  const offs = [0, 56, 0, -56];
   let gi = 0, wizHolder = null;
-  const nodeEls = [], nodeSts = [];
+  const nodeEls = [], nodeSts = [], isles = [];
   MODULES.forEach((m, mi) => {
-    const mDone = m.lessons.filter(l => cleared[chapKey(l)]).length;
-    wrap.append(h('div', {style: `margin:${mi ? 30 : 6}px 0 16px;padding:12px 16px;border-radius:14px;background:${m.acc};color:#fff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 0 rgba(0,0,0,.22)`},
-      h('div', {}, h('div', {style: 'font-size:11px;font-weight:800;letter-spacing:.16em;opacity:.85'}, `MODULE ${mi + 1}`), h('div', {style: 'font-size:19px;font-weight:900'}, m.name)),
-      h('div', {style: 'display:flex;align-items:center;gap:10px'},
-        mDone < m.lessons.filter(l => !l.exam).length ? h('button', {class: 'btn small testout', title: 'Already know this? Win one battle to clear the whole module',
+    const A = ARENAS[Math.min(ARENAS.length - 1, mi)], mDone = m.lessons.filter(l => cleared[chapKey(l)]).length;
+    const isle = h('div', {class: 'isle', 'data-scene': A.scene});
+    isle.append(h('div', {class: 'isle-hd', style: `background:${m.acc}`},
+      h('div', {}, h('small', {}, `WORLD ${mi + 1} · ${A.name.toUpperCase()}`), h('b', {}, m.name)),
+      h('div', {class: 'isle-r'}, mDone < m.lessons.filter(l => !l.exam).length ? h('button', {class: 'btn small testout', title: 'Already know this? Win one battle to clear the whole module',
           on: {click: e => { e.stopPropagation(); const s = state('course', {}); s.challenge = mi; s.open = -1; keep('course', s); redraw(); }}}, '⚔ Test out') : '',
-        h('div', {style: 'font-weight:900;font-size:15px'}, `${mDone}/${m.lessons.length}`))));
-    m.lessons.forEach(l => {
-      const idx = gi++, st = cleared[chapKey(l)] ? 'done' : (idx <= firstOpen ? 'open' : 'lock'), unlocked = st !== 'lock', off = offs[idx % offs.length];
-      const node = h('button', {class: 'btn', disabled: !unlocked, 'aria-label': l.name,
-        style: `width:64px;height:64px;min-width:64px;border-radius:50%;padding:0;font-size:24px;font-weight:900;display:grid;place-items:center;flex:none;`
-          + `background:${st === 'done' ? 'var(--sage)' : st === 'open' ? m.acc : 'var(--rule)'};color:${st === 'lock' ? 'var(--mute)' : '#fff'};border:4px solid rgba(0,0,0,.16);box-shadow:0 3px 0 rgba(0,0,0,.16);` + (unlocked ? '' : 'opacity:.55;cursor:default'),
-        on: unlocked ? {click: () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); }} : {}},
-        st === 'done' ? '✓' : st === 'open' ? (l.exam ? '★' : '▶') : '🔒');
-      nodeEls.push(node); nodeSts.push(st);
-      const nodeWrap = h('div', {style: 'position:relative;flex:none'}, node);
-      if (idx === firstOpen) { wizHolder = h('div', {style: 'position:absolute;left:50%;top:-42px;transform:translateX(-50%);z-index:3;pointer-events:none'}, mageTile(0, 46)); nodeWrap.append(wizHolder); }
-      wrap.append(h('div', {style: `display:flex;align-items:center;gap:16px;margin:14px 0;transform:translateX(${off}px)`},
-        nodeWrap, h('div', {style: `font-weight:800;font-size:15px;max-width:230px;color:${unlocked ? 'var(--ink)' : 'var(--mute)'};`
-          + 'background:var(--panel);padding:4px 11px;border-radius:10px;box-shadow:0 2px 0 rgba(0,0,0,.14)'}, l.name)));
-    });
+        h('span', {}, `${mDone}/${m.lessons.length}`))));
+    // lessons snake across the land three to a row
+    const rows = Math.ceil(m.lessons.length / 3), lastRev = !narrow && mi % 2 === 0;   // the last row runs toward the next land
+    for (let r = 0; r * 3 < m.lessons.length; r++) {
+      const row = h('div', {class: 'isle-row' + (((rows - 1 - r) % 2 === 0) === lastRev ? ' rev' : '')});
+      m.lessons.slice(r * 3, r * 3 + 3).forEach(l => {
+        const idx = gi++, st = cleared[chapKey(l)] ? 'done' : (idx <= firstOpen ? 'open' : 'lock'), unlocked = st !== 'lock';
+        const node = h('button', {class: 'wnode ' + st, disabled: !unlocked, 'aria-label': l.name, style: st === 'open' ? `background:${m.acc}` : '',
+          on: unlocked ? {click: () => { const s = state('course', {}); s.open = idx; s.challenge = -1; keep('course', s); redraw(); }} : {}},
+          st === 'done' ? '✓' : st === 'open' ? (l.exam ? '★' : '▶') : '🔒');
+        nodeEls.push(node); nodeSts.push(st);
+        const cell = h('div', {class: 'wcell'}, node, h('div', {class: 'wlabel' + (unlocked ? '' : ' lock')}, l.name));
+        if (idx === firstOpen) { wizHolder = h('div', {class: 'wwiz'}, mageTile(0, 34)); cell.append(wizHolder); }
+        row.append(cell);
+      });
+      isle.append(row);
+    }
+    isles.push(isle);
+    (narrow || mi % 2 === 0 ? colR : colL).append(isle);
   });
-  if (wizHolder) { let f = 0; mageTimer = setInterval(() => { if (!document.body.contains(wizHolder)) { clearInterval(mageTimer); mageTimer = null; return; } f = (f + 1) % 4; wizHolder.replaceChildren(mageTile(f, 46)); }, 240); }
+  if (wizHolder) { let f = 0; mageTimer = setInterval(() => { if (!document.body.contains(wizHolder)) { clearInterval(mageTimer); mageTimer = null; return; } f = (f + 1) % 4; wizHolder.replaceChildren(mageTile(f, 34)); }, 240); }
   setTimeout(() => {
-    // paint the world once the DOM has laid out, so the path can wind through the real node centres
     MP = mapPal();
-    const hd = v.querySelector('.hd2'); scene.style.setProperty('--dock', (hd && $('#page').classList.contains('scrollable') ? hd.offsetHeight : 0) + 'px');   // dock the music chip just under the sticky header
     const S = 4, r0 = scene.getBoundingClientRect();
     if (!r0.width || !r0.height) return;
     const W = Math.ceil(r0.width / S), H = Math.ceil(r0.height / S);
     cv.width = W; cv.height = H; cv.style.width = r0.width + 'px'; cv.style.height = r0.height + 'px';
-    const ctx = cv.getContext('2d');
-    drawGround(ctx, W, H);
-    const pts = nodeEls.map(el => { const r = el.getBoundingClientRect(); return [(r.left + r.width / 2 - r0.left) / S, (r.top + r.height / 2 - r0.top) / S]; });
-    // the banked path: a dark edge pass, a light fill pass, then the gold guide dots
-    const walk = (rad, col) => { ctx.fillStyle = col;
-      for (let k = 0; k + 1 < pts.length; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[k + 1], n = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2));
+    const ctx = cv.getContext('2d'), box = el => { const r = el.getBoundingClientRect(); return {x: (r.left - r0.left) / S, y: (r.top - r0.top) / S, w: r.width / S, h: r.height / S}; };
+    const lands = isles.map(el => Object.assign(box(el), {scene: el.dataset.scene}));
+    paintWorld(ctx, W, H, lands, night);
+    const pts = nodeEls.map(el => { const b = box(el); return [b.x + b.w / 2, b.y + b.h / 2]; });
+    // the road: a dark edge, a light fill, gold guide dots — over land and across the water between lands
+    const walk = (rad, col) => { for (let k = 0; k + 1 < pts.length; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[k + 1], n = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2));
         for (let t = 0; t <= n; t++) DISC(ctx, Math.round(x1 + (x2 - x1) * t / n), Math.round(y1 + (y2 - y1) * t / n), rad, col); } };
-    walk(7, MP.pathEdge); walk(5, MP.path);
+    walk(3, MP.pathEdge); walk(2, MP.path);
     ctx.fillStyle = MP.dot;
-    for (let k = 0; k + 1 < pts.length; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[k + 1], n = Math.max(1, Math.round(Math.hypot(x2 - x1, y2 - y1) / 9));
-      for (let t = 1; t < n; t++) ctx.fillRect(Math.round(x1 + (x2 - x1) * t / n) - 1, Math.round(y1 + (y2 - y1) * t / n) - 1, 2, 2); }
-    // scenery in the margins, placed deterministically so every redraw matches
-    const ttl = scene.querySelector('.pixtitle'), tb = ttl && ttl.offsetParent ? ttl.getBoundingClientRect() : null;
-    const ttlW = tb ? Math.ceil((tb.right - r0.left) / S) + 4 : 0, ttlH = tb ? Math.ceil((tb.bottom - r0.top) / S) + 4 : 0;
-    pts.forEach(([x, y], k) => { const side = k % 2 ? 1 : -1, ox = Math.round(x + side * (36 + (k * 13) % 20)), oy = Math.round(y - 6 + (k * 7) % 10);
-      if (ox < 5 || ox > W - 24 || oy < 4 || oy > H - 14) return;
-      if (ox < ttlW && oy < ttlH) return;   // keep the title's corner clear
-      if (k % 5 === 2) drawRocks(ctx, ox, oy); else if (k % 5 === 0 || k % 5 === 3) drawBush(ctx, ox, oy); });
-    if (W > 180) { drawWater(ctx, 6, Math.round(H * .18), 36, 17); drawWater(ctx, W - 48, Math.round(H * .57), 40, 19); drawBush(ctx, 10, Math.round(H * .8)); drawRocks(ctx, W - 30, Math.round(H * .08)); }
-    // the castle waits beside the final node
+    for (let k = 0; k + 1 < pts.length; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[k + 1], n = Math.max(1, Math.round(Math.hypot(x2 - x1, y2 - y1) / 6));
+      for (let t = 1; t < n; t++) ctx.fillRect(Math.round(x1 + (x2 - x1) * t / n), Math.round(y1 + (y2 - y1) * t / n), 1, 1); }
+    // props on each land, kept off the nodes, labels and the land's banner
+    const busy = [...nodeEls, ...scene.querySelectorAll('.wlabel, .isle-hd, .pixtitle')].map(el => { const b = box(el); return {x: b.x - 3, y: b.y - 3, w: b.w + 6, h: b.h + 6}; });
+    const free = (x, y) => !busy.some(b => x + 16 > b.x && x < b.x + b.w && y + 14 > b.y && y < b.y + b.h);
+    const d = c => night ? nightOf(c, .45) : c;
+    lands.forEach((L, li) => { let k = li;
+      // a row of props along the land's bottom edge (its own strip), then a few more wherever the ground is clear
+      for (let x = Math.round(L.x + 2); x < L.x + L.w - 16; x += 19) { const y = Math.floor(L.y + L.h - 14);
+        if (free(x, y)) { PROPS[L.scene](ctx, x, y, k++, d); busy.push({x, y, w: 16, h: 14}); } }
+      for (let y = Math.round(L.y + 4); y < L.y + L.h - 30; y += 7) for (let x = Math.round(L.x + 2); x < L.x + L.w - 16; x += 9) {
+        const n = ((x * 73856093) ^ (y * 19349663)) >>> 0;
+        if (n % 3 === 0 && free(x, y)) { PROPS[L.scene](ctx, x, y, k++, d); busy.push({x, y, w: 16, h: 14}); } } });
     const last = pts[pts.length - 1];
-    if (last) drawCastle(ctx, Math.round(last[0]) - 27, Math.round(last[1]) + 6, nodeSts[nodeSts.length - 1]);
+    if (last) drawCastle(ctx, Math.round(last[0]) - 18, Math.round(last[1]) + 4, nodeSts[nodeSts.length - 1]);
   }, 40);
   setTimeout(() => { const pg = $('#page'); if (pg && wizHolder) { const r = wizHolder.getBoundingClientRect(), pr = pg.getBoundingClientRect(); pg.scrollTop += (r.top - pr.top) - pr.height * 0.4; } }, 60);
 }
+// the sea and the lands: each land is a rounded blob with a ragged coast, its own ground and its own shore —
+// a cloud bank floats (puffy edge, shadow on the water), the reef lagoon is water within a sand-and-coral ring,
+// the works is a riveted plate, the keep a volcanic rock rimmed with lava
+function paintWorld(ctx, W, H, lands, night) {
+  const hash = (x, y) => { let n = (x * 73856093) ^ (y * 19349663); return (n ^ (n >>> 13)) >>> 0; };
+  const dim = c => night ? nightOf(c, .5) : c;
+  const sea = night ? ['#16243e', '#1c2c4a', '#2a3e64'] : ['#3a86c0', '#4692c8', '#cfe8f8'];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const n = hash(x, y); ctx.fillStyle = (y % 7 === 0 && (x + y * 5) % 17 < 3) ? sea[2] : n % 11 === 0 ? sea[1] : sea[0]; ctx.fillRect(x, y, 1, 1); }
+  const SHORE = {meadow: '#ecd08a', dunes: '#fff0c0', giant: '#ecd08a', shoals: '#e8c878', sky: '#ffffff', frost: '#cfe8f8', pipes: '#8a9098', grove: '#3a2a1e', keep: '#ff6a20'};
+  lands.forEach(L => {
+    const pad = 4, x0 = L.x - pad, y0 = L.y - pad, w = L.w + pad * 2, hh = L.h + pad * 2, R = L.scene === 'pipes' ? 5 : Math.min(28, hh / 2.4), Z = ZONE[L.scene];
+    const inside = (x, y, grow = 0) => {   // a rounded rectangle with a ragged edge
+      const jag = L.scene === 'pipes' ? 0 : (hash(Math.floor(x / 4), Math.floor(y / 4)) % 5) - 2 + 2 * Math.sin(x / 9 + L.y) + 2 * Math.cos(y / 11 + L.x);
+      const dx = Math.max(x0 + R - x, 0, x - (x0 + w - R)), dy = Math.max(y0 + R - y, 0, y - (y0 + hh - R));
+      return Math.hypot(dx, dy) <= R + grow + jag; };
+    if (L.scene === 'sky') for (let y = Math.floor(y0); y < y0 + hh + 6; y++) for (let x = Math.floor(x0); x < x0 + w + 6; x++)   // the cloud's shadow on the sea
+      if (inside(x - 4, y - 5, 2)) { ctx.fillStyle = night ? '#101a30' : '#2f74aa'; ctx.fillRect(x, y, 1, 1); }
+    for (let y = Math.floor(y0 - 4); y < y0 + hh + 4; y++) for (let x = Math.floor(x0 - 4); x < x0 + w + 4; x++) {
+      if (!inside(x, y, 3)) continue;
+      const core = inside(x, y), n = hash(x, y);
+      let c;
+      if (!core) c = L.scene === 'sky' ? (n % 3 ? '#ffffff' : '#e4eef8') : SHORE[L.scene];
+      else if (!inside(x, y, -2)) c = L.scene === 'sky' ? '#ffffff' : L.scene === 'keep' ? '#c83a1a' : L.scene === 'shoals' ? (n % 4 ? '#e8c878' : '#ff8a8a') : SHORE[L.scene];
+      else if (L.scene === 'pipes') { const row = Math.floor(y / 4), off = (row % 2) * 6; c = (y % 4 === 3 || (x + off) % 12 === 11) ? Z.b : (y % 4 === 0 ? Z.a : Z.bg); if (!inside(x, y, -4) && (x + y) % 6 === 0) c = '#c0c8d0'; }
+      else if (L.scene === 'shoals') c = (y % 6 === 0 && (x + y * 3) % 13 < 3) ? '#8ad0f8' : n % 9 === 0 ? '#2a6fb0' : '#2f7fc8';   // underwater: a deeper lagoon with light ripples
+      else if (L.scene === 'sky') c = n % 9 === 0 ? '#e4eef8' : '#f6faff';
+      else c = n % 13 === 0 ? Z.a : n % 23 === 1 ? Z.b : Z.bg;
+      if (L.scene === 'keep' && core && n % 157 === 3) { ctx.fillStyle = '#ff6a20'; ctx.fillRect(x, y, 3, 1); continue; }
+      ctx.fillStyle = (L.scene === 'keep' && !core) || (c === '#ff6a20') ? c : dim(c); ctx.fillRect(x, y, 1, 1);
+    }
+  });
+  if (night) for (let i = 0; i < 60; i++) { const x = hash(i, 17) % W, y = hash(i, 29) % H; if (!lands.some(L => x > L.x - 8 && x < L.x + L.w + 8 && y > L.y - 8 && y < L.y + L.h + 8)) { ctx.fillStyle = '#cfd8ff'; ctx.fillRect(x, y, 1, 1); } }   // stars on the water
+}
 
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
-PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'a path from first chord to fluent', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'the course · a world of lessons', acc: 'var(--navy)', draw(v) {
   pageScroll = false;
-  v.append(header('I', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
-  Music.sync();   // a day/night flip swaps the road song
+  v.append(h('header', {class: 'hd2'}, h('div', {class: 'hrow'}, h('div', {class: 'no'}, 'I'), h('h1', {}, 'Learn'))));
+  Music.sync();   // a day/night flip or a new world swaps the song
   const s = state('course', {open: -1});
   if (s.challenge >= 0 && s.challenge < MODULES.length) quizView(v, challengeOf(s.challenge), -1);
   else if (s.open >= 0 && s.open < LESSONS.length) quizView(v, LESSONS[s.open], s.open);
-  else { v.append(h('div', {class: 'toolbar'}, openBookToggle(),
-      h('label', {class: 'pick'}, h('span', {}, 'Progress'), h('button', {class: 'btn', style: 'min-height:40px', on: {click: backupPanel}}, '💾 Back up or restore'))));
-    roadView(v); }
+  else roadView(v);
 }});
 
 /* ================================================================ THE SONGS: original chiptunes, one per place
@@ -3665,6 +3865,36 @@ function challengeOf(mi) {
   const M = MODULES[mi], topics = M.lessons.filter(l => l.topic && QBANK[l.topic]).map(l => l.topic);
   if (M.lessons.some(l => l.reading)) topics.push('tabread', 'keysigs');
   return {name: `${M.name} · Test out`, mod: mi, modName: M.name, challenge: true, topics};
+}
+
+/* ================================================================ THE GAME BAR: in Learn mode the Learn page's footer is the game's HUD —
+   progress, points, turquoise, music, backups on the map; the chapter, your hearts and your items (Hint, Heal) in a
+   battle. The metronome stays on the other pages. Pages set GAME; anything that changes it calls drawBar(). */
+let GAME = null, GAME_GAIN = 0;
+const bookMode = () => store.get('mode', 'learn') === 'book';
+function drawGameBar(bar) {
+  const IC = {chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+    chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'};
+  const G = GAME || {kind: 'road'}, cleared = courseGot(), done = LESSONS.filter(l => cleared[chapKey(l)]).length;
+  const gain = GAME_GAIN; GAME_GAIN = 0;
+  const pts = h('div', {class: 'gb-stat gb-pts', title: 'Points — earned by right answers, streaks and wins; spent on items'}, h('b', {}, '◆ ' + points()), gain ? h('span', {class: 'pts-gain' + (gain < 0 ? ' neg' : '')}, (gain > 0 ? '+' : '') + gain) : '', h('small', {}, 'points'));
+  const gems = h('div', {class: 'gb-stat', title: 'Turquoise — won from recall bonus questions'}, h('b', {style: 'color:var(--teal)'}, '✦ ' + store.get('course.gems', 0)), h('small', {}, 'turquoise'));
+  const left = [], mid = [], right = [];
+  if (G.kind === 'road') {
+    const pct = Math.round(done / LESSONS.length * 100);
+    mid.push(h('div', {class: 'gb-prog'}, h('div', {class: 'gb-prog-t'}, h('b', {}, `${done} / ${LESSONS.length}`), h('small', {}, `lessons · ${pct}%`)), h('div', {class: 'gb-meter'}, h('i', {style: `width:${pct}%`}))));
+    right.push(h('button', {class: 'gb-btn', title: 'Back up or restore your progress', on: {click: backupPanel}}, '💾', h('small', {}, 'Backup')));
+  } else {
+    left.push(h('button', {class: 'gb-btn gb-back', on: {click: G.back}}, '← Map'));
+    mid.push(h('div', {class: 'gb-prog'}, h('div', {class: 'gb-prog-t'}, h('b', {}, G.name)),
+      G.hearts ? h('div', {class: 'gb-hearts', 'aria-label': `${G.hearts()} of ${G.max} hearts`}, Array.from({length: G.max}, (_, k) => heartSprite(k < G.hearts(), false))) : ''));
+    (G.items ? G.items() : []).forEach(it => right.push(h('button', {class: 'gb-btn gb-item', disabled: !it.ok, title: it.title || '',
+      on: {click: () => { if (it.ok) it.use(); }}}, it.icon, h('small', {}, `${it.label} · ${it.cost ? it.cost + '◆' : 'free'}`))));
+  }
+  const music = musicToggle(); music.classList.add('gb-music');
+  bar.append(h('button', {class: 'arrow', 'aria-label': 'previous page', html: IC.chevL, on: {click: () => page(at - 1, true)}}),
+    ...left, ...mid, h('div', {class: 'sp'}), pts, gems, ...right, music,
+    h('button', {class: 'arrow', 'aria-label': 'next page', html: IC.chevR, on: {click: () => page(at + 1)}}));
 }
 
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
