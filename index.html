@@ -355,6 +355,48 @@ table.t td.l{font-weight:800}
 .btn.match.matched{background:var(--sage);color:var(--onacc);border-color:var(--sage)}
 .wheel{position:relative;width:300px;height:300px;margin:4px auto;max-width:100%}
 .wheel .ring{position:absolute;inset:14px;border-radius:50%;border:1.5px dashed var(--rule)}
+
+/* ===== motion pass (carried over from the mandolin book): springs for every motion, touch-down light, sliding pills,
+   page turns that sharpen out of a blur, a glass header on pages that scroll. The --sp-* easings come from motion JS. */
+/* touch-down: everything you can press sinks a little at once and lights from the touch point outward */
+:is(.btn,.chip,.seg button,.icon,.arrow,.go,.thumb,.cbox,.goalchip,.rate button,.toc button,.tempo2 button,.gloss-row,.prog-item,.rt li){transition:transform var(--sp-press-ms) var(--sp-press),box-shadow var(--sp-snap-ms) var(--sp-snap),background-color .16s ease-out,color .16s ease-out,border-color .16s ease-out,opacity .12s ease-out}
+:is(button,.cbox,.chip,.gloss-row,.rt li).pressing{transform:scale(.96)}
+:is(.toc button,.go,.cont-go,.gloss-row,.prog-item).pressing{transform:scale(.975)}
+.pbar .arrow.pressing{transform:scale(.92)}
+:where(button,.cbox,.chip,.gloss-row,.prog-item,.rt li){position:relative;isolation:isolate}
+:is(button,.cbox,.chip,.gloss-row,.prog-item,.rt li).glow::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;
+  background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),color-mix(in srgb,white 55%,transparent) 0,transparent 55%);animation:glow .6s ease-out forwards}
+@keyframes glow{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.25)}}
+/* a chord card you strum lifts on the morph spring; the lit pick cell pops */
+.cbox.on{transform:translateY(-3px) scale(1.03);box-shadow:0 12px 26px rgba(40,25,10,.14)}
+.sgrid .st{transition:background-color .08s ease-out,transform var(--sp-press-ms) var(--sp-morph)}
+.sgrid .st.now{transform:scale(1.06)}
+.pbar .beats i{transition:transform var(--sp-press-ms) var(--sp-morph),background-color .09s ease-out}
+
+/* sliding pills: the selection is a pill that springs between options */
+.seg.has-pill{position:relative}
+.seg .seg-pill{position:absolute;z-index:0;box-sizing:border-box;border-radius:999px;background:var(--ink);box-shadow:inset 0 1px 0 color-mix(in srgb,white 25%,transparent),0 3px 10px rgba(40,25,10,.22);transform-origin:left center;will-change:transform;pointer-events:none}
+.seg.has-pill button{z-index:1}
+.seg.has-pill button[aria-pressed="true"]{background:transparent}
+
+/* page turns: sharpen out of a blur and slide in on the page spring; grow out of a tapped contents tile */
+.pg{animation:turn var(--sp-page-ms) var(--sp-page) backwards}
+.pg.back{animation:turnback var(--sp-page-ms) var(--sp-page) backwards}
+.pg.grow{animation:grow var(--sp-page-ms) var(--sp-page) backwards}
+@keyframes turn{from{opacity:0;filter:blur(10px);transform:translateX(40px) scale(.985)}to{opacity:1;filter:none;transform:none}}
+@keyframes turnback{from{opacity:0;filter:blur(10px);transform:translateX(-40px) scale(.985)}to{opacity:1;filter:none;transform:none}}
+@keyframes grow{from{opacity:0;filter:blur(12px);transform:scale(.9)}to{opacity:1;filter:none;transform:none}}
+
+/* the glass header: on a page that scrolls it sticks, content dissolves under it, and its shadow deepens */
+:root{--glass:color-mix(in srgb,var(--bg) 62%,transparent);--rim:rgba(255,255,255,.55);--glass-shadow:0 10px 30px rgba(40,25,10,.12),0 1px 3px rgba(40,25,10,.08)}
+:root[data-theme="moon"]{--glass:color-mix(in srgb,var(--bg) 55%,transparent);--rim:rgba(255,255,255,.14);--glass-shadow:0 12px 34px rgba(0,0,0,.45),0 1px 3px rgba(0,0,0,.4)}
+.page.scrollable .hd2{position:sticky;top:0;z-index:20;margin-inline:-16px;padding:4px 16px 6px;border-radius:0 0 22px 22px;background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);transition:box-shadow var(--sp-snap-ms) var(--sp-snap)}
+.under .page.scrollable .hd2{box-shadow:inset 0 -1px 0 var(--rim),var(--glass-shadow)}
+
+/* honour the system settings */
+@media (prefers-reduced-motion:reduce){ .pg,.pg.back,.pg.grow{animation:none} :is(button,.cbox,.chip,.gloss-row,.prog-item,.rt li).pressing,.cbox.on,.sgrid .st.now{transform:none} }
+@media (prefers-reduced-transparency:reduce){ .page.scrollable .hd2{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none} }
+@media (prefers-contrast:more){ .seg .seg-pill{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)} .page.scrollable .hd2{box-shadow:inset 0 -2px 0 var(--ink)} }
 </style>
 <style>
 .two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px 26px}@media (max-width:820px){.two{grid-template-columns:minmax(0,1fr)}}
@@ -863,7 +905,7 @@ function seg(label, options, value, onChange) {
 }
 const state = (k, d) => Object.assign({}, d, store.get('pg.' + k, {}));
 const keep = (k, v) => store.set('pg.' + k, v);
-function safeDraw(p, v) { try { p.draw(v); } catch (err) { console.error('page draw failed', p && p.id, err);   // one bad page shouldn't break the book
+function safeDraw(p, v) { try { p.draw(v); placePills(v); } catch (err) { console.error('page draw failed', p && p.id, err);   // one bad page shouldn't break the book
   v.append(h('div', {style: 'padding:40px 8px;max-width:60ch'}, h('h2', {class: 'lede', style: 'font-weight:800;font-size:18px;color:var(--rust)'}, 'This page hit a snag.'),
     h('p', {class: 'lede'}, 'Swipe or use the arrows to move on — the rest of the book is fine.'))); } }
 function page(i, back = false) {
@@ -871,7 +913,7 @@ function page(i, back = false) {
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
-  pageScroll = false; safeDraw(p, v); $('#page').scrollTop = 0; drawBar(); fitSoon();
+  pageScroll = false; safeDraw(p, v); materialize(v); $('#page').scrollTop = 0; drawBar(); fitSoon();
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
 const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; pageScroll = false; v.innerHTML = '';
@@ -949,11 +991,107 @@ function drawBar() {
     station, h('div', {class: 'sp'}), action, h('div', {class: 'sp'}),
     h('button', {class: 'arrow', 'aria-label': 'next page', html: IC.chevR, on: {click: () => page(at + 1)}}));
 }
-// swipe and keys to turn pages
-(() => { let x0 = null, y0 = null, t0 = 0;
-  document.addEventListener('touchstart', e => { const t = e.touches[0]; if (e.target.closest('.scroll,input,select,textarea,.lib')) { x0 = null; return; } x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, {passive: true});
-  document.addEventListener('touchend', e => { if (x0 == null) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
-    if (Date.now() - t0 < 600 && Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) page(at + (dx < 0 ? 1 : -1), dx > 0); x0 = null; }, {passive: true});
+/* ================================================================ MOTION: one spring, touch-down feedback, sliding pills, fluid page turns
+   Carried over from the mandolin book (after Apple's WWDC18 "Designing Fluid Interfaces" and WWDC25 "Meet Liquid Glass"):
+   respond on touch-down and commit on touch-up; describe motion by damping and response, never duration; stay
+   interruptible; grow from where you touched; materialize by sharpening out of a blur rather than fading. */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
+// a damped spring from 0 to 1: damping ratio ζ (1 = no overshoot), response T (seconds for one undamped cycle)
+function springAt(t, zeta, T) {
+  const w0 = 2 * Math.PI / T;
+  if (zeta >= 1) return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+  const wd = w0 * Math.sqrt(1 - zeta * zeta);
+  return 1 - Math.exp(-zeta * w0 * t) * (Math.cos(wd * t) + zeta * w0 / wd * Math.sin(wd * t));
+}
+// the same spring as a CSS linear() easing and the time it takes to settle, so CSS and JS move alike
+function springCSS(zeta, T) {
+  let end = T; for (let t = T * 4; t > 0; t -= 0.004) if (Math.abs(1 - springAt(t, zeta, T)) > 0.001) { end = t + 0.004; break; }
+  const pts = Array.from({length: 48}, (_, i) => +springAt(end * i / 47, zeta, T).toFixed(4)); pts[47] = 1;
+  return {ease: `linear(${pts.join(', ')})`, ms: Math.round(end * 1000)};
+}
+// four springs for the whole book: press (quick, firm), snap (no overshoot), morph (a little squish), page (gentle)
+const SPRINGS = {press: springCSS(1, .22), snap: springCSS(1, .38), morph: springCSS(.78, .42), page: springCSS(.9, .55)};
+(() => { const r = document.documentElement.style; for (const [k, s] of Object.entries(SPRINGS)) { r.setProperty(`--sp-${k}`, s.ease); r.setProperty(`--sp-${k}-ms`, s.ms + 'ms'); } })();
+
+// touch-down: press in at once, glow from the exact touch point, commit on release (the browser's click)
+const PRESSABLE = 'button,.cbox,.chip,select,.gloss-row,.prog-item,.rt li';
+let lastTap = {x: 0, y: 0, t: 0, el: null};
+document.addEventListener('pointerdown', e => {
+  lastTap = {x: e.clientX, y: e.clientY, t: performance.now(), el: e.target};
+  const el = e.target.closest(PRESSABLE); if (!el || el.disabled) return;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--gx', `${e.clientX - r.left}px`); el.style.setProperty('--gy', `${e.clientY - r.top}px`);
+  el.classList.remove('glow'); void el.offsetWidth; el.classList.add('pressing');
+  if (getComputedStyle(el).position !== 'static') el.classList.add('glow');   // an all:unset button (the cover mark) has no box to glow inside
+  const up = () => { el.classList.remove('pressing'); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); el.removeEventListener('pointerleave', up); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
+}, {passive: true});
+document.addEventListener('animationend', e => { if (e.animationName === 'glow') e.target.classList.remove('glow'); });
+
+/* sliding pills: a segmented control's selection springs to its new place. The page redraws on every choice, so each
+   group's last pill rect is remembered by name and the new pill springs from there (FLIP). Multi-select groups
+   (the staff layer toggles) keep their plain pressed buttons. ('.thumb' is already the chord-thumbnail class here.) */
+const PILLS = new Map();
+function placePills(v) {
+  const pid = (PAGES[at] || {}).id;
+  v.querySelectorAll('.seg').forEach((g, n) => {
+    const on = g.querySelectorAll('[aria-pressed="true"]'); if (on.length !== 1) return;
+    const b = on[0], key = `${pid}:${g.getAttribute('aria-label')}:${n}`;
+    const pill = h('span', {class: 'seg-pill', 'aria-hidden': 'true'}); g.prepend(pill); g.classList.add('has-pill');
+    const now = {x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight};
+    Object.assign(pill.style, {left: now.x + 'px', top: now.y + 'px', width: now.w + 'px', height: now.h + 'px'});
+    const was = PILLS.get(key); PILLS.set(key, now);
+    if (!was || REDUCED.matches || (was.x === now.x && was.y === now.y && was.w === now.w)) return;
+    pill.animate([{transform: `translate(${was.x - now.x}px, ${was.y - now.y}px) scaleX(${was.w / now.w})`}, {transform: 'none'}], {duration: SPRINGS.morph.ms, easing: SPRINGS.morph.ease});
+    pill.animate([{filter: 'brightness(1.35)'}, {filter: 'none'}], {duration: SPRINGS.morph.ms * .8, easing: 'ease-out'});   // it "energizes" as it moves
+  });
+}
+
+// page turns: slide in from the side you turned toward (the .back class); grow out of a contents tile you tapped
+function materialize(v) {
+  if (REDUCED.matches) return;
+  const tapped = performance.now() - lastTap.t < 600 && lastTap.el && lastTap.el.closest && lastTap.el.closest('.toc button, .cont-go, .term, .cpop-card button, .gloss-row');
+  if (!tapped) { v.style.transformOrigin = ''; return; }
+  const r = v.getBoundingClientRect();
+  v.style.transformOrigin = `${lastTap.x - r.left}px ${lastTap.y - r.top + ($('#page').scrollTop || 0)}px`; v.classList.add('grow');
+}
+
+/* the swipe: the page follows the finger, and release velocity decides — a flick turns it, a slow drag past a
+   quarter of the width turns it, anything less springs home. A new touch catches it mid-flight. */
+(() => {
+  const frame = $('#page'); if (!frame) return;
+  let x0 = 0, y0 = 0, dx = 0, lock = null, samples = [], start = 0;
+  const pg = () => $('#pg');
+  const set = (x, tr) => { const p = pg(); p.style.transition = tr || 'none'; p.style.transform = x ? `translateX(${x}px)` : ''; p.style.opacity = tr || !x ? '' : String(1 - Math.min(.35, Math.abs(x) / innerWidth * .6)); };
+  frame.addEventListener('touchstart', e => {
+    if (e.touches.length > 1 || e.target.closest('.scroll,input,select,textarea,.lib')) { lock = 'no'; return; }
+    const t = e.touches[0], m = new DOMMatrix(getComputedStyle(pg()).transform);   // catch a page that is still springing back
+    start = m.m41; x0 = t.clientX - start; y0 = t.clientY; dx = start; lock = null; samples = [[t.clientX, performance.now()]];
+    if (start) set(start);
+  }, {passive: true});
+  frame.addEventListener('touchmove', e => {
+    if (lock === 'no') return; const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+    if (!lock) { if (Math.hypot(mx - start, my) < 10) return; lock = Math.abs(mx - start) > Math.abs(my) * 1.3 ? 'x' : 'no'; if (lock === 'no') { if (start) set(0, `transform var(--sp-snap-ms) var(--sp-snap)`); return; } }
+    dx = mx; samples.push([t.clientX, performance.now()]); if (samples.length > 6) samples.shift();
+    set(dx);
+  }, {passive: true});
+  const end = () => {
+    if (lock !== 'x') { lock = null; return; } lock = null;
+    const [a, b] = [samples[0], samples[samples.length - 1]], vel = b && a && b[1] > a[1] ? (b[0] - a[0]) / (b[1] - a[1]) : 0;   // px per ms
+    const projected = dx + vel * 180, w = innerWidth;
+    if (Math.abs(projected) > w * .25 && Math.abs(dx) > 24) {
+      const dir = projected < 0 ? 1 : -1;
+      set(-dir * w * .5, `transform ${SPRINGS.press.ms}ms ease-in, opacity ${SPRINGS.press.ms}ms ease-in`); pg().style.opacity = '0';
+      setTimeout(() => { const p = pg(); p.style.transition = 'none'; p.style.transform = ''; p.style.opacity = ''; page(at + dir, dir < 0); }, SPRINGS.press.ms * .8);
+    } else set(0, `transform var(--sp-morph-ms) var(--sp-morph), opacity var(--sp-snap-ms) var(--sp-snap)`);
+  };
+  frame.addEventListener('touchend', end, {passive: true}); frame.addEventListener('touchcancel', end, {passive: true});
+  // the glass header: once content scrolls under it, its shadow deepens
+  frame.addEventListener('scroll', () => document.documentElement.classList.toggle('under', frame.scrollTop > 6), {passive: true});
+})();
+
+// keys to turn pages
+(() => {
   document.addEventListener('keydown', e => { if (e.target.closest('input,select,textarea')) return; if (e.key === 'ArrowRight' || e.key === 'PageDown') page(at + 1); if (e.key === 'ArrowLeft' || e.key === 'PageUp') page(at - 1, true); });
 })();
 
@@ -1172,6 +1310,7 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const cont = h('button', {class: 'btn acc', style: 'min-height:46px;font-size:15.5px;font-weight:800;align-self:flex-start', on: {click: () => {
     const s = state('course', {}); s.open = nxt ? LESSONS.indexOf(nxt) : -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn')); }}},
     nxt ? `► Continue learning · ${nxt.name}` : '★ Course complete · back to the road');
+  cont.classList.add('cont-go');
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
       h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, cont,
