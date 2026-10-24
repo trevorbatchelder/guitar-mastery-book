@@ -422,6 +422,31 @@ table.t td.l{font-weight:800}
 @keyframes foehit{0%,100%{filter:none;transform:none}20%,60%{filter:brightness(3);transform:translateX(7px)}40%,80%{filter:none;transform:translateX(-4px)}}
 @keyframes foetaunt{50%{transform:translateY(-10px) scaleY(1.1)}}
 @keyframes foebeaten{to{transform:translateY(36px) rotate(180deg);opacity:0}}
+/* the battle: hearts, the critter's HP, spells, hit reactions */
+.arena-hearts{position:absolute;right:10px;top:8px;display:flex;gap:4px;padding:4px 6px;border-radius:8px;background:var(--panel);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.heart{display:block;image-rendering:pixelated}
+.arena:not(.battle) .arena-hearts,.arena:not(.battle) .arena-hp{display:none}   /* reading chapters show the world, not the fight */
+.heart.breaking{animation:heartbreak .6s steps(6)}
+@keyframes heartbreak{0%,40%,80%{transform:scale(1.4);filter:brightness(2)}20%,60%,100%{transform:none;filter:none}}
+.arena-hp{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:56px;height:8px;border:2px solid #14101c;background:#3a2a30;border-radius:2px}
+.arena-hp i{display:block;height:100%;width:100%;background:#5fcf5a;transition:width .3s steps(4)}
+.arena-hp.low i{background:#e0403a}
+.arena-foe:has(.foe.beaten) .arena-hp{opacity:0;transition:opacity .6s steps(4)}
+.spell{position:absolute;bottom:calc(9 / 42 * 100% + 22px);z-index:3;image-rendering:pixelated;filter:drop-shadow(0 0 4px currentColor)}
+.spell.zap{color:#ffd040} .spell.curse{color:#b060ff}
+.arena-sage canvas{display:block}
+.arena-sage.cast{animation:cast .35s steps(4)}
+@keyframes cast{40%{transform:translateX(-30%) translateY(-6px)}}
+.arena-sage.hurt{animation:hurt .5s steps(6)}
+@keyframes hurt{0%,100%{transform:translateX(-50%);filter:none}20%,60%{transform:translateX(-62%);filter:brightness(.6) sepia(1) saturate(6) hue-rotate(-30deg)}40%,80%{transform:translateX(-42%);filter:none}}
+.arena-sage.fallen{animation:fallen .9s steps(6) forwards}
+@keyframes fallen{to{transform:translateX(-50%) translateY(10px) rotate(-90deg);opacity:.5}}
+.foe.lunge{animation:lunge .4s steps(5),foebob 1.2s steps(2) .4s infinite}
+@keyframes lunge{40%{transform:translateX(-26px) scale(1.12)}}
+.arena-pop{position:absolute;bottom:calc(9 / 42 * 100% + 70px);transform:translateX(-50%);font-weight:900;font-size:18px;color:#fff;text-shadow:0 2px 0 #14101c,2px 0 0 #14101c,-2px 0 0 #14101c,0 -2px 0 #14101c;animation:popup .8s steps(8) forwards;pointer-events:none;z-index:4}
+@keyframes popup{to{transform:translateX(-50%) translateY(-26px);opacity:0}}
+.pts{display:flex;align-items:baseline;gap:6px;font-weight:900;font-size:16px;color:var(--gold);align-self:center;margin-right:8px}
+.pts-gain{font-size:13px;color:var(--sage);animation:popup .9s steps(8) forwards}
 .music-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 <style>
@@ -2115,9 +2140,7 @@ const courseClear = id => { const c = courseGot(); c[id] = true; store.set('cour
 const QWHY = {cof: 'circle-of-fifths', intervals: 'interval', key: 'roman-numerals', scales: 'scale', capo: 'capo', fretboard: 'fret'};
 
 // the Sage reacts with a sound: a bright rising triad when you're right, a low thud when you're not
-function sfx(ok) { audio(); const t = A.ctx.currentTime + .02;
-  if (ok) [60, 64, 67, 72].forEach((m, i) => playMidi(m, t + i * .07, {kind: 'note', gain: .32, dur: .22}));
-  else { playMidi(42, t, {kind: 'note', gain: .4, dur: .3}); playMidi(43, t + .01, {kind: 'note', gain: .28, dur: .3}); } }
+function sfx(ok) { Music.fx(ok ? 'win' : 'bump'); }   // the right/wrong chime, in the road songs' 8-bit voice
 
 // the Sage — a little robed wizard; every colour is a theme token, so Moon turns him into the dark wizard
 function sageSVG(mood = 'idle') {
@@ -2644,10 +2667,47 @@ function arena(mod, sage, {short = false} = {}) {
   const el = h('div', {class: 'arena' + (short ? ' short' : ''), role: 'img', 'aria-label': `World ${wi + 1}: ${A.name}`}, cv,
     h('div', {class: 'arena-name'}, `WORLD ${wi + 1} · ${A.name.toUpperCase()}`), h('div', {class: 'arena-foe'}, foe));
   if (sage) { sage.classList.add('arena-sage'); el.append(sage); }
-  el.hit = ok => { const f = el.querySelector('.foe'); f.classList.remove('hit', 'taunt'); void f.offsetWidth; f.classList.add(ok ? 'hit' : 'taunt'); };
-  el.beaten = won => el.querySelector('.foe').classList.add(won ? 'beaten' : 'taunt');
+  // the battle HUD: your hearts top right, the critter's HP bar over its head
+  const hearts = h('div', {class: 'arena-hearts', 'aria-label': 'hearts'}), hp = h('div', {class: 'arena-hp', 'aria-hidden': 'true'}, h('i'));
+  el.querySelector('.arena-foe').prepend(hp); el.append(hearts);
+  el.hud = (left, max, foeLeft, foeMax) => {
+    el.classList.add('battle');
+    const was = hearts.querySelectorAll('.heart.full').length;
+    hearts.replaceChildren(...Array.from({length: max}, (_, k) => heartSprite(k < left, k === left && was > left)));
+    hearts.setAttribute('aria-label', `${left} of ${max} hearts`);
+    hp.firstChild.style.width = Math.max(0, foeLeft / foeMax * 100) + '%'; hp.classList.toggle('low', foeLeft / foeMax <= .34);
+  };
+  const flyer = (kind, from, to, done) => {   // a spell crossing the arena; reduced motion skips the flight, not the result
+    if (REDUCED.matches) { setTimeout(done, 60); return; }
+    const s = spellSprite(kind); el.append(s);
+    s.animate([{left: from + '%', transform: 'translateX(-50%) scale(.6)'}, {left: to + '%', transform: 'translateX(-50%) scale(1)'}], {duration: 330, easing: 'steps(9)', fill: 'forwards'})
+      .finished.then(() => { s.remove(); done(); }, () => { s.remove(); done(); });
+  };
+  const play = (node, cls) => { node.classList.remove('hit', 'taunt', 'cast', 'hurt', 'lunge'); void node.offsetWidth; node.classList.add(cls); };
+  // your attack: the wizard casts, a gold bolt flies, the critter flashes as it lands
+  el.attack = after => { Music.fx('attack'); const w = el.querySelector('.arena-sage'), f = el.querySelector('.foe');
+    play(w, 'cast'); flyer('zap', 30, 69, () => { play(f, 'hit'); pop(el, '-1', 72); after && after(); }); };
+  // its attack: the critter lunges, a purple curse flies back, the wizard is struck
+  el.foeAttack = after => { Music.fx('foe'); const w = el.querySelector('.arena-sage'), f = el.querySelector('.foe');
+    play(f, 'lunge'); flyer('curse', 68, 29, () => { play(w, 'hurt'); pop(el, '♥', 26); after && after(); }); };
+  el.beaten = won => { if (won) el.querySelector('.foe').classList.add('beaten'); else { el.querySelector('.arena-sage').classList.add('fallen'); el.querySelector('.foe').classList.add('taunt'); } };
   return el;
 }
+const HEARTS = 2;   // two hits and the battle is lost
+const HINT_COST = 50, PTS_RIGHT = 10, PTS_STREAK = 5, PTS_STREAK_MAX = 10, PTS_WIN = 30, PTS_FLAWLESS = 20, PTS_START = 50;   // a lesson earns about four hints
+const points = () => store.get('course.points', PTS_START);
+const addPoints = n => store.set('course.points', Math.max(0, points() + n));
+// small pixel sprites from character bitmaps
+function bitSprite(rows, pal, px, cls) {
+  const cv = h('canvas', {width: rows[0].length, height: rows.length, class: cls, style: `width:${rows[0].length * px}px;height:${rows.length * px}px`}), g = cv.getContext('2d');
+  rows.forEach((r, y) => [...r].forEach((c, x) => { if (pal[c]) { g.fillStyle = pal[c]; g.fillRect(x, y, 1, 1); } }));
+  return cv;
+}
+const HEART = ['.oo.oo.', 'ohhoooo', 'ohooooo', 'ooooooo', '.ooooo.', '..ooo..', '...o...'];
+const heartSprite = (full, breaking) => bitSprite(HEART, full ? {o: '#e0403a', h: '#ffb0a8'} : {o: '#3a2a30', h: '#3a2a30'}, 3, 'heart' + (full ? ' full' : '') + (breaking ? ' breaking' : ''));
+const SPELL = ['..o..', '.owo.', 'owwwo', '.owo.', '..o..'];
+const spellSprite = kind => bitSprite(SPELL, kind === 'zap' ? {o: '#ffb020', w: '#fff6c0'} : {o: '#8a3ad0', w: '#f0c0ff'}, 5, 'spell ' + kind);
+function pop(el, text, leftPct) { const p = h('div', {class: 'arena-pop', style: `left:${leftPct}%`}, text); el.append(p); setTimeout(() => p.remove(), 800); }
 function quizView(v, ch, idx) {
   pageScroll = true;
   const id = chapKey(ch);
@@ -2660,55 +2720,81 @@ function quizView(v, ch, idx) {
   v.append(bar);
   if (ch.reading) { v.append(arena(ch.mod, h('div', {}, mageTile(0, 72)))); readingView(v, bar, ch); return; }
 
+  // ---- the battle: you have HEARTS hearts; the critter has one HP per right answer you need. A right answer is your
+  // spell landing (−1 HP); a wrong one is the critter's attack landing on you (−1 heart). Clear its HP to win; run out
+  // of hearts and the battle is lost. Points from right answers (and streaks) buy hints.
   const wrap = h('div', {style: 'max-width:720px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px'});
   v.append(wrap);
   const sage = h('div', {style: 'text-align:center'}, mageTile(0, 72));
-  const barOuter = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'});
-  const fill = h('div', {style: 'height:100%;width:0;background:var(--navy);transition:width .3s'}); barOuter.append(fill);
   const counter = h('div', {class: 'muted', style: 'text-align:center;font-weight:800;min-height:1.3em'});
   const qh = h('div', {style: 'font-size:21px;font-weight:800;min-height:1.4em;text-align:center'});
   const opts = h('div', {style: 'display:flex;flex-wrap:wrap;gap:10px;justify-content:center'});
   const hintRow = h('div', {style: 'text-align:center;min-height:1.6em'});
   const fb = h('div', {'aria-live': 'polite', style: 'min-height:40px;text-align:center'});
   const ar = arena(ch.mod, sage);
-  wrap.append(ar, barOuter, counter, qh, opts, hintRow, fb);
+  const ptsEl = h('div', {class: 'pts', title: 'Points — earn them with right answers, spend them on hints'});
+  bar.insertBefore(ptsEl, bar.lastChild);
+  const showPts = (gain = 0) => { ptsEl.replaceChildren(h('b', {}, '◆ ' + points()), gain ? h('span', {class: 'pts-gain'}, (gain > 0 ? '+' : '') + gain) : ''); };
+  showPts();
+  wrap.append(ar, counter, qh, opts, hintRow, fb);
 
-  const qs = buildQuiz(primary, review, ch.exam ? 16 : 12), need = Math.max(1, Math.ceil(qs.length * 0.75));
-  // the recall bonus: every chapter past Module 1 ends with one question pulled back from an EARLIER
-  // module. It cannot hurt the pass mark — but a right answer banks a turquoise, counted on the map.
+  const qs = buildQuiz(primary, review, ch.exam ? 16 : 12);
+  // the recall bonus: every chapter past Module 1 ends (once the critter is beaten) with one question pulled back from
+  // an EARLIER module. It cannot hurt you — but a right answer banks a turquoise, counted on the map.
   const gems = () => store.get('course.gems', 0);
   let bonusQ = null;
   if (!ch.exam && ch.mod > 0) {
     const early = LESSONS.filter(l => l.topic && l.mod < ch.mod && QBANK[l.topic]);
     if (early.length) { const src = early[rnd(early.length)], facs = QBANK[src.topic];
-      for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName}); }
-      if (bonusQ) qs.push(bonusQ); } }
-  const baseN = qs.length - (bonusQ ? 1 : 0);
-  let i = 0, right = 0, answered = false;
-  function render() { if (i >= qs.length) return finish();
-    answered = false; const Q = qs[i]; fill.style.width = (i / qs.length * 100) + '%';
+      for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName}); } } }
+  const foeMax = qs.length - (HEARTS - 1);   // enough right answers to win even after taking every hit but the last
+  let i = 0, right = 0, hits = 0, streak = 0, answered = false, inBonus = false;
+  ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax);
+  const current = () => inBonus ? bonusQ : qs[i];
+  function render() {
+    answered = false; const Q = current();
     counter.textContent = Q.bonus ? `★ Bonus · a memory from ${Q.from} · worth a turquoise ✦`
-      : `Question ${i + 1} of ${baseN} · ${right} right · pass ${need}` + (Q.review ? ' · review' : '');
+      : `Question ${i + 1} · ${foeMax - right} hit${foeMax - right === 1 ? '' : 's'} to win` + (streak > 1 ? ` · ${streak} in a row` : '') + (Q.review ? ' · review' : '');
     qh.textContent = Q.q;
     opts.replaceChildren(...Q.opts.map(o => h('button', {class: 'btn', style: 'font-size:16px;min-height:52px;padding:8px 18px;white-space:normal;max-width:320px', on: {click: () => pick(o, Q)}}, String(o))));
-    hintRow.replaceChildren(Q.hint ? h('button', {class: 'btn', style: 'min-height:32px;font-size:13px', on: {click: e => e.currentTarget.replaceWith(h('span', {class: 'muted', style: 'font-size:13px;font-weight:700'}, '💡 ' + Q.hint))}}, '💡 Hint') : '');
+    hintRow.replaceChildren(Q.hint ? hintButton(Q) : '');
     fb.textContent = ''; }
+  function hintButton(Q) {
+    const can = points() >= HINT_COST;
+    return h('button', {class: 'btn', disabled: !can, title: can ? '' : `You need ${HINT_COST} points — answer right to earn them`, style: 'min-height:32px;font-size:13px',
+      on: {click: e => { if (points() < HINT_COST) return; addPoints(-HINT_COST); showPts(-HINT_COST); Music.fx('coin');
+        e.currentTarget.replaceWith(h('span', {class: 'muted', style: 'font-size:13px;font-weight:700'}, '💡 ' + Q.hint)); }}}, `💡 Hint · ${HINT_COST} ◆`); }
   function pick(o, Q) { if (answered) return; answered = true;
-    const ok = String(o) === String(Q.a); if (ok && !Q.bonus) right++; if (ok && Q.bonus) store.set('course.gems', gems() + 1); sfx(ok);
-    sage.replaceChildren(mageTile(ok ? 2 : 0, 72)); ar.hit(ok);
+    const ok = String(o) === String(Q.a);
     [...opts.children].forEach(btn => { btn.disabled = true; if (btn.textContent === String(Q.a)) btn.classList.add('acc'); else if (btn.textContent === String(o) && !ok) btn.style.opacity = '.45'; });
     hintRow.replaceChildren();
+    let gain = 0;
+    if (Q.bonus) { if (ok) store.set('course.gems', gems() + 1); Music.fx(ok ? 'coin' : 'bump'); }
+    else if (ok) { right++; streak++; gain = PTS_RIGHT + Math.min(PTS_STREAK_MAX, PTS_STREAK * (streak - 1)); addPoints(gain); showPts(gain);
+      sage.replaceChildren(mageTile(2, 72)); ar.attack(() => ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax)); }
+    else { hits++; streak = 0; sage.replaceChildren(mageTile(0, 72)); ar.foeAttack(() => ar.hud(HEARTS - hits, HEARTS, foeMax - right, foeMax)); }
+    const over = !Q.bonus && (right >= foeMax || hits >= HEARTS);
     fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
     fb.replaceChildren(
-      h('div', {style: `font-weight:800;font-size:16px;color:var(--${ok ? 'sage' : 'rust'})`, html: ok ? (Q.bonus ? '✓ Remembered! <b>+1 turquoise ✦</b>' : '✓ Right!') : (Q.bonus ? `✗ No turquoise this time — it was <b>${Q.a}</b>.` : `✗ Not quite — the answer is <b>${Q.a}</b>.`)}),
+      h('div', {style: `font-weight:800;font-size:16px;color:var(--${ok ? 'sage' : 'rust'})`, html: Q.bonus ? (ok ? '✓ Remembered! <b>+1 turquoise ✦</b>' : `✗ No turquoise this time — it was <b>${Q.a}</b>.`)
+        : ok ? `✓ Right! Your spell hits${gain ? ` · <b>+${gain} ◆</b>` : ''}` : `✗ Ouch — the answer is <b>${Q.a}</b>.${hits < HEARTS ? ` ${HEARTS - hits} heart${HEARTS - hits === 1 ? '' : 's'} left.` : ''}`}),
       Q.why ? h('div', {class: 'lede', style: 'font-size:14px;margin:6px auto 0;max-width:54ch'}, Q.why) : '',
-      h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => { i++; render(); window.scrollTo && $('#page') && ($('#page').scrollTop = 0); }}}, i + 1 >= qs.length ? 'See result' : 'Next')); }
-  function finish() {
+      h('button', {class: 'btn acc', style: 'margin-top:12px', on: {click: () => next(Q, over)}}, Q.bonus || over ? 'See result' : 'Next')); }
+  function next(Q, over) {
+    $('#page') && ($('#page').scrollTop = 0);
+    if (Q.bonus) return finish(true);
+    if (over) { if (right >= foeMax && bonusQ) { inBonus = true; return render(); } return finish(right >= foeMax); }
+    i++; if (i >= qs.length) return finish(right >= foeMax); render(); }
+  function finish(won) {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
-    const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; }
-    sage.replaceChildren(mageTile(passed ? 2 : 0, 72)); ar.beaten(passed); fill.style.width = '100%'; counter.textContent = ''; hintRow.replaceChildren();
-    qh.textContent = passed ? 'Chapter cleared!' : 'So close.'; opts.replaceChildren();
-    fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${baseN}. ${passed ? 'The next chapter is open.' : `Reach ${need} to pass — give it another go.`}`}),
+    let bonus = 0;
+    if (won) { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS); addPoints(bonus); showPts(bonus); }
+    Music.fx(won ? 'win' : 'lose');
+    sage.replaceChildren(mageTile(won ? 2 : 0, 72)); ar.beaten(won); counter.textContent = ''; hintRow.replaceChildren();
+    qh.textContent = won ? (hits ? 'Victory!' : 'Flawless victory!') : 'Defeated…'; opts.replaceChildren();
+    fb.replaceChildren(h('div', {style: 'font-size:18px', html: won
+        ? `${right} spells landed${hits ? `, ${hits} hit taken` : ', not a scratch'}. <b>+${bonus} ◆</b> — the next chapter is open.`
+        : `The ${ARENAS[Math.min(ARENAS.length - 1, ch.mod)].name.replace(/^The /, '').toLowerCase()} critter got you after ${right} hit${right === 1 ? '' : 's'}. Read the explanations and try again.`}),
       h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
         h('button', {class: 'btn', on: {click: again}}, 'Try again'),
         h('button', {class: 'btn acc', on: {click: back}}, 'Back to the map'))); }
@@ -2827,7 +2913,7 @@ function roadView(v) {
   const done = LESSONS.filter(l => cleared[chapKey(l)]).length, pct = Math.round(done / LESSONS.length * 100);
   v.append(h('div', {style: 'max-width:600px;margin:0 auto 12px;width:100%;text-align:center'},
     h('div', {class: 'muted', style: 'font-weight:800;margin-bottom:6px'}, `${done} of ${LESSONS.length} lessons cleared · ${pct}%`
-      + (store.get('course.gems', 0) ? ` · ✦ ${store.get('course.gems', 0)} turquoise` : '')),
+      + (store.get('course.gems', 0) ? ` · ✦ ${store.get('course.gems', 0)} turquoise` : '') + ` · ◆ ${points()} points`),
     (() => { const b = h('div', {style: 'height:12px;border-radius:7px;background:var(--rule);overflow:hidden'}); b.append(h('div', {style: `height:100%;width:${pct}%;background:var(--sage);transition:width .4s`})); return b; })()));
   // the pixel overworld: a full-bleed canvas painted behind the road, SMW-style
   const scene = h('div', {class: 'scene', style: 'position:relative;width:100%;border-radius:14px'});
@@ -3035,6 +3121,39 @@ const Music = (() => {
     playing = null; clearInterval(timer);
     if (ctx && master) { master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0, ctx.currentTime, .06); }
   }
+  // ---- sound effects in the same 8-bit voice: pulse sweeps and noise bursts on their own bus (never ducked)
+  let fxBus = null;
+  function fxInit() { ctx = _audio0();
+    if (!noise) { noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const y = noise.getChannelData(0); for (let i = 0; i < y.length; i++) y[i] = Math.random() * 2 - 1; }
+    if (!fxBus) { fxBus = ctx.createGain(); fxBus.gain.value = .55; fxBus.connect(ctx.destination); } }
+  function sweep(t, dur, f0, f1, {duty = .5, type = 'pulse', gain = .12} = {}) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    if (type === 'pulse') o.setPeriodicWave(wave(duty)); else o.type = type;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(gain, t); g.gain.setTargetAtTime(0, t + dur * .7, dur * .15);
+    o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + dur + .1);
+  }
+  function burst(t, dur, freq, gain, kind = 'highpass') {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; f.type = kind; f.frequency.value = freq;
+    g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+    s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + dur + .02);
+  }
+  const note = m => 440 * Math.pow(2, (m - 69) / 12);
+  const FX = {
+    attack: t => { sweep(t, .2, 380, 1700, {duty: .125, gain: .1}); sweep(t + .05, .18, 760, 2400, {duty: .25, gain: .05});   // the cast, rising
+      burst(t + .33, .16, 1200, .32); sweep(t + .33, .12, 900, 180, {duty: .5, gain: .12}); },                                 // the impact
+    foe: t => { sweep(t, .3, 330, 95, {duty: .5, gain: .1}); sweep(t + .02, .28, 165, 60, {type: 'triangle', gain: .2});         // the lunge, falling
+      burst(t + .33, .22, 380, .4, 'lowpass'); sweep(t + .33, .16, 140, 45, {type: 'triangle', gain: .3}); },                  // the thud
+    coin: t => { sweep(t, .07, note(83), note(83), {duty: .25, gain: .1}); sweep(t + .07, .3, note(88), note(88), {duty: .25, gain: .1}); },
+    bump: t => { sweep(t, .16, 196, 120, {duty: .5, gain: .1}); },
+    win: t => { [72, 76, 79, 84].forEach((m, k) => sweep(t + k * .09, .1, note(m), note(m), {duty: .25, gain: .1}));
+      sweep(t + .36, .55, note(88), note(88), {duty: .25, gain: .11}); sweep(t + .36, .55, note(48), note(48), {type: 'triangle', gain: .25}); },
+    lose: t => { [67, 66, 65, 64].forEach((m, k) => sweep(t + k * .16, .15, note(m), note(m), {duty: .5, gain: .09}));
+      sweep(t + .64, .7, note(55), note(43), {duty: .5, gain: .09}); },
+  };
+  function fx(kind) { try { fxInit(); const t = ctx.currentTime + .02; FX[kind](t);
+    if (playing && master) { master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(VOL * .08, t, .02); master.gain.setTargetAtTime(VOL * .22, t + .7, .2); } } catch (e) {} }
   // plays only on the Learn page, with the toggle on, while the book is on screen; a day/night flip swaps the song
   function sync() {
     const go = on && (PAGES[at] || {}).id === 'learn' && !document.hidden, id = want();
@@ -3043,7 +3162,7 @@ const Music = (() => {
   function duck() { if (!playing || !ctx) return; master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(VOL * .04, ctx.currentTime, .03); duckUntil = ctx.currentTime + 2.6; }
   document.addEventListener('visibilitychange', sync);
   document.addEventListener('pointerdown', () => { if (playing && ctx && ctx.state !== 'running') ctx.resume(); }, {passive: true});   // iPadOS starts audio only from a touch
-  return {sync, duck, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
+  return {sync, duck, fx, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
 })();
 // progress lives in this device's localStorage (gm.* keys); ask the browser to keep it rather than treat it as clearable cache
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
