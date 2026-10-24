@@ -407,6 +407,7 @@ table.t td.l{font-weight:800}
 .pixtitle{position:absolute;left:16px;top:14px;z-index:2;width:auto;height:auto;zoom:2.5;image-rendering:pixelated;pointer-events:none}
 @media (max-width:1100px){.pixtitle{zoom:1.8}}
 @media (max-width:980px){.pixtitle{display:none}}   /* narrower, the road runs too close to the left edge for it */
+.toolbar .music-chip{margin-top:0;align-self:center}
 .music-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 <style>
@@ -2544,7 +2545,7 @@ function quizView(v, ch, idx) {
   const back = () => { const s = state('course', {}); s.open = -1; keep('course', s); redraw(); };
   const again = () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); };
   const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
-    h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name));
+    h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name), h('div', {style: 'flex:1'}), musicToggle());
   v.append(bar);
   if (ch.reading) { readingView(v, bar, ch); return; }
 
@@ -2813,6 +2814,15 @@ const SONGS = {
            '7 - - 2+ 4+ - - 2+', '1+ - - 6 4 - - .', '5 - 3 - 1 - - -', '2 - 5 - 7 - - .',
            '3 - 5 - 7 - 5 -', '2+ - - 7 4 - - 7', '6 - - 4 1+ - 6 4', '5 - - - 3 - - .',
            '4 - 7 - 2+ - 4+ -', '6 - 4 - 1+ - - 6', '5 - 7 - 2+ - 1+ 7', '6 - - - 4 - - .']},
+  // battle: A harmonic minor — the raised 7th (G♯) makes V a major chord, so every bar of E strains back toward A.
+  // Played while a lesson is open: 160 BPM straight eighths, a 25% pulse lead, syncopated root–fifth stabs,
+  // a pumping octave triangle bass, a kick on 1 and 3, snare on 2 and 4, a hat on every eighth
+  battle: {name: 'Boss Road', bpm: 160, swing: .5, mode: [0, 2, 3, 5, 7, 8, 11], lead: 69, harm: 57, bass: 33, style: 'battle',
+    chords: [1, 1, 6, 5, 1, 1, 4, 5, 6, 4, 1, 5, 6, 4, 5, 5],
+    tune: ['1 . 1 5 3 . 1 3', '5 - 4 3 5 - . .', '6 . 6 5 6 - 1+ -', '7 - 5 - 2 - 7 -',
+           '1+ . 1+ 7 1+ - 5 3', '5 - 3 1 3 - 5 -', '4 . 4 6 1+ - 6 4', '5 - 7 2+ 7 - 5 7',
+           '1+ . 6 1+ 3+ - 1+ 6', '6 - 4 6 1+ - 6 4', '5 . 3 5 1+ - 5 3', '7 - 2+ 7 5 - 7 -',
+           '6 . 1+ 3+ 6 - 1+ -', '4 . 6 1+ 4 - 6 -', '5 . 5 7 2+ - 7 5', '7 - 7 - 7 7 2+ 7']},
 };
 for (const [id, S] of Object.entries(SONGS)) {
   S.tune = S.tune.map(b => b.split(' '));
@@ -2823,10 +2833,12 @@ for (const [id, S] of Object.entries(SONGS)) {
 }
 // the night song must really be Dorian: a minor third and a major sixth over the tonic
 console.assert(SONGS.night.mode[2] === 3 && SONGS.night.mode[5] === 9, 'night song: not Dorian');
+console.assert(SONGS.battle.mode[2] === 3 && SONGS.battle.mode[5] === 8 && SONGS.battle.mode[6] === 11, 'battle song: not harmonic minor');
 const Music = (() => {
   const VOL = .5;
   let on = store.get('course.music', false), playing = null, ctx = null, master = null, echo = null, noise = null, pulse = {}, timer = 0, nextT = 0, step = 0, duckUntil = 0;
-  const want = () => resolveTheme() === 'moon' ? 'night' : 'day';
+  const inLesson = () => { const o = state('course', {open: -1}).open; return o >= 0 && o < LESSONS.length; };
+  const want = () => inLesson() ? 'battle' : resolveTheme() === 'moon' ? 'night' : 'day';
   function wave(duty) {   // an NES-style pulse wave of the given duty cycle, built from its Fourier series
     if (pulse[duty]) return pulse[duty];
     const n = 40, re = new Float32Array(n), im = new Float32Array(n);
@@ -2850,6 +2862,12 @@ const Music = (() => {
     g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
     s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
   }
+  function kick(t) {   // the NES had no kick drum; a triangle diving in pitch is how composers faked one
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle';
+    o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + .09);
+    g.gain.setValueAtTime(.34, t); g.gain.exponentialRampToValueAtTime(.001, t + .12);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + .14);
+  }
   // schedule one eighth-note slot of a song; returns that slot's length
   function play(S, i, t) {
     const beat = 60 / S.bpm, eighth = k => beat * (k % 2 ? 1 - S.swing : S.swing);
@@ -2867,6 +2885,11 @@ const Music = (() => {
       if (s % 2 === 0) { const root = pc(r) % 12, fifth = pc(r + 4) % 12 + (pc(r + 4) % 12 < root ? 12 : 0);
         tone(S.bass + [root, fifth, root + 12, fifth][s / 2], t, beat * .42, {type: 'triangle', gain: .3}); }
       if (s === 2 || s === 6) hiss(t, .09, 1800, .09); else if (s % 2) hiss(t, .025, 7000, .025);
+    } else if (S.style === 'battle') {
+      if (s === 3 || s === 7) [r, r + 4].forEach(d => tone(S.harm + 12 + pc(d) % 12, t, .09, {duty: .5, gain: .04}));   // syncopated root–fifth stabs
+      tone(S.bass + pc(r) % 12 + (s % 2 ? 12 : 0), t, eighth(s) * .8, {type: 'triangle', gain: .27});                  // the octave pump
+      if (s === 0 || s === 4) kick(t);
+      if (s === 2 || s === 6) hiss(t, .1, 1600, .1); else hiss(t, .02, 7500, .02);
     } else {
       // a starry arpeggio up and down the chord (root, 3rd, 5th, octave root, 5th, 3rd...), quietly echoed
       const up = [0, 1, 2, 3, 2, 1, 0, 1][s], x = up === 3 ? pc(r) % 12 + 12 : pc(tri[up]) % 12 + (pc(tri[up]) % 12 < pc(r) % 12 ? 12 : 0);
@@ -2910,6 +2933,8 @@ const Music = (() => {
   document.addEventListener('pointerdown', () => { if (playing && ctx && ctx.state !== 'running') ctx.resume(); }, {passive: true});   // iPadOS starts audio only from a touch
   return {sync, duck, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
 })();
+// progress lives in this device's localStorage (gm.* keys); ask the browser to keep it rather than treat it as clearable cache
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
 // every other sound in the book goes through audio(); let the song step aside for it
 const _audio0 = audio;
 audio = function () { const c = _audio0(); Music.duck(); return c; };
