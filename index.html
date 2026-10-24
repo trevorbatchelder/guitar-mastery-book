@@ -1517,6 +1517,12 @@ function slide(c, d) {   // move a closed shape up d frets; names re-spelled, an
 }
 
 /* ================================================================ IV SCALES */
+// positions are numbered up the neck: position 1 is the lowest shape for the key (frets 0–3 or 7–10, whatever note it
+// starts on), and 2–5 climb from there. The data keeps the root box first; this re-orders every page's view of it.
+const _keyData0 = keyData, _kdUp = new Map();
+keyData = (scale, k) => { const id = scale.name + '|' + k;
+  if (!_kdUp.has(id)) { const kd = _keyData0(scale, k); _kdUp.set(id, Object.assign({}, kd, {boxes: kd.boxes.slice().sort((a, b) => a.lo - b.lo)})); }
+  return _kdUp.get(id); };
 PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
   const st = state('scales', {scale: 'Minor Pentatonic', k: 4, pos: 0, label: 'num'});
   const sv = () => keep('scales', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
@@ -1525,7 +1531,7 @@ PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · a
   v.append(h('div', {class: 'toolbar'},
     pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, lockMark('scale:' + s.name) + s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
-    seg('Position', [0, 1, 2, 3, 4].map(i => [i, String(i + 1)]), st.pos, x => set('pos', +x)),
+    seg('Position', keyData(scale, st.k).boxes.map((b, i) => [i, `${i + 1} · ${b.lo}–${b.hi}`]), st.pos, x => set('pos', +x)),
     seg('Dots show', [['num', 'Order'], ['name', 'Notes'], ['deg', 'Degrees']], st.label, x => set('label', x))));
   if (gate(v, 'scale:' + scale.name, `The ${scale.name}`)) return;
   const big = h('div', {class: 'big', style: 'max-width:340px;width:100%;margin-inline:auto'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
@@ -1533,8 +1539,8 @@ PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · a
     h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.88fr) minmax(0,1.8fr);grid-template-rows:auto 1fr;align-items:start'},
-    sec2(`${scale.name} in ${kd.key}`, `position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
-    sec2('All five positions', 'position 1 is the root box — it moves up the neck with the key · tap one to open it', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
+    sec2(`${scale.name} in ${kd.key}`, `Position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
+    sec2('All five positions', 'position 1 is the lowest shape on the neck · the others climb in order · tap one to open it', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
   const run = box.run.map(([s, f]) => [s, f]), seq = run.concat(run.slice(0, -1).reverse());
   setFocus({label: `${scale.name} in ${kd.key}, position ${st.pos + 1}, up and back`, play: (bpm, onStop, onBeat) => { const step = 60 / bpm / 2;
     Seq.run(seq.map(([s, f], k) => ({at: k * step, fn: t => { playMidi(OPEN_MIDI[s] + f, t, {kind: 'note', gain: .4, dur: step * 1.6}); if (k % 2 === 0) click(t, k === 0); },
@@ -2944,7 +2950,7 @@ const seenTerms = () => store.get('idx.seen', {});
 function markSeen(id) { const s = seenTerms(); if (!s[id]) { s[id] = 1; store.set('idx.seen', s); } }
 const seenPages = () => store.get('seen.pages', {});
 function discovered(id) {
-  if (seenTerms()[id]) return true;
+  if (bookMode() || seenTerms()[id]) return true;   // Book mode is a plain book: every term is open
   const g = CONCEPT_GOTO[id]; if (!g) return false;
   if (g[0] === 'lesson') return !!courseGot()[g[1]];
   if (g[0] === 'drill') { const t = {cof: 'cof', intervals: 'intervalname', key: 'chordsinkey', scales: 'modes', capo: 'capo', fretboard: 'neck'}[g[1]]; return !!courseGot()[t]; }
@@ -3938,7 +3944,7 @@ PAGES.push({id: 'index', no: 'VII', name: 'The Index', blurb: 'every term and id
   const row = c => discovered(c.id) ? h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short))
     : h('button', {class: 'gloss-row unfound', 'data-c': c.id, title: 'Not found yet — it still opens'}, h('b', {}, '? ' + c.term), h('span', {}, `Not found yet · ${whereFound(c.id)}`));
   const nFound = (D.concepts || []).filter(c => discovered(c.id)).length, nAll = (D.concepts || []).length;
-  body.append(h('div', {class: 'found-bar'}, h('b', {}, `${nFound} of ${nAll} found`), h('span', {}, 'clear lessons, visit pages and tap terms in the book to collect the rest'),
+  if (!bookMode()) body.append(h('div', {class: 'found-bar'}, h('b', {}, `${nFound} of ${nAll} found`), h('span', {}, 'clear lessons, visit pages and tap terms in the book to collect the rest'),
     h('div', {class: 'found-meter'}, h('i', {style: `width:${Math.round(nFound / nAll * 100)}%`}))));
   if (st.sec.startsWith('facts:')) {
     const k = st.sec.slice(6), name = (INDEX_SUBS.find(s => s[0] === k) || [])[1], facts = (D.theory.facts || []).filter(f => f.tag === k);
