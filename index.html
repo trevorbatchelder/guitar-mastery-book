@@ -1520,8 +1520,14 @@ function slide(c, d) {   // move a closed shape up d frets; names re-spelled, an
 // positions are numbered up the neck: position 1 is the lowest shape for the key (frets 0–3 or 7–10, whatever note it
 // starts on), and 2–5 climb from there. The data keeps the root box first; this re-orders every page's view of it.
 const _keyData0 = keyData, _kdUp = new Map();
+// The ★ root shape is the one players call "the box": its run starts on the home note on the low E string, with that
+// note as low in the shape as it can be (under the first finger) — A minor pentatonic frets 5–8, E at 0–3, G at 3–6.
 keyData = (scale, k) => { const id = scale.name + '|' + k;
-  if (!_kdUp.has(id)) { const kd = _keyData0(scale, k); _kdUp.set(id, Object.assign({}, kd, {boxes: kd.boxes.slice().sort((a, b) => a.lo - b.lo)})); }
+  if (!_kdUp.has(id)) { const kd = _keyData0(scale, k), boxes = kd.boxes.map(b => Object.assign({}, b)).sort((a, b) => a.lo - b.lo);
+    const rootPc = pcof(kd.key), cands = boxes.filter(b => b.run.length && b.run[0][0] === 0 && (OPEN_PC[0] + b.run[0][1]) % 12 === rootPc);
+    const best = cands.sort((a, b) => (a.run[0][1] - a.lo) - (b.run[0][1] - b.lo) || a.lo - b.lo)[0];
+    if (best) best.root = true;
+    _kdUp.set(id, Object.assign({}, kd, {boxes})); }
   return _kdUp.get(id); };
 PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
   const st = state('scales', {scale: 'Minor Pentatonic', k: 4, pos: 0, label: 'num'});
@@ -1531,16 +1537,16 @@ PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · a
   v.append(h('div', {class: 'toolbar'},
     pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, lockMark('scale:' + s.name) + s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
-    seg('Position', keyData(scale, st.k).boxes.map((b, i) => [i, `${i + 1} · ${b.lo}–${b.hi}`]), st.pos, x => set('pos', +x)),
+    seg('Position', keyData(scale, st.k).boxes.map((b, i) => [i, `${i + 1} · ${b.lo}–${b.hi}${b.root ? ' ★' : ''}`]), st.pos, x => set('pos', +x)),
     seg('Dots show', [['num', 'Order'], ['name', 'Notes'], ['deg', 'Degrees']], st.label, x => set('label', x))));
   if (gate(v, 'scale:' + scale.name, `The ${scale.name}`)) return;
   const big = h('div', {class: 'big', style: 'max-width:340px;width:100%;margin-inline:auto'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
   const thumbs = h('div', {class: 'thumbs'}, kd.boxes.map((b, i) => h('button', {class: 'thumb', 'aria-pressed': i === st.pos ? 'true' : 'false', 'aria-label': `position ${i + 1}`, on: {click: () => set('pos', i)}},
-    h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
+    h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}${b.root ? ' · ★ root' : ''}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(pcof(kd.key) + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.88fr) minmax(0,1.8fr);grid-template-rows:auto 1fr;align-items:start'},
-    sec2(`${scale.name} in ${kd.key}`, `Position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}`, `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
-    sec2('All five positions', 'position 1 is the lowest shape on the neck · the others climb in order · tap one to open it', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
+    sec2(`${scale.name} in ${kd.key}`, `Position ${st.pos + 1} · ${tm('fret', 'frets')} ${box.lo}–${box.hi}` + (box.root ? ` · <b style="color:var(--gold)">★ the root shape</b> — starts on ${kd.key}, low E string, fret ${box.run[0][1]}` : ''), `var(${POS[st.pos]})`, h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
+    sec2('All five positions', 'position 1 is the lowest shape on the neck · the others climb in order · ★ marks the root shape, the box that starts on the home note · tap one to open it', 'var(--navy)', thumbs, h('div', {class: 'scroll', html: neckSVG(kd, scale, {focus: st.pos})}))));
   const run = box.run.map(([s, f]) => [s, f]), seq = run.concat(run.slice(0, -1).reverse());
   setFocus({label: `${scale.name} in ${kd.key}, position ${st.pos + 1}, up and back`, play: (bpm, onStop, onBeat) => { const step = 60 / bpm / 2;
     Seq.run(seq.map(([s, f], k) => ({at: k * step, fn: t => { playMidi(OPEN_MIDI[s] + f, t, {kind: 'note', gain: .4, dur: step * 1.6}); if (k % 2 === 0) click(t, k === 0); },
