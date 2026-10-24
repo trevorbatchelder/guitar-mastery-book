@@ -408,6 +408,20 @@ table.t td.l{font-weight:800}
 @media (max-width:1100px){.pixtitle{zoom:1.8}}
 @media (max-width:980px){.pixtitle{display:none}}   /* narrower, the road runs too close to the left edge for it */
 .toolbar .music-chip{margin-top:0;align-self:center}
+.arena{position:relative;width:100%;max-width:720px;margin:0 auto;border-radius:14px;overflow:hidden;overflow:clip;box-shadow:0 3px 0 rgba(0,0,0,.18);flex:none}
+.arena-bg{display:block;width:100%;height:auto;image-rendering:pixelated}
+.arena-name{position:absolute;left:10px;top:8px;font-weight:900;font-size:11px;letter-spacing:.14em;background:var(--panel);color:var(--ink);padding:3px 9px;border-radius:8px;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.arena-sage,.arena-foe{position:absolute;bottom:calc(9 / 42 * 100% - 3px);transform:translateX(-50%);line-height:0}
+.arena-sage{left:26%} .arena-foe{left:72%}
+.arena.short .arena-sage,.arena.short .arena-foe{bottom:calc(9 / 30 * 100% - 3px)}
+.foe{display:block;image-rendering:pixelated;animation:foebob 1.2s steps(2) infinite}
+.foe.hit{animation:foehit .5s steps(6),foebob 1.2s steps(2) .5s infinite}
+.foe.taunt{animation:foetaunt .5s steps(4),foebob 1.2s steps(2) .5s infinite}
+.foe.beaten{animation:foebeaten .9s steps(6) forwards}
+@keyframes foebob{50%{transform:translateY(-4px)}}
+@keyframes foehit{0%,100%{filter:none;transform:none}20%,60%{filter:brightness(3);transform:translateX(7px)}40%,80%{filter:none;transform:translateX(-4px)}}
+@keyframes foetaunt{50%{transform:translateY(-10px) scaleY(1.1)}}
+@keyframes foebeaten{to{transform:translateY(36px) rotate(180deg);opacity:0}}
 .music-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 <style>
@@ -2537,6 +2551,103 @@ function buildQuiz(primary, review, n) {
   return shuffle(out);
 }
 
+/* ================================================================ THE ARENAS: a pixel battleground for each module's lessons
+   Six original worlds, themed after the journey of an 8-bit platformer (meadow → desert → sea → sky → ice → a dark keep),
+   painted in code at the map's 4-pixel art scale. Your wizard stands on the left; a small world critter on the right
+   flinches when you answer right and is beaten when you pass. Night dims every world and lights its stars. */
+const ARENAS = [
+  {name: 'The Meadow', foe: 'blob', foeCol: ['#2f8a3a', '#5fcf5a', '#bff0a0']},
+  {name: 'Sunbaked Dunes', foe: 'blob', foeCol: ['#a8642a', '#e6a84e', '#ffe0a0']},
+  {name: 'The Shoals', foe: 'blob', foeCol: ['#2a5fb0', '#5aa8f0', '#c8ecff']},
+  {name: 'Cloudtops', foe: 'blob', foeCol: ['#8aa0c8', '#f4f8ff', '#ffffff']},
+  {name: 'Frostfall', foe: 'blob', foeCol: ['#3a8ab0', '#9fe0f0', '#f0ffff']},
+  {name: 'Shadow Keep', foe: 'ghost', foeCol: ['#4a2a6a', '#9a6ad0', '#e0c8ff']},
+];
+const FOES = {
+  blob: ['....oooo....', '..oohhoooo..', '.oohooooooo.', 'oohooooooooo', 'oowkoooowkoo', 'oowkoooowkoo', 'oooooooooooo', 'oooooooooooo', '.oooooooooo.', '..oooooooo..'],
+  ghost: ['...oooooo...', '.oohhoooooo.', 'oohooooooooo', 'oooooooooooo', 'oowkoooowkoo', 'oowkoooowkoo', 'oooooooooooo', 'ooookkkkoooo', 'oooooooooooo', 'o.oo.oo.oo.o'],
+};
+// a small sprite from a character bitmap, outlined automatically like the title card
+function foeSprite(kind, [line, body, lit], px) {
+  const rows = FOES[kind], w = rows[0].length + 2, hh = rows.length + 2, cv = h('canvas', {width: w, height: hh, class: 'foe', style: `width:${w * px}px;height:${hh * px}px`});
+  const g = cv.getContext('2d'), at = (x, y) => rows[y] && rows[y][x] && rows[y][x] !== '.';
+  for (let y = -1; y <= rows.length; y++) for (let x = -1; x <= rows[0].length; x++) {
+    if (at(x, y)) { const c = rows[y][x]; g.fillStyle = c === 'h' ? lit : c === 'w' ? '#ffffff' : c === 'k' ? '#14101c' : body; g.fillRect(x + 1, y + 1, 1, 1); }
+    else if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => at(x + a, y + b))) { g.fillStyle = line; g.fillRect(x + 1, y + 1, 1, 1); }
+  }
+  return cv;
+}
+// night: pull every colour toward a deep indigo (lights and stars are drawn separately, undimmed)
+function nightOf(c, k = .55) { const n = parseInt(c.slice(1), 16), m = [20, 26, 62];
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((v, i) => Math.round(v * (1 - k) + m[i] * k).toString(16).padStart(2, '0')).join(''); }
+function paintArena(cv, world, night) {
+  const W = cv.width, H = cv.height, g = cv.getContext('2d'), col = c => night ? nightOf(c) : c;
+  const R = (x, y, w, hh, c) => { g.fillStyle = col(c); g.fillRect(x, y, w, hh); };
+  const D = (x, y, r, c) => DISC(g, x, y, r, col(c));
+  const sky = (bands) => { const n = bands.length, bh = Math.ceil(H / n);   // horizontal bands, dithered where they meet
+    bands.forEach((c, i) => { R(0, i * bh, W, bh, c); if (i) for (let x = 0; x < W; x += 2) R(x + ((i * bh) % 2), i * bh - 1, 1, 1, c); }); };
+  const hash = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;
+  const stars = () => { if (!night) return; for (let i = 0; i < 26; i++) { const x = hash(i, 7) % W, y = hash(i, 3) % Math.round(H * .55); g.fillStyle = i % 5 ? '#cfd8ff' : '#fff6c8'; g.fillRect(x, y, 1, 1); } };
+  const skyAt = (x, y) => { const d = g.getImageData(x, y, 1, 1).data; return `rgb(${d[0]},${d[1]},${d[2]})`; };
+  const moonOrSun = (x, y, r, sun) => { if (night) { const bite = skyAt(x + 2, y - 1); DISC(g, x, y, r, '#f2f0d8'); DISC(g, x + 2, y - 1, r - 1, bite); } else { DISC(g, x, y, r + 1, '#fff6c0'); DISC(g, x, y, r, '#ffe066'); } };
+  const cloud = (x, y, s = 1, c = '#ffffff', sh = '#cfe4f4') => { [[0, 2, 3], [4, 0, 4], [9, 2, 3]].forEach(([dx, dy, r]) => D(x + dx * s, y + dy * s, r * s, sh)); [[0, 1, 3], [4, -1, 4], [9, 1, 3]].forEach(([dx, dy, r]) => D(x + dx * s, y + dy * s, r * s, c)); };
+  const GY = H - 9;   // where the ground begins (the sprites stand here)
+  if (world === 0) {   // the meadow: striped green hills, puffy clouds, a grass strip over dark soil
+    sky(['#78c8f8', '#94d6fa', '#b4e4fc']); stars(); moonOrSun(W - 22, 9, 5, '#78c8f8');
+    cloud(18, 8); cloud(70, 5, 1); cloud(130, 10);
+    [[30, GY + 4, 22, '#3f9a3a'], [92, GY + 6, 30, '#2f7f2f'], [160, GY + 4, 24, '#3f9a3a']].forEach(([x, y, r, c]) => { D(x, y, r + 1, '#1e4a1e'); D(x, y, r, c); for (let k = -r; k < r; k += 6) R(x + k, y - Math.round(Math.sqrt(Math.max(0, r * r - k * k))) + 3, 1, 3, '#5fbf4a'); });
+    R(0, GY, W, 2, '#73c257'); R(0, GY + 2, W, 1, '#3f8a2f'); R(0, GY + 3, W, H - GY - 3, '#8a5428');
+    for (let x = 0; x < W; x++) for (let y = GY + 3; y < H; y++) if (hash(x, y) % 9 === 0) R(x, y, 1, 1, '#6a3e1c');
+    for (let x = 4; x < W; x += 11) { R(x, GY - 1, 1, 1, '#73c257'); if (x % 3 === 0) R(x + 2, GY - 2, 1, 1, '#ff6a6a'); }
+  } else if (world === 1) {   // the dunes: a white-hot sky, a big sun, a stepped pyramid, rolling sand, cacti
+    sky(['#ffc86a', '#ffd88a', '#ffe8b0']); stars(); moonOrSun(30, 12, 7, '#ffc86a');
+    const pb = GY + 1, px = 120; for (let s = 0; s < 14; s++) { R(px - 14 + s, pb - s * 2 - 2, 28 - s * 2, 2, s % 2 ? '#d89848' : '#e8b060'); R(px, pb - s * 2 - 2, 14 - s, 2, '#b87a34'); }
+    for (let x = 0; x < W; x++) { const y = Math.round(GY - 3 - 3 * Math.sin(x / 13) - 2 * Math.sin(x / 5.3)); R(x, y, 1, GY - y, '#f0b860'); R(x, y, 1, 1, '#ffd888'); }
+    [[56, 9], [158, 7], [16, 6]].forEach(([x, hh]) => { R(x, GY - hh, 3, hh, '#3f8a3a'); R(x - 3, GY - hh + 3, 2, 1, '#3f8a3a'); R(x - 3, GY - hh + 1, 1, 3, '#3f8a3a'); R(x + 4, GY - hh + 4, 2, 1, '#3f8a3a'); R(x + 5, GY - hh + 2, 1, 3, '#3f8a3a'); R(x, GY - hh, 1, hh, '#5fae4a'); });
+    R(0, GY, W, H - GY, '#e8a850'); for (let x = 0; x < W; x++) for (let y = GY; y < H; y++) if (hash(x, y) % 7 === 0) R(x, y, 1, 1, '#c88a3a');
+  } else if (world === 2) {   // the shoals: open sea under a bright sky, a palm island, white wave crests, a sandy shore
+    sky(['#6ab8f0', '#88caf6']); stars(); moonOrSun(22, 8, 5, '#6ab8f0'); cloud(60, 7, 1); cloud(104, 5);
+    const sea = Math.round(H * .45);
+    D(152, sea + 2, 10, '#c8a860'); D(152, sea + 2, 9, '#e8c878');   // the island, its foot hidden by the sea drawn next
+    R(151, sea - 13, 2, 14, '#8a5a2a'); [[-8, -1], [-5, -3], [2, -3], [5, -1]].forEach(([dx, dy]) => { R(152 + dx, sea - 14 + dy, 5, 1, '#2f8a3a'); R(152 + dx + (dx < 0 ? 0 : 4), sea - 13 + dy, 1, 2, '#2f8a3a'); });
+    ['#2f7fc8', '#3a8ed6', '#4a9ee0', '#5aaee8'].forEach((c, i) => R(0, sea + i * 4, W, 4, c)); R(0, sea + 16, W, GY - sea - 16, '#5aaee8');
+    for (let y = sea + 2; y < GY; y += 4) for (let x = (y * 3) % 12; x < W; x += 12) { R(x, y, 4, 1, '#d8f0ff'); R(x + 1, y - 1, 2, 1, '#ffffff'); }
+    R(0, GY, W, H - GY, '#ecd08a'); R(0, GY, W, 1, '#ffffff'); for (let x = 0; x < W; x++) for (let y = GY + 1; y < H; y++) if (hash(x, y) % 8 === 0) R(x, y, 1, 1, '#d0b06a');
+  } else if (world === 3) {   // cloudtops: deep sky fading to pale, cloud platforms climbing up like steps, a cloud floor
+    sky(['#4a96e8', '#6aaaf0', '#8ac0f6', '#b0d8fa']); stars(); moonOrSun(W - 18, 7, 5, '#4a96e8');
+    [[46, 26], [74, 21], [102, 16], [130, 11], [158, 6]].forEach(([x, y]) => { R(x, y + 2, 20, 2, '#a8bcd8'); R(x, y, 20, 2, '#ffffff'); D(x + 4, y, 3, '#ffffff'); D(x + 13, y - 1, 3, '#ffffff'); R(x, y + 4, 20, 1, '#8aa0c0'); });
+    for (let x = 0; x < W; x += 9) D(x + 4, GY + 1, 5, '#e8f2ff');
+    R(0, GY + 2, W, H - GY - 2, '#ffffff'); for (let x = 0; x < W; x += 9) R(x, GY + 5, 6, 1, '#d4e4f6');
+  } else if (world === 4) {   // frostfall: snow-capped peaks, ice blocks, a snowfield, falling flakes
+    sky(['#a8ccf0', '#c0dcf6', '#d8ecfc']); stars(); moonOrSun(26, 8, 5, '#a8ccf0');
+    [[60, 30, 26], [110, 34, 22], [160, 30, 24], [10, 30, 18]].forEach(([x, r, hh]) => { for (let k = 0; k < hh; k++) { const w = Math.round(k * r / hh); R(x - w, GY - hh + k, w * 2 + 1, 1, k < hh * .3 ? '#ffffff' : '#7f98c0'); R(x, GY - hh + k, w + 1, 1, k < hh * .3 ? '#e4eefa' : '#6a82aa'); } });
+    R(0, GY, W, H - GY, '#f4f8ff'); for (let x = 0; x < W; x++) for (let y = GY; y < H; y++) if (hash(x, y) % 6 === 0) R(x, y, 1, 1, '#c8daf0');
+    [[80, GY - 6], [86, GY - 6], [83, GY - 12], [168, GY - 6]].forEach(([x, y]) => { R(x, y, 6, 6, '#7fd0e8'); R(x, y, 6, 1, '#e0faff'); R(x, y, 1, 6, '#e0faff'); R(x + 5, y + 1, 1, 5, '#4fa8c8'); R(x + 1, y + 5, 5, 1, '#4fa8c8'); });
+    for (let i = 0; i < 30; i++) { const x = hash(i, 11) % W, y = hash(i, 5) % (GY - 2); g.fillStyle = '#ffffff'; g.fillRect(x, y, 1, 1); }
+  } else {   // shadow keep: a blood-dusk sky, a black castle with lit windows, cracked rock with lava, rising embers
+    sky(['#1a0a20', '#2e0f2a', '#4a1426', '#6a1c22']); if (night) stars();
+    DISC(g, W - 28, 10, 6, '#e8d8b0'); DISC(g, W - 26, 9, 5, nightOf('#2e0f2a', .1));
+    const cx = 92; R(cx - 24, GY - 14, 48, 14, '#120610'); [[-24, 9], [-5, 10], [15, 9]].forEach(([dx, w]) => { R(cx + dx, GY - 22, w, 8, '#120610'); for (let k = 0; k < w; k += 3) R(cx + dx + k, GY - 24, 2, 2, '#120610'); });
+    R(cx - 1, GY - 30, 3, 6, '#120610'); R(cx + 2, GY - 30, 5, 2, '#c83a2a'); R(cx - 3, GY - 6, 6, 6, '#080306');
+    [[-20, 17], [-16, 17], [-1, 18], [19, 17], [-12, 9], [10, 9], [16, 9]].forEach(([dx, dy]) => { g.fillStyle = '#ffb040'; g.fillRect(cx + dx, GY - dy, 2, 3); });
+    R(0, GY, W, H - GY, '#2a1a22'); for (let x = 0; x < W; x++) for (let y = GY; y < H; y++) if (hash(x, y) % 7 === 0) R(x, y, 1, 1, '#3a242c');
+    for (let x = 3; x < W; x += 17) { g.fillStyle = '#ff6a20'; g.fillRect(x, GY + 3 + (x % 3), 5, 1); g.fillRect(x + 4, GY + 4 + (x % 3), 4, 1); g.fillStyle = '#ffc040'; g.fillRect(x + 2, GY + 3 + (x % 3), 2, 1); }
+    for (let i = 0; i < 18; i++) { g.fillStyle = i % 3 ? '#ff8a30' : '#ffd060'; g.fillRect(hash(i, 9) % W, GY - 2 - hash(i, 4) % 30, 1, 1); }
+  }
+}
+// the arena element: the painted world, its name, the wizard (the quiz's existing sage holder) and the critter
+function arena(mod, sage, {short = false} = {}) {
+  const wi = Math.max(0, Math.min(ARENAS.length - 1, mod)), A = ARENAS[wi], night = isMoon();
+  const cv = h('canvas', {width: 180, height: short ? 30 : 42, class: 'arena-bg', 'aria-hidden': 'true'});
+  paintArena(cv, wi, night);
+  const foe = foeSprite(A.foe, night ? A.foeCol.map(c => nightOf(c, .25)) : A.foeCol, short ? 3 : 4);
+  const el = h('div', {class: 'arena' + (short ? ' short' : ''), role: 'img', 'aria-label': `World ${wi + 1}: ${A.name}`}, cv,
+    h('div', {class: 'arena-name'}, `WORLD ${wi + 1} · ${A.name.toUpperCase()}`), h('div', {class: 'arena-foe'}, foe));
+  if (sage) { sage.classList.add('arena-sage'); el.append(sage); }
+  el.hit = ok => { const f = el.querySelector('.foe'); f.classList.remove('hit', 'taunt'); void f.offsetWidth; f.classList.add(ok ? 'hit' : 'taunt'); };
+  el.beaten = won => el.querySelector('.foe').classList.add(won ? 'beaten' : 'taunt');
+  return el;
+}
 function quizView(v, ch, idx) {
   pageScroll = true;
   const id = chapKey(ch);
@@ -2547,7 +2658,7 @@ function quizView(v, ch, idx) {
   const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
     h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name), h('div', {style: 'flex:1'}), musicToggle());
   v.append(bar);
-  if (ch.reading) { readingView(v, bar, ch); return; }
+  if (ch.reading) { v.append(arena(ch.mod, h('div', {}, mageTile(0, 72)))); readingView(v, bar, ch); return; }
 
   const wrap = h('div', {style: 'max-width:720px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px'});
   v.append(wrap);
@@ -2559,7 +2670,8 @@ function quizView(v, ch, idx) {
   const opts = h('div', {style: 'display:flex;flex-wrap:wrap;gap:10px;justify-content:center'});
   const hintRow = h('div', {style: 'text-align:center;min-height:1.6em'});
   const fb = h('div', {'aria-live': 'polite', style: 'min-height:40px;text-align:center'});
-  wrap.append(sage, barOuter, counter, qh, opts, hintRow, fb);
+  const ar = arena(ch.mod, sage);
+  wrap.append(ar, barOuter, counter, qh, opts, hintRow, fb);
 
   const qs = buildQuiz(primary, review, ch.exam ? 16 : 12), need = Math.max(1, Math.ceil(qs.length * 0.75));
   // the recall bonus: every chapter past Module 1 ends with one question pulled back from an EARLIER
@@ -2583,7 +2695,7 @@ function quizView(v, ch, idx) {
     fb.textContent = ''; }
   function pick(o, Q) { if (answered) return; answered = true;
     const ok = String(o) === String(Q.a); if (ok && !Q.bonus) right++; if (ok && Q.bonus) store.set('course.gems', gems() + 1); sfx(ok);
-    sage.replaceChildren(mageTile(ok ? 2 : 0, 72));
+    sage.replaceChildren(mageTile(ok ? 2 : 0, 72)); ar.hit(ok);
     [...opts.children].forEach(btn => { btn.disabled = true; if (btn.textContent === String(Q.a)) btn.classList.add('acc'); else if (btn.textContent === String(o) && !ok) btn.style.opacity = '.45'; });
     hintRow.replaceChildren();
     fb.classList.remove('gm-right', 'gm-wrong'); void fb.offsetWidth; fb.classList.add(ok ? 'gm-right' : 'gm-wrong');
@@ -2594,7 +2706,7 @@ function quizView(v, ch, idx) {
   function finish() {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
     const passed = right >= need; if (passed) { courseClear(id); sfx(true); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; }
-    sage.replaceChildren(mageTile(passed ? 2 : 0, 72)); fill.style.width = '100%'; counter.textContent = ''; hintRow.replaceChildren();
+    sage.replaceChildren(mageTile(passed ? 2 : 0, 72)); ar.beaten(passed); fill.style.width = '100%'; counter.textContent = ''; hintRow.replaceChildren();
     qh.textContent = passed ? 'Chapter cleared!' : 'So close.'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: `You got <b>${right}</b> of ${baseN}. ${passed ? 'The next chapter is open.' : `Reach ${need} to pass — give it another go.`}`}),
       h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
