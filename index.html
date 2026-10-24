@@ -447,6 +447,19 @@ table.t td.l{font-weight:800}
 @keyframes popup{to{transform:translateX(-50%) translateY(-26px);opacity:0}}
 .pts{display:flex;align-items:baseline;gap:6px;font-weight:900;font-size:16px;color:var(--gold);align-self:center;margin-right:8px}
 .pts-gain{font-size:13px;color:var(--sage);animation:popup .9s steps(8) forwards}
+/* soft locks, test-out, the Index collection */
+.seal{max-width:560px;margin:28px auto;text-align:center;background:var(--panel);border-radius:18px;padding:28px 26px 20px;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.seal-lock{font-size:44px;line-height:1;margin-bottom:6px}
+.seal h2{font-family:var(--display);font-weight:400;letter-spacing:.08em;text-transform:uppercase;font-size:22px;margin:4px 0 8px}
+.seal p{margin:0 0 16px;line-height:1.5}
+.seal-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.seal-open{margin-top:16px;border:0;background:none;color:var(--mute);font-weight:700;text-decoration:underline;cursor:pointer}
+.peek-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:color-mix(in srgb,var(--gold) 22%,transparent);border-radius:12px;padding:8px 12px;font-weight:700;font-size:14px}
+.testout{background:rgba(255,255,255,.92);color:#2a1d10;border-color:transparent;min-height:34px;font-weight:900}
+.found-bar{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;background:var(--panel);border-radius:12px;padding:10px 14px}
+.found-bar b{font-size:17px;color:var(--navy)} .found-bar span{color:var(--mute);font-size:13px;font-weight:600}
+.found-meter{grid-column:1/-1;height:8px;border-radius:5px;background:var(--rule);overflow:hidden} .found-meter i{display:block;height:100%;background:var(--navy)}
+.gloss-row.unfound{opacity:.55;border-style:dashed} .gloss-row.unfound b{color:var(--mute)}
 .music-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </style>
 <style>
@@ -965,6 +978,7 @@ function page(i, back = false) {
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
   pageScroll = false; safeDraw(p, v); materialize(v); $('#page').scrollTop = 0; drawBar(); fitSoon(); Music.sync();
+  { const sp = seenPages(); if (!sp[p.id]) { sp[p.id] = 1; store.set('seen.pages', sp); } }
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
 const redraw = () => { const v = view(), fr = $('#page'), y = fr.scrollTop; Seq.stop(); focus = null; pageScroll = false; v.innerHTML = '';
@@ -1208,6 +1222,13 @@ const CONCEPT_GOTO = {
   'headstock': ['lesson', 'anatomy', 'Practise it in Learn'], 'nut': ['lesson', 'anatomy', 'Practise it in Learn'], 'fretboard': ['lesson', 'anatomy', 'Practise it in Learn'], 'guitar-body': ['lesson', 'anatomy', 'Practise it in Learn'], 'guitar-bridge': ['lesson', 'anatomy', 'Practise it in Learn'], 'soundhole': ['lesson', 'anatomy', 'Practise it in Learn'], 'pickup': ['lesson', 'anatomy', 'Practise it in Learn'], 'string-numbers': ['lesson', 'strings', 'Practise it in Learn'], 'standard-tuning': ['lesson', 'strings', 'Practise it in Learn'], 'relative-tuning': ['lesson', 'octaves', 'Practise it in Learn'], 'position-markers': ['lesson', 'frets', 'Practise it in Learn'], 'chord-box': ['lesson', 'diagrams', 'Practise it in Learn'], 'finger-numbers': ['lesson', 'diagrams', 'Practise it in Learn'], 'scale-diagram': ['lesson', 'diagrams', 'Practise it in Learn'], 'muted-note': ['lesson', 'tabread', 'Practise it in Learn'], 'musical-alphabet': ['lesson', 'neck', 'Practise it in Learn'], 'enharmonic': ['lesson', 'accidentals', 'Practise it in Learn'], 'double-sharp': ['lesson', 'accidentals', 'Practise it in Learn'], 'unison': ['lesson', 'interval', 'Practise it in Learn'], 'octave-shape': ['lesson', 'landmarks', 'Practise it in Learn'], 'perfect-interval': ['lesson', 'intervalquality', 'Practise it in Learn'], 'interval-quality': ['lesson', 'intervalquality', 'Practise it in Learn'], 'augmented': ['lesson', 'intervalquality', 'Practise it in Learn'], 'inversion': ['lesson', 'intervalquality', 'Practise it in Learn'], 'consonance': ['lesson', 'intervalquality', 'Practise it in Learn'], 'note-values': ['lesson', 'notation', 'Practise it in Learn'], 'rest': ['lesson', 'notation', 'Practise it in Learn'], 'beam': ['lesson', 'notation', 'Practise it in Learn'], 'dotted-note': ['lesson', 'notation', 'Practise it in Learn'], 'tie': ['lesson', 'notation', 'Practise it in Learn'], 'compound-time': ['lesson', 'notation', 'Practise it in Learn'], 'dynamics': ['lesson', 'notation', 'Practise it in Learn'], 'beat': ['lesson', 'notation', 'Practise it in Learn'], 'bar': ['lesson', 'notation', 'Practise it in Learn'], 'scale-degree': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'supertonic': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'mediant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'subdominant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'dominant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'submediant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'leading-tone': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'natural-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'harmonic-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'melodic-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'blues-scale': ['lesson', 'pentatonic', 'Practise it in Learn'], 'blue-note': ['lesson', 'pentatonic', 'Practise it in Learn'], 'parallel-key': ['lesson', 'keys', 'Practise it in Learn'], 'dominant-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'major-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'minor-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'half-diminished': ['lesson', 'sevenths', 'Practise it in Learn'], 'cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'authentic-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'plagal-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'half-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'deceptive-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'resolution': ['lesson', 'cadences', 'Practise it in Learn'], 'turnaround': ['lesson', 'progressions', 'Practise it in Learn'], 'twelve-bar-blues': ['lesson', 'progressions', 'Practise it in Learn'], 'chord-quality': ['lesson', 'qualities', 'Practise it in Learn'], 'diatonic': ['lesson', 'chordsinkey', 'Practise it in Learn'], 'ionian': ['page', 'scales', 'Open Scales & Modes'], 'dorian': ['page', 'scales', 'Open Scales & Modes'], 'phrygian': ['page', 'scales', 'Open Scales & Modes'], 'lydian': ['page', 'scales', 'Open Scales & Modes'], 'mixolydian': ['page', 'scales', 'Open Scales & Modes'], 'aeolian': ['page', 'scales', 'Open Scales & Modes'], 'locrian': ['page', 'scales', 'Open Scales & Modes'], 'scale-position': ['page', 'scales', 'Open Scales & Modes'], 'caged': ['page', 'chords', 'See it in Chords'], 'slash-chord': ['page', 'chords', 'See it in Chords'], 'sus-chord': ['page', 'chords', 'See it in Chords'], 'add9': ['page', 'chords', 'See it in Chords'], 'sixth-chord': ['page', 'chords', 'See it in Chords'], 'voicing': ['page', 'chords', 'See it in Chords'], 'strumming': ['page', 'righthand', 'Try it in Right Hand'], 'strum-pattern': ['page', 'righthand', 'Try it in Right Hand'], 'palm-muting': ['page', 'righthand', 'Try it in Right Hand'], 'chuck': ['page', 'righthand', 'Try it in Right Hand'], 'boom-chick': ['page', 'righthand', 'Try it in Right Hand'], 'fingerstyle': ['page', 'righthand', 'Try it in Right Hand'], 'pima': ['page', 'righthand', 'Try it in Right Hand'], 'alternating-bass': ['page', 'righthand', 'Try it in Right Hand'], 'travis-picking': ['page', 'righthand', 'Try it in Right Hand'], 'pinch': ['page', 'righthand', 'Try it in Right Hand'], 'rasgueado': ['page', 'righthand', 'Try it in Right Hand'], 'backbeat': ['page', 'righthand', 'Try it in Right Hand'], 'offbeat': ['page', 'righthand', 'Try it in Right Hand'], 'syncopation': ['page', 'righthand', 'Try it in Right Hand'], 'shuffle': ['page', 'righthand', 'Try it in Right Hand'], 'groove': ['page', 'righthand', 'Try it in Right Hand'], 'song-form': ['page', 'writing', 'Open Structure'], 'verse': ['page', 'writing', 'Open Structure'], 'chorus': ['page', 'writing', 'Open Structure'], 'pre-chorus': ['page', 'writing', 'Open Structure'], 'song-bridge': ['page', 'writing', 'Open Structure'], 'hook': ['page', 'writing', 'Open Structure'], 'intro-outro': ['page', 'writing', 'Open Structure'], 'solo': ['page', 'writing', 'Open Structure'],
   'power-chord': ['page', 'chords', 'Open the chord library'], 'barre': ['page', 'chords', 'See it in Chords'], 'arpeggio': ['page', 'righthand', 'Try it fingerstyle'], 'open-string': ['page', 'chords', 'Open the chord library'],
 };
+// the new chapters teach these terms, so their "practise it" buttons open those chapters
+Object.assign(CONCEPT_GOTO, Object.fromEntries(Object.entries({
+  colours: 'sus-chord add9 sixth-chord', slash: 'slash-chord inversion', strumcount: 'strumming strum-pattern boom-chick pick beat',
+  strumfeel: 'palm-muting chuck syncopation backbeat offbeat shuffle groove accent', fingerstyle: 'fingerstyle pima arpeggio', travis: 'travis-picking alternating-bass pinch',
+  lead: 'hammer-on pull-off legato slide bend vibrato alternate-picking string-skipping', powerchords: 'power-chord drop-d', barre: 'barre', caged: 'caged voicing scale-position',
+  tunings: 'alternate-tuning open-tuning', songform: 'song-form verse chorus pre-chorus song-bridge hook', forms: 'intro-outro solo', twelvebar: 'twelve-bar-blues turnaround',
+}).flatMap(([t, ids]) => ids.split(' ').map(i => [i, ['lesson', t, 'Practise it in Learn']]))));
 function conceptGoto(g) {
   const learnIdx = PAGES.findIndex(p => p.id === 'learn');
   // the old Theory-Lab drills live on as course lessons; a drill link opens that lesson's quiz
@@ -1218,6 +1239,7 @@ function conceptGoto(g) {
 }
 function openConcept(id) {
   const c = CMAP[id]; if (!c) return;
+  if ((PAGES[at] || {}).id !== 'index') markSeen(id);   // found by meeting it in the book
   const existing = $('#cpop');
   if (!existing) _cpopReturn = document.activeElement;   // remember focus on first open, not on see-also hops
   if (existing) existing.remove();
@@ -1401,8 +1423,9 @@ PAGES.push({id: 'chords', no: 'II', name: 'Chords', blurb: 'open shapes and move
   v.append(bar);
   if (openMode) {
   const st = state('chords', {fam: 0, capo: 0});
-  bar.append(pick('Family', D.families.map((f, i) => [i, `${f.title} · ${f.mood}`]), st.fam, x => { st.fam = +x; keep('chords', st); redraw(); }),
+  bar.append(pick('Family', D.families.map((f, i) => [i, `${lockMark('fam:' + f.title)}${f.title} · ${f.mood}`]), st.fam, x => { st.fam = +x; keep('chords', st); redraw(); }),
     seg('Capo', [0, 1, 2, 3, 4, 5].map(c => [c, c ? String(c) : 'none']), st.capo, x => { st.capo = +x; keep('chords', st); redraw(); }));
+  if (gate(v, 'fam:' + D.families[st.fam].title, `${D.families[st.fam].title} chords`)) return;
   const f = D.families[st.fam], col = COLOURS[st.fam];
   const colours = h('div', {});
   const showColours = c => { colours.innerHTML = ''; const same = []; for (const g of D.families) for (const ch of g.chords) if (ch.root === c.root && ch.name !== c.name && !ch.name.includes('/')) same.push({...ch, sub: g.title});
@@ -1415,8 +1438,9 @@ PAGES.push({id: 'chords', no: 'II', name: 'Chords', blurb: 'open shapes and move
   } else {
   const st = state('barre', {fam: 0, move: 0});
   const f = D.barre[st.fam], moveable = f.chords.every(c => c.frets.every(x => x !== 0));
-  bar.append(pick('Shape family', D.barre.map((b, i) => [i, `${b.title} · ${b.mood}`]), st.fam, x => { st.fam = +x; st.move = 0; keep('barre', st); redraw(); }));
+  bar.append(pick('Shape family', D.barre.map((b, i) => [i, `${lockMark('barre:' + b.title)}${b.title} · ${b.mood}`]), st.fam, x => { st.fam = +x; st.move = 0; keep('barre', st); redraw(); }));
   if (moveable) bar.append(pick('Slide it to', Array.from({length: 12}, (_, d) => [d, d ? `${SH[(f.chords[0].root + d) % 12]} · up ${d} fret${d > 1 ? 's' : ''}` : `${SH[f.chords[0].root]} · as printed`]), st.move, x => { st.move = +x; keep('barre', st); redraw(); }));
+  if (gate(v, 'barre:' + f.title, `The ${f.title}`)) return;
   const chords = f.chords.map(c => moveable && st.move ? slide(c, st.move) : c).filter(Boolean);
   const cards = chords.map(c => chordCard(c, {color: 'var(--teal)'}));
   const rf = h('table', {class: 'cells'}); rf.style.setProperty('--c', 'var(--rust)');
@@ -1450,10 +1474,11 @@ PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · a
   const scale = scaleBy(st.scale), kd = keyData(scale, st.k), box = kd.boxes[st.pos];
   v.append(header('III', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
-    pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, s.name])})), st.scale, x => set('scale', x), 'scale'),
+    pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, lockMark('scale:' + s.name) + s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
     seg('Position', [0, 1, 2, 3, 4].map(i => [i, String(i + 1)]), st.pos, x => set('pos', +x)),
     seg('Dots show', [['num', 'Order'], ['name', 'Notes'], ['deg', 'Degrees']], st.label, x => set('label', x))));
+  if (gate(v, 'scale:' + scale.name, `The ${scale.name}`)) return;
   const big = h('div', {class: 'big', style: 'max-width:340px;width:100%;margin-inline:auto'}); const draw = lit => big.innerHTML = boxSVG(box, kd, scale, {color: `var(${POS[st.pos]})`, label: st.label, lit}); draw(-1);
   const thumbs = h('div', {class: 'thumbs'}, kd.boxes.map((b, i) => h('button', {class: 'thumb', 'aria-pressed': i === st.pos ? 'true' : 'false', 'aria-label': `position ${i + 1}`, on: {click: () => set('pos', i)}},
     h('b', {style: `color:var(${POS[i]})`}, `${i + 1} · frets ${b.lo}–${b.hi}`), h('div', {html: boxSVG(b, kd, scale, {color: `var(${POS[i]})`, label: st.label})}))));
@@ -1482,9 +1507,10 @@ PAGES.push({id: 'righthand', no: 'IV', name: 'Right Hand Technique', blurb: 'str
   const st = state('rhythm', {set: 'Everyday', pat: 0, chord: 'G'});
   const sets = [...new Set(D.strums.map(s => s.set))], pats = D.strums.filter(s => s.set === st.set), P = pats[st.pat] || pats[0];
   const chordOpts = ['G', 'C', 'D', 'Em', 'Am', 'E', 'A', 'F', 'Dm'];
-  bar.append(pick('Set', sets.map(s => [s, s]), st.set, x => { st.set = x; st.pat = 0; keep('rhythm', st); redraw(); }),
+  bar.append(pick('Set', sets.map(s => [s, lockMark('strum:' + s) + s]), st.set, x => { st.set = x; st.pat = 0; keep('rhythm', st); redraw(); }),
     pick('Pattern', pats.map((p, i) => [i, `${p.name} · ${p.desc}`]), st.pat, x => { st.pat = +x; keep('rhythm', st); redraw(); }),
     pick('Strum it on', chordOpts.map(c => [c, c]), st.chord, x => { st.chord = x; keep('rhythm', st); redraw(); }));
+  if (gate(v, 'strum:' + st.set, `The “${st.set}” strums`)) return;
   const pat = Array.isArray(P.pat) ? P.pat : P.pat.split(''), n = pat.length;
   const SYM = {D: '↓', U: '↑', X: '↓', x: '✕', M: 'M', B: 'B', '-': ''};
   const grid = h('div', {class: 'sgrid', style: `--n:${n}`}, P.count.map(c => h('div', {class: 'ct' + (/^\d+$/.test(c) ? ' b' : '')}, c)),
@@ -1506,8 +1532,9 @@ PAGES.push({id: 'righthand', no: 'IV', name: 'Right Hand Technique', blurb: 'str
   } else {
   const st = state('finger', {set: 0, pat: 0});
   const S = D.finger[st.set], P = S.patterns[st.pat] || S.patterns[0];
-  bar.append(pick('Set', D.finger.map((f, i) => [i, f.title]), st.set, x => { st.set = +x; st.pat = 0; keep('finger', st); redraw(); }),
+  bar.append(pick('Set', D.finger.map((f, i) => [i, lockMark('finger:' + f.title) + f.title]), st.set, x => { st.set = +x; st.pat = 0; keep('finger', st); redraw(); }),
     pick(S.song ? 'Chord' : 'Pattern', S.patterns.map((p, i) => [i, `${p.name} · ${p.desc}`]), st.pat, x => { st.pat = +x; keep('finger', st); redraw(); }));
+  if (gate(v, 'finger:' + S.title, `“${S.title}”`)) return;
   const tab = h('div', {class: 'scroll'}); const draw = lit => tab.innerHTML = tabSVG2(P.steps, {lit, scale: 1.75}); draw(-1);
   const cname = S.song ? P.name : P.desc.split(' · ')[0], known = shapeByName(cname);
   const ch = {frets: P.chord, fingers: known && known.frets.join() === P.chord.join() ? known.fingers : [], name: cname};
@@ -1538,7 +1565,8 @@ PAGES.push({id: 'writing', no: 'V', name: 'Structure', blurb: 'how songs are bui
   if (!['build', 'inkey', 'moves'].includes(st.topic)) st.topic = 'build';
   const sv = () => keep('harmony', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const topics = [['build', 'Build any chord'], ['inkey', 'Chords in a key'], ['moves', 'How chords move']];
-  bar.append(pick('Topic', topics, st.topic, x => set('topic', x)));
+  bar.append(pick('Topic', topics.map(([k, l]) => [k, lockMark('harm:' + k) + l]), st.topic, x => set('topic', x)));
+  if (gate(v, 'harm:' + st.topic, topics.find(t => t[0] === st.topic)[1])) return;
   const tools = bar;
   const body = h('div', {class: 'body', style: 'align-content:start'});
   const tonic = D.majKeys[st.key];
@@ -1588,9 +1616,10 @@ PAGES.push({id: 'writing', no: 'V', name: 'Structure', blurb: 'how songs are bui
   const sv = () => keep('writing', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const groups = [...new Set(D.progs.map(p => p.group))], ps = D.progs.filter(p => p.group === st.group), P = ps[st.prog] || ps[0];
   const shapePick = pick('Song shape', D.gallery.map((g, i) => [i, g.name]), st.shape, x => set('shape', +x));
-  bar.append(pick('Progressions', groups.map(g => [g, g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
+  bar.append(pick('Progressions', groups.map(g => [g, lockMark('prog:' + g) + g]), st.group, x => { st.group = x; st.prog = 0; sv(); redraw(); }),
     pick('Key', D.majKeys.map((k, i) => [i, `${k} major · ${D.minKeys[(i + 9) % 12]} minor`]), st.key, x => set('key', +x)),
     pick('Strum', D.strums.map((s, i) => [i, s.name]), st.strum, x => set('strum', +x)));
+  if (gate(v, 'prog:' + st.group, `The “${st.group}” progressions`)) return;
   const tonicOf = p => p.minor ? D.minKeys[(st.key + 9) % 12] : D.majKeys[st.key];
   const list = h('div', {class: 'prog-list'}, ps.map((p, i) => h('button', {class: 'prog-item' + (i === st.prog ? ' on' : ''), on: {click: () => set('prog', i)}},
     h('div', {class: 'pl-top'}, h('b', {}, p.num), h('span', {}, p.toks.map(t => chordName(tonicOf(p), p.minor, t).name).join(' – '))),
@@ -2098,9 +2127,18 @@ const MODULES = [
     {topic: 'neck', name: 'Reading Notes on the Fretboard'},
     {topic: 'landmarks', name: 'Landmarks & Octave Shapes'},
     {topic: 'octaves', name: 'Octaves & Tuning'}]},
+  // the picking hand: what the Right Hand Technique page teaches
+  {name: 'Rhythm & the Right Hand', acc: '#b8457a', lessons: [
+    {topic: 'strumcount', name: 'Counting & Strumming'},
+    {topic: 'strumfeel', name: 'Feel: Accents, Muting & Syncopation'},
+    {topic: 'fingerstyle', name: 'Fingerstyle & p i m a'},
+    {topic: 'travis', name: 'Travis Picking & the Pinch'},
+    {topic: 'lead', name: 'Hammer-ons, Pull-offs, Slides & Bends'}]},
   {name: 'Chords & Harmony', acc: '#3a5a9c', lessons: [
     {topic: 'triads', name: 'How Chords Are Built'},
+    {topic: 'colours', name: 'Chord Colours: Sus, Add9 & Sixths'},
     {topic: 'sevenths', name: 'Seventh Chords'},
+    {topic: 'slash', name: 'Slash Chords & Inversions'},
     {topic: 'chordsinkey', name: 'Chords in a Key'},
     {topic: 'qualities', name: 'Roman Numerals & Qualities'},
     {topic: 'progressions', name: 'Common Progressions'},
@@ -2119,6 +2157,17 @@ const MODULES = [
     {topic: 'pentatonic', name: 'Pentatonics & the Blues Scale'},
     {topic: 'scaledegrees', name: 'Scale Degree Names'},
     {topic: 'modes', name: 'Scales & Modes'}]},
+  // the neck opened up: what the Barre side of the Chords page and the tunings teach
+  {name: 'Up the Neck', acc: '#5a6878', lessons: [
+    {topic: 'powerchords', name: 'Power Chords & Drop D'},
+    {topic: 'barre', name: 'Barre Chords: E, A & D Shapes'},
+    {topic: 'caged', name: 'CAGED: One Chord, Five Places'},
+    {topic: 'tunings', name: 'Alternate Tunings'}]},
+  // how songs are built: what the Structure page teaches
+  {name: 'Songcraft', acc: '#7a4a8a', lessons: [
+    {topic: 'songform', name: 'Song Sections'},
+    {topic: 'forms', name: 'Form Letters: AABA & Friends'},
+    {topic: 'twelvebar', name: 'The 12-Bar Blues'}]},
   // the final boss: learn to read standard notation chapter by chapter, then face the exam
   {name: 'Reading Music', acc: '#7a4a34', lessons: [
     {reading: ['open'], name: 'The Staff & Open Strings'},
@@ -2561,6 +2610,172 @@ QBANK.chordsinkey.push(
   () => { const tonic = _KEYS[rnd(12)], a = chordName(tonic, false, _PAL[5]).name; return {q: `In ${tonic} major, the vi chord — the relative minor — is:`, a, opts: shuffle([a, ...sample(_KEYS.filter(k => k !== tonic).map(k => chordName(k, false, _PAL[5]).name), 3)]), hint: 'Build on degree 6.', why: `Degree 6 of ${tonic} major carries the relative minor chord, ${a}.`}; });
 QBANK.keys.push(
   () => ({q: 'C major and C minor are called ____ keys: same tonic, different scales.', a: 'parallel', opts: shuffle(['parallel', 'relative', 'enharmonic', 'chromatic']), hint: 'Not the "relative" pair.', why: 'Parallel keys share a tonic (C major / C minor); relative keys share notes (C major / A minor).'}));
+// ---- the chapters that teach the rest of the book: chord colours, the right hand, up the neck, songcraft.
+// Every question that names a note, chord, count or pattern is computed from D.* (the asserted data the pages draw).
+const _STR = ['low E', 'A', 'D', 'G', 'B', 'high e'];
+const _FIN = {p: 'p — the thumb', i: 'i — the index', m: 'm — the middle', a: 'a — the ring finger'};
+const _fam = t => D.families.find(f => f.title === t);
+const _rootOf = name => /^[A-G][♯♭]?/.exec(name)[0];
+const _up = (name, n) => SH[(pcof(_rootOf(name)) + n) % 12];
+const _ACC = {0: '', 1: '♯', 2: '𝄪', 11: '♭', 10: '𝄫'};
+// the note `semis` above `root` whose letter is `steps` letters up (2nd = 1, 3rd = 2, 4th = 3, 5th = 4, 6th = 5)
+function _spell(root, semis, steps) { const L = 'CDEFGAB', t = L[(L.indexOf(root[0]) + steps) % 7], d = ((pcof(root) + semis - pcof(t)) % 12 + 12) % 12; return t + _ACC[d]; }
+const _an = n => /^[AEF]/.test(n) ? 'an ' + n : 'a ' + n;
+const _strums = D.strums.filter(s => s.pat.length === 8 && s.count[1] === '&');
+const _countAt = (P, j) => P.count[j] === '&' ? `the & of ${Math.floor(j / 2) + 1}` : `beat ${P.count[j]}`;
+const _COUNTS = ['beat 1', 'the & of 1', 'beat 2', 'the & of 2', 'beat 3', 'the & of 3', 'beat 4', 'the & of 4'];
+const _numOpts = (a, lo = 1, hi = 8) => shuffle([a, ...sample([...Array(hi - lo + 1)].map((_, k) => lo + k).filter(x => x !== a), 3)].map(String));
+const _SECNAME = {Intro: 'the intro', V: 'a verse', Pre: 'the pre-chorus', Ch: 'the chorus', Bridge: 'the bridge', Solo: 'a solo', Outro: 'the outro', Refrain: 'the refrain'};
+const _secName = s => _SECNAME[s.replace(/\d+$/, '')] || s;
+Object.assign(QBANK, {
+  colours: [
+    () => ({q: 'A sus chord replaces the chord’s 3rd with:', a: 'the 2nd or the 4th', opts: shuffle(['the 2nd or the 4th', 'the 7th', 'the root an octave up', 'a flat 5th']), hint: 'Sus = suspended — the 3rd is left hanging.', why: 'Sus2 swaps the 3rd for the 2nd, sus4 for the 4th. With no 3rd the chord is neither major nor minor — open, waiting to resolve.'}),
+    () => { const c = sample(_fam('Suspended').chords.filter(x => /^[A-G][♯♭]?sus[24]$/.test(x.name)), 1)[0], four = c.name.endsWith('4'), r = _rootOf(c.name), F = _spell(r, 7, 4), a = `${r} ${four ? _spell(r, 5, 3) : _spell(r, 2, 1)} ${F}`;
+      return {q: `Which notes make ${c.name}?`, a, opts: shuffle([a, `${r} ${_spell(r, 4, 2)} ${F}`, `${r} ${_spell(r, 3, 2)} ${F}`, `${r} ${four ? _spell(r, 2, 1) : _spell(r, 5, 3)} ${F}`]), hint: `Root, the ${four ? '4th' : '2nd'}, the 5th.`, why: `${c.name} is the root ${r}, its ${four ? '4th' : '2nd'} ${four ? _spell(r, 5, 3) : _spell(r, 2, 1)} in place of the 3rd, and the 5th ${F}.`}; },
+    () => ({q: 'Neither major nor minor, a sus chord usually wants to:', a: 'resolve back to the plain chord', opts: shuffle(['resolve back to the plain chord', 'jump up an octave', 'be played muted', 'end the song']), hint: 'Dsus4 → D.', why: 'The suspended note leans toward the 3rd it replaced — Dsus4 → D is the classic move.'}),
+    () => ({q: 'Cadd9 is a C major chord plus:', a: 'the 9th (D), keeping the 3rd', opts: shuffle(['the 9th (D), keeping the 3rd', 'the 7th (B♭)', 'the 4th (F) instead of the 3rd', 'the 6th (A)']), hint: 'Add = add on top; nothing is taken away.', why: 'Add9 stacks the 9th — the 2nd an octave up, D for C — over a full triad. A sus2 would drop the 3rd instead.'}),
+    () => ({q: 'A 9 chord (like E9) differs from an add9 chord because it also has:', a: 'the ♭7', opts: shuffle(['the ♭7', 'a missing 3rd', 'a raised 5th', 'no root']), hint: 'A 9 chord is a 7 chord grown taller.', why: 'E9 is E7 plus the 9th. Add9 skips the 7th; that is the whole difference.'}),
+    () => { const c = sample(_fam('Sixth').chords.filter(x => /^[A-G][♯♭]?6$/.test(x.name)), 1)[0], a = _spell(_rootOf(c.name), 9, 5);
+      return {q: `${c.name} is ${_an(_rootOf(c.name))} major chord with which added note?`, a, opts: nOpts(a), hint: 'Count up a major 6th — 9 half steps.', why: `The 6th of ${_rootOf(c.name)} is ${a}, nine half steps up. Sixth chords sound sweet and vintage — the swing and country ending.`}; },
+    () => ({q: 'The 9th and the 2nd are:', a: 'the same note name, an octave apart', opts: shuffle(['the same note name, an octave apart', 'a half step apart', 'unrelated notes', 'always a tritone apart']), hint: '9 = 7 + 2.', why: 'Past the octave, add 7: the 9th is the 2nd, the 11th is the 4th, the 13th is the 6th.'}),
+  ],
+  slash: [
+    () => ({q: 'In a slash chord like G/B, the letter after the slash is:', a: 'the bass note', opts: shuffle(['the bass note', 'the key', 'the next chord', 'the capo fret']), hint: 'Chord over bass.', why: 'Chord/bass: G/B is a G chord with B as its lowest note.'}),
+    () => { const c = sample(_fam('Slash').chords, 1)[0], b = c.name.split('/')[1]; return {q: `Which note is in the bass of ${c.name}?`, a: b, opts: nOpts(b), hint: 'Read after the slash.', why: `${c.name} is a ${c.name.split('/')[0]} chord with ${b} played lowest.`}; },
+    () => { const c = sample(_fam('Slash').chords, 1)[0], [ch, b] = c.name.split('/'), minor = /m/.test(ch.replace(/^[A-G][♯♭]?/, '')), iv = (pcof(b) - pcof(_rootOf(ch)) + 12) % 12;
+      const a = iv === (minor ? 3 : 4) ? 'its 3rd — first inversion' : iv === 7 ? 'its 5th — second inversion' : 'a note outside the chord — a passing bass';
+      return {q: `In ${c.name}, the bass note is the chord’s:`, a, opts: shuffle(['its 3rd — first inversion', 'its 5th — second inversion', 'a note outside the chord — a passing bass', 'its root']), hint: `Count from ${_rootOf(ch)} up to ${b}.`, why: `${b} is ${iv} half steps above ${_rootOf(ch)}, so it is ${a}.`}; },
+    () => ({q: 'Putting the 3rd of a chord in the bass makes:', a: 'first inversion', opts: shuffle(['first inversion', 'root position', 'second inversion', 'a power chord']), hint: 'Root = root position, 3rd = first, 5th = second.', why: 'Root in the bass is root position; the 3rd gives first inversion; the 5th gives second inversion.'}),
+    () => ({q: 'The move G → G/B → C is used because:', a: 'the bass walks up G, B, C', opts: shuffle(['the bass walks up G, B, C', 'it changes key', 'it avoids the root', 'it is easier to strum']), hint: 'Listen to the lowest notes.', why: 'Slash chords let the bass step smoothly between chords — a walking bass line made of chords.'}),
+    () => ({q: 'Am/G puts G under an A minor chord. G is Am’s:', a: '♭7', opts: shuffle(['♭7', '3rd', '5th', '2nd']), hint: 'A down a whole step.', why: 'G sits a whole step below A — the ♭7. Am → Am/G → … is a descending bass line, a staple of ballads.'}),
+    () => ({q: 'A chord with its root in the bass is in:', a: 'root position', opts: shuffle(['root position', 'first inversion', 'second inversion', 'slash position']), hint: 'Named after the root.', why: 'Root position means the chord’s name note is lowest; any other bass note makes an inversion or a slash chord.'}),
+  ],
+  strumcount: [
+    () => ({q: 'Counting eighth notes in 4/4, you say:', a: '1 & 2 & 3 & 4 &', opts: shuffle(['1 & 2 & 3 & 4 &', '1 2 3 4 5 6 7 8', '1 e & a 2 e & a', '1 2 & 3 4 &']), hint: 'Each beat splits in two.', why: 'Two eighths per beat: the number is on the beat, the & is halfway between.'}),
+    () => ({q: 'In standard strumming, downstrokes fall on:', a: 'the numbers (the beats)', opts: shuffle(['the numbers (the beats)', 'the &s', 'only beat 1', 'wherever feels right']), hint: 'Down with the foot tap.', why: 'The hand swings down on every beat and up on every &, so downstrokes land on the numbers and upstrokes on the &s.'}),
+    () => ({q: 'When a strum pattern has a gap, your strumming hand should:', a: 'keep moving and miss the strings', opts: shuffle(['keep moving and miss the strings', 'stop and wait', 'mute the strings', 'speed up to catch up']), hint: 'The arm is the clock.', why: 'The hand never stops: on a gap you swing past without touching the strings, so the next stroke lands in time.'}),
+    () => { const P = sample(_strums.filter(s => s.pat.includes('U')), 1)[0], j = P.pat.indexOf('U'), a = _countAt(P, j);
+      return {q: `In the strum “${P.name}”, the first upstroke lands on:`, a, opts: shuffle([a, ...sample(_COUNTS.filter(x => x !== a), 3)]), hint: 'Upstrokes live on the &s.', why: `“${P.name}” goes ${P.pat.map(k => k === '-' ? '·' : k).join(' ')} over 1 & 2 & 3 & 4 &, so its first U is on ${a}.`}; },
+    () => { const P = sample(_strums, 1)[0], n = P.pat.filter(k => k !== '-').length;
+      return {q: `How many strokes are in one bar of “${P.name}” (${P.pat.map(k => k === '-' ? '·' : k).join(' ')})?`, a: String(n), opts: _numOpts(n), hint: 'Count everything that is not a dot.', why: `${n} of the 8 slots are struck; the dots are where the hand swings past.`}; },
+    () => ({q: 'D – D U – U D U is the pattern known as:', a: 'the one everyone learns', opts: shuffle(['the one everyone learns', 'the reggae skank', 'the train beat', 'the gallop']), hint: 'It fits thousands of songs.', why: 'Down, down-up, up-down-up — the most common pop/folk strum, the book’s “one everyone learns”.'}),
+    () => ({q: 'A “bass, strum” or boom-chick pattern plays:', a: 'a bass note on the beat, a strum on the offbeat', opts: shuffle(['a bass note on the beat, a strum on the offbeat', 'only bass notes', 'two strums per beat', 'a strum on the beat, a bass note on the &']), hint: 'Boom (bass), chick (strum).', why: 'The thumb or pick takes a bass string on the beat; the strum answers between. It is the backbone of country and folk.'}),
+  ],
+  strumfeel: [
+    () => ({q: 'An accent on beats 2 and 4 is called:', a: 'the backbeat', opts: shuffle(['the backbeat', 'the downbeat', 'syncopation', 'the push']), hint: 'Where the snare drum lands.', why: 'Rock and pop put the snare — and the strummer’s accent — on 2 and 4: the backbeat.'}),
+    () => ({q: 'Palm muting (M) means:', a: 'resting the picking-hand edge on the strings by the bridge', opts: shuffle(['resting the picking-hand edge on the strings by the bridge', 'pressing the strings with the fretting hand', 'playing with the palm instead of a pick', 'covering the soundhole']), hint: 'It gives the “chug”.', why: 'The side of the picking hand lightly damps the strings at the bridge, keeping their pitch but cutting the ring.'}),
+    () => ({q: 'A ✕ or “chuck” in a strum pattern is:', a: 'a strum on strings muted by the fretting hand', opts: shuffle(['a strum on strings muted by the fretting hand', 'a missed strum', 'a bass note', 'a loud accent']), hint: 'A click, not a chord.', why: 'Loosen the fretting fingers so the strings go dead and strum: a percussive chuck, usually on 2 and 4.'}),
+    () => ({q: 'Syncopation means accenting:', a: 'the offbeats or the gaps where a beat is expected', opts: shuffle(['the offbeats or the gaps where a beat is expected', 'every beat equally', 'only beat 1', 'the last bar of a song']), hint: 'Off the beat.', why: 'Stressing the “&” or leaving a beat empty surprises the ear — that pull is what makes a rhythm groove.'}),
+    () => ({q: 'The “push” changes chord:', a: 'one eighth early, on the & before the beat', opts: shuffle(['one eighth early, on the & before the beat', 'exactly on beat 1', 'a bar late', 'only at the end of a song']), hint: 'It anticipates.', why: 'Landing the new chord on the last & of the bar pushes the rhythm forward — a classic syncopation.'}),
+    () => ({q: 'A shuffle (swing) feel turns even eighths into:', a: 'long-short pairs, from a triplet', opts: shuffle(['long-short pairs, from a triplet', 'short-long pairs', 'sixteenth notes', 'one note per bar']), hint: 'Da—da da—da.', why: 'Each beat splits into three; you play the first and third parts, so the pair goes long-short.'}),
+    () => ({q: 'Reggae’s skank puts the chord stab on:', a: 'the offbeats (the &s)', opts: shuffle(['the offbeats (the &s)', 'beat 1 only', 'every beat', 'beats 1 and 3']), hint: 'Off the beat, short and choppy.', why: 'The skank is a short, damped stab on each & — the guitar answers the bass and drums between the beats.'}),
+    () => { const P = sample(D.strums.filter(s => s.pat.includes('M')), 1)[0], n = P.pat.filter(k => k === 'M').length;
+      return {q: `In “${P.name}” (${P.pat.map(k => k === '-' ? '·' : k).join(' ')}), how many strokes are palm-muted?`, a: String(n), opts: _numOpts(n, 1, P.pat.length), hint: 'Count the M’s.', why: `${n} strokes carry an M — palm-muted — in “${P.name}”.`}; },
+  ],
+  fingerstyle: [
+    () => ({q: 'In fingerstyle, the letters p i m a name:', a: 'the picking-hand thumb and fingers', opts: shuffle(['the picking-hand thumb and fingers', 'the fretting fingers', 'four strum directions', 'four chord shapes']), hint: 'From the Spanish names.', why: 'p pulgar (thumb), i índice, m medio, a anular (ring) — the classical names for the picking hand.'}),
+    () => { const k = sample(['p', 'i', 'm', 'a'], 1)[0], nm = x => _FIN[x].split(' — ')[1]; return {q: `In p i m a, the letter ${k} means:`, a: nm(k), opts: shuffle(['p', 'i', 'm', 'a'].map(nm)), hint: 'p thumb, then index, middle, ring.', why: `${k} is ${_FIN[k].split(' — ')[1]}.`}; },
+    () => ({q: 'In basic fingerstyle the thumb (p) usually plays:', a: 'the bass strings, 6 5 and 4', opts: shuffle(['the bass strings, 6 5 and 4', 'only the high e', 'the B string', 'every string equally']), hint: 'Low strings, low finger.', why: 'p takes the bass strings; i, m and a take the G, B and high e — one finger per string.'}),
+    () => { const S = D.finger[0], P = sample(S.patterns, 1)[0], k = P.steps[0].rh[0];
+      return {q: `In “${P.name}” (${P.desc}), which finger plays the first note?`, a: _FIN[k], opts: shuffle(Object.values(_FIN)), hint: 'Patterns usually start in the bass.', why: `The first step of “${P.name}” is marked ${k} — ${_FIN[k].split(' — ')[1]}.`}; },
+    () => ({q: 'An arpeggio is:', a: 'a chord played one note at a time', opts: shuffle(['a chord played one note at a time', 'a fast strum', 'a scale run', 'a muted chord']), hint: 'A broken chord.', why: 'Hold the chord and pick its notes in turn — the heart of fingerstyle.'}),
+    () => ({q: 'Playing fingerstyle, the fretting hand should:', a: 'hold the whole chord while the picking hand plays its notes', opts: shuffle(['hold the whole chord while the picking hand plays its notes', 'lift between every note', 'only press the bass note', 'press the strings one at a time']), hint: 'Let the notes ring together.', why: 'Hold the full shape so every picked note rings into the next, blending into the chord.'}),
+    () => { const P = sample(D.finger[0].patterns, 1)[0], n = P.steps.length;
+      return {q: `“${P.name}” has how many picked steps in one cycle?`, a: String(n), opts: _numOpts(n, 4, 12), hint: 'Count the columns of the tab.', why: `“${P.name}” cycles through ${n} steps before it repeats.`}; },
+  ],
+  travis: [
+    () => ({q: 'Travis picking is built on:', a: 'an alternating thumb bass', opts: shuffle(['an alternating thumb bass', 'strumming with a pick', 'palm muting', 'tremolo picking']), hint: 'The thumb keeps walking.', why: 'The thumb rocks between two bass notes on every beat while the fingers pick melody above — Merle Travis’s style.'}),
+    () => { const P = D.finger.find(f => f.title === 'Travis Picking').patterns[0], ss = [...new Set(P.steps.filter(s => s.rh.includes('p')).map(s => s.notes[0][0]))].map(s => _STR[s]), a = ss.join(' and ');
+      return {q: `In “${P.name}” on C, the thumb rocks between which two strings?`, a, opts: shuffle([a, 'low E and high e', 'G and B', 'B and high e']), hint: 'Two of the bass strings.', why: `The thumb alternates the ${a} strings — root and fifth of the chord — on every beat.`}; },
+    () => ({q: 'The first rule of learning Travis picking is:', a: 'get the thumb running alone first', opts: shuffle(['get the thumb running alone first', 'start at full speed', 'learn the melody first', 'use a pick']), hint: 'Autopilot thumb.', why: 'The bass has to run without thought; add one finger at a time on top of it.'}),
+    () => ({q: 'A pinch is:', a: 'the thumb and a finger plucking at the same moment', opts: shuffle(['the thumb and a finger plucking at the same moment', 'squeezing the neck', 'a muted strum', 'a hammer-on']), hint: 'Two notes together.', why: 'A pinch strikes a bass note and a melody note together — it marks the beat in Travis style.'}),
+    () => ({q: 'In Travis picking the thumb plays:', a: 'on every beat', opts: shuffle(['on every beat', 'only on beat 1', 'on the &s', 'never']), hint: 'Steady as a clock.', why: 'The thumb keeps a steady quarter-note bass; the fingers fill the &s between.'}),
+    () => ({q: 'Alternating bass usually rocks between a chord’s:', a: 'root and another chord tone (often the 5th)', opts: shuffle(['root and another chord tone (often the 5th)', 'two random notes', 'the two highest strings', 'root and ♭7']), hint: 'Boom, boom — root, fifth.', why: 'Root to 5th (or 3rd) keeps the harmony clear in the bass while the fingers add melody.'}),
+    () => ({q: 'The fingers in Travis picking mostly play:', a: 'between and on top of the bass, often on the &s', opts: shuffle(['between and on top of the bass, often on the &s', 'the same notes as the thumb', 'only on beat 1', 'the low E string']), hint: 'The thumb owns the beats.', why: 'Fingers pick the treble strings, often off the beat, so the pattern sounds like two players.'}),
+  ],
+  lead: [
+    () => ({q: 'A hammer-on (h) sounds a note by:', a: 'bringing a finger down hard without picking again', opts: shuffle(['bringing a finger down hard without picking again', 'picking twice', 'sliding into it', 'bending the string']), hint: 'The fretting hand does the work.', why: 'Pick once, then hammer a higher fret: the impact sounds the new note.'}),
+    () => ({q: 'In tab, 5h7 means:', a: 'pick fret 5, then hammer onto fret 7', opts: shuffle(['pick fret 5, then hammer onto fret 7', 'pick both frets', 'slide from 5 to 7', 'bend fret 5 to sound like 7']), hint: 'h = hammer.', why: 'The first fret is picked; the h tells you to sound the 7 with the fretting hand alone.'}),
+    () => ({q: 'A pull-off (p) sounds a lower note by:', a: 'flicking the finger off so a finger behind it rings', opts: shuffle(['flicking the finger off so a finger behind it rings', 'picking it again', 'lifting the whole hand', 'muting the string']), hint: 'The reverse of a hammer-on.', why: 'Pull the higher finger off with a little sideways flick; the note fretted behind it (or the open string) sounds.'}),
+    () => { const f = 3 + rnd(10), full = rnd(2), a = String(f + (full ? 2 : 1));
+      return {q: `A ${full ? 'full' : '½'} bend on fret ${f} should match the pitch of fret:`, a, opts: shuffle([a, String(f + (full ? 1 : 2)), String(f + 3), String(f)]), hint: full ? 'Full = a whole step = two frets.' : '½ = a half step = one fret.', why: `A ${full ? 'full bend raises a whole step (two frets)' : 'half bend raises a half step (one fret)'}, so fret ${f} bent should sound like fret ${a}.`}; },
+    () => ({q: 'In tab, a / between two numbers (5/7) means:', a: 'slide up from 5 to 7', opts: shuffle(['slide up from 5 to 7', 'hammer from 5 to 7', 'play 5 or 7', 'bend 5 to 7']), hint: '/ climbs, \\ falls.', why: 'A slash is a slide: keep pressure on and glide the finger along the string while the note rings.'}),
+    () => ({q: 'Vibrato (~) is:', a: 'a gentle, even wobble in pitch on a held note', opts: shuffle(['a gentle, even wobble in pitch on a held note', 'a fast strum', 'a volume swell', 'a muted note']), hint: 'Tiny repeated bends.', why: 'Small, even bends back and forth make a held note sing — the voice of lead guitar.'}),
+    () => ({q: 'Playing smoothly with hammer-ons, pull-offs and slides instead of picking each note is called:', a: 'legato', opts: shuffle(['legato', 'staccato', 'tremolo', 'syncopation']), hint: 'Italian for “tied together”.', why: 'Legato means connected — notes flow into each other without a new pick attack.'}),
+    () => ({q: 'Alternate picking means:', a: 'strict down-up-down-up strokes, one per note', opts: shuffle(['strict down-up-down-up strokes, one per note', 'all downstrokes', 'picking every other string', 'switching between pick and fingers']), hint: 'Never two the same way in a row.', why: 'Down, up, down, up: the most efficient motion for even, fast single-note lines.'}),
+  ],
+  powerchords: [
+    () => ({q: 'A power chord is made of:', a: 'the root and the 5th (often with the root an octave up)', opts: shuffle(['the root and the 5th (often with the root an octave up)', 'root, 3rd and 5th', 'root and 3rd', 'root and ♭7']), hint: 'Written like G5.', why: 'Root + perfect 5th, often doubled at the octave. That is why it is written with a 5.'}),
+    () => { const c = sample(D.barre.find(b => b.title === 'Power Chords').chords, 1)[0], r = _rootOf(c.name), a = `${r} and ${_spell(r, 7, 4)}`;
+      return {q: `${c.name} contains which two notes?`, a, opts: shuffle([a, `${r} and ${_spell(r, 4, 2)}`, `${r} and ${_spell(r, 5, 3)}`, `${r} and ${_spell(r, 3, 2)}`]), hint: 'Root and a perfect 5th — 7 half steps.', why: `${c.name} is ${r} plus its 5th, ${_spell(r, 7, 4)}.`}; },
+    () => ({q: 'Power chords are neither major nor minor because:', a: 'they have no 3rd', opts: shuffle(['they have no 3rd', 'they have no root', 'they are always muted', 'they use only open strings']), hint: 'The 3rd sets the mood.', why: 'Without a 3rd there is nothing to say major or minor, so one shape fits either.'}),
+    () => { const f = 1 + rnd(10), a = SH[(OPEN_PC[0] + f) % 12] + '5';
+      return {q: `A power chord with its root on the low E string at fret ${f} is:`, a, opts: shuffle([a, ...sample(SH.filter(n => n + '5' !== a), 3).map(n => n + '5')]), hint: 'Name the low-E note under your first finger.', why: `Low E plus ${f} half steps is ${a.slice(0, -1)}, so the chord is ${a}.`}; },
+    () => ({q: 'Power chords sound especially good with:', a: 'distortion — the bare 5th stays clear', opts: shuffle(['distortion — the bare 5th stays clear', 'only a clean acoustic', 'a capo above fret 7', 'fingerstyle']), hint: 'Rock and metal’s favourite.', why: 'Distortion muddies the 3rd of a full chord; the simple root–5th stays punchy.'}),
+    () => ({q: 'In Drop D, the open low three strings (D A D) make:', a: 'a D5 power chord', opts: shuffle(['a D5 power chord', 'a D major chord', 'a Dm chord', 'nothing useful']), hint: 'Root, 5th, octave.', why: 'D, A, D is root–5th–octave: a power chord you can move with one finger.'}),
+    () => ({q: 'Drop D tuning lowers:', a: 'the 6th string a whole step, to D', opts: shuffle(['the 6th string a whole step, to D', 'every string a whole step', 'the 1st string to D', 'the D string an octave']), hint: 'Just one string changes.', why: D.tunings.find(t => t.name === 'Drop D').notes.join(' ') + ' — only the low E drops a whole step to D.'}),
+  ],
+  barre: [
+    () => ({q: 'An E-shape barre chord is:', a: 'the open E chord moved up, with a finger barring where the nut was', opts: shuffle(['the open E chord moved up, with a finger barring where the nut was', 'any chord on the E string', 'an E chord with a capo', 'a power chord']), hint: 'Your index finger becomes the nut.', why: 'Re-finger the open E with fingers 2–4, lay the index across a fret, and the whole shape slides to any key.'}),
+    () => { const t = sample(['', 'm'], 1)[0], pc = rnd(12), name = SH[pc] + t, f = ((pc - OPEN_PC[0]) % 12 + 12) % 12 || 12;
+      return {q: `To play ${name} as an E-shape barre, barre at fret:`, a: String(f), opts: _numOpts(f, 1, 12), hint: 'Find the root on the low E string.', why: `${SH[pc]} sits at fret ${f} of the low E string, and the E shape is named from that string.`}; },
+    () => { const pc = rnd(12), name = SH[pc] + sample(['', 'm'], 1)[0], f = ((pc - OPEN_PC[1]) % 12 + 12) % 12 || 12;
+      return {q: `To play ${name} as an A-shape barre, the root sits at fret:`, a: String(f), opts: _numOpts(f, 1, 12), hint: 'Find the root on the A string.', why: `${SH[pc]} is at fret ${f} of the A string — the A shape takes its name from there.`}; },
+    () => ({q: 'The A-shape barre chord takes its root from:', a: 'the 5th (A) string', opts: shuffle(['the 5th (A) string', 'the 6th (low E) string', 'the 4th (D) string', 'the high e string']), hint: 'It is the open A chord moved up.', why: 'Open A has its root on the A string, so the moved shape is named from the 5th string.'}),
+    () => ({q: 'The D-shape barre chord takes its root from:', a: 'the 4th (D) string', opts: shuffle(['the 4th (D) string', 'the 5th (A) string', 'the 6th (low E) string', 'the B string']), hint: 'The open D chord, moved up.', why: 'The D shape keeps its root on the D string — handy high on the neck.'}),
+    () => ({q: 'A barre buzzes or dies. The first fix is to:', a: 'press just behind the fret with the bony edge of the finger', opts: shuffle(['press just behind the fret with the bony edge of the finger', 'press as hard as possible in the middle of the fret', 'raise the action', 'use a lighter pick']), hint: 'Position before power.', why: 'Right behind the fret, rolled slightly onto the harder edge, takes far less force than squeezing harder.'}),
+    () => ({q: 'Sliding one barre shape up 2 frets changes the chord by:', a: 'a whole step — F becomes G', opts: shuffle(['a whole step — F becomes G', 'a half step', 'nothing', 'a fifth']), hint: 'One fret per half step.', why: 'Every fret is a half step, so two frets move any barre chord up a whole step: F → G.'}),
+  ],
+  caged: [
+    () => ({q: 'CAGED stands for the five open shapes:', a: 'C, A, G, E and D', opts: shuffle(['C, A, G, E and D', 'C, A, G, E and B', 'chord, arpeggio, groove, ear, dynamics', 'C, Am, G, Em, D']), hint: 'Spell it out.', why: 'C, A, G, E and D — five open chord shapes that become moveable all over the neck.'}),
+    () => { const O = 'CAGED', k = rnd(5), a = O[(k + 1) % 5];
+      return {q: `Climbing the neck for one chord, the shape after the ${O[k]} shape is the:`, a: a + ' shape', opts: shuffle([a + ' shape', ...sample([...O].filter(x => x !== a), 3).map(x => x + ' shape')]), hint: 'The order is in the name, and it wraps round.', why: `The shapes link in the order C → A → G → E → D → C…, so after ${O[k]} comes ${a}.`}; },
+    () => ({q: 'How many places on the neck can CAGED give you for the same chord?', a: '5', opts: shuffle(['5', '3', '2', '12']), hint: 'One per letter.', why: 'Each of the five shapes plays the same chord in its own region; together they cover the fretboard.'}),
+    () => ({q: 'The big idea of CAGED is that:', a: 'every chord can be played in five linked shapes up the neck', opts: shuffle(['every chord can be played in five linked shapes up the neck', 'only five chords exist', 'you need five capos', 'C is the only key']), hint: 'One chord, five places.', why: 'The shapes interlock like puzzle pieces; learn them and any chord is under your hand anywhere.'}),
+    () => ({q: 'Each CAGED chord shape also has:', a: 'a matching scale position around it', opts: shuffle(['a matching scale position around it', 'its own tuning', 'a fixed strum pattern', 'no root note']), hint: 'Chords and scales share boxes.', why: 'The notes of the chord shape sit inside one of the five scale positions — the link between chords and solos.'}),
+    () => ({q: '“A Whole Key in One Place” means:', a: 'playing every chord of a key without leaving one area of the neck', opts: shuffle(['playing every chord of a key without leaving one area of the neck', 'using only open strings', 'one chord for the whole song', 'tuning to the key']), hint: 'No big jumps.', why: 'Barre and CAGED shapes let you find I, ii, iii, IV, V and vi within a few frets of each other.'}),
+    () => ({q: 'The E and A shapes of CAGED are better known as:', a: 'the two main barre chord shapes', opts: shuffle(['the two main barre chord shapes', 'power chords', 'sus chords', 'open tunings']), hint: 'Root on the 6th and 5th strings.', why: 'The E shape (root on string 6) and A shape (root on string 5) are the barre chords most players learn first.'}),
+  ],
+  tunings: [
+    () => { const T = sample(D.tunings, 1)[0], a = T.name; return {q: `Which tuning is ${T.notes.join(' ')} (low to high)?`, a, opts: shuffle([a, ...sample(D.tunings.filter(t => t !== T).map(t => t.name).concat(['Standard']), 3)]), hint: 'Compare it with E A D G B E.', why: `${T.notes.join(' ')} is ${a} — ${T.mood}.`}; },
+    () => { const T = sample(D.tunings, 1)[0], n = T.changed.filter(Boolean).length; return {q: `Starting from standard tuning, how many strings change for ${T.name}?`, a: String(n), opts: _numOpts(n, 1, 6), hint: `Compare ${T.notes.join(' ')} with E A D G B E.`, why: `${n} string${n > 1 ? 's' : ''} move${n > 1 ? '' : 's'}: ${T.notes.map((x, i) => T.changed[i] ? `${_STR[i]} → ${x}` : null).filter(Boolean).join(', ')}.`}; },
+    () => ({q: 'In an open tuning like Open G, strumming all the open strings plays:', a: 'a chord — G major', opts: shuffle(['a chord — G major', 'a G scale', 'a dissonant cluster', 'nothing in tune']), hint: 'That is why it is called open.', why: 'Open G is D G D G B D — only G, B and D: a G major chord with no fingers down.'}),
+    () => ({q: 'In an open tuning, one finger barred straight across a fret plays:', a: 'the open chord moved up — a new major chord', opts: shuffle(['the open chord moved up — a new major chord', 'a power chord only', 'a minor chord', 'a random cluster']), hint: 'The open strings already make a chord.', why: 'Since the open strings form a chord, a straight bar moves that whole chord up — the basis of slide guitar.'}),
+    () => ({q: 'DADGAD is loved for its:', a: 'ringing, modal sound — neither major nor minor', opts: shuffle(['ringing, modal sound — neither major nor minor', 'heavy metal riffs', 'jazz chords', 'lowest possible pitch']), hint: 'D A D G A D has no F or F♯.', why: 'With no 3rd in the open strings it rings as Dsus4 — a Celtic, modal shimmer.'}),
+    () => { const T = sample(D.tunings.filter(t => t.chords && t.chords.length), 1)[0], c = sample(T.chords, 1)[0], a = T.name;
+      return {q: `The chord ${c.name} played with frets ${c.frets.map(f => f < 0 ? 'x' : f).join(' ')} belongs to which tuning?`, a, opts: shuffle([a, ...sample(D.tunings.filter(t => t !== T).map(t => t.name), 3)]), hint: 'Look for open strings that only make sense in one tuning.', why: `That shape is listed under ${a} (${T.notes.join(' ')}) — in standard tuning the same frets would make a different chord.`}; },
+    () => ({q: 'Most standard-tuning chord shapes in an alternate tuning will:', a: 'sound different — the shapes must be relearned', opts: shuffle(['sound different — the shapes must be relearned', 'sound exactly the same', 'sound an octave higher', 'only work with a capo']), hint: 'The strings changed, so the notes under your fingers did.', why: 'Shapes are tied to the tuning; that is why each tuning in the book comes with its own chords.'}),
+  ],
+  songform: [
+    () => ({q: 'The verse of a song usually:', a: 'tells the story; its music repeats while the words change', opts: shuffle(['tells the story; its music repeats while the words change', 'repeats the same words every time', 'is played once at the end', 'has no chords']), hint: 'New words, same tune.', why: 'Verses move the story forward over the same music each time.'}),
+    () => ({q: 'The chorus is:', a: 'the part that returns with the same words and the main hook', opts: shuffle(['the part that returns with the same words and the main hook', 'the first section of every song', 'an instrumental break', 'the quietest part']), hint: 'Everyone sings along to it.', why: 'The chorus repeats words and melody — it carries the hook and is usually the high point.'}),
+    () => ({q: 'A pre-chorus:', a: 'builds tension between the verse and the chorus', opts: shuffle(['builds tension between the verse and the chorus', 'replaces the chorus', 'ends the song', 'is always a guitar solo']), hint: 'A ramp up.', why: 'A short section that lifts out of the verse and sets up the chorus to land harder.'}),
+    () => ({q: 'A song’s bridge is:', a: 'a contrasting section, usually once, before a last chorus', opts: shuffle(['a contrasting section, usually once, before a last chorus', 'the part of the guitar under the strings', 'the first verse', 'the intro']), hint: 'Something new before home.', why: 'The bridge changes chords or feel so the final chorus feels like coming home.'}),
+    () => { const G = sample(D.gallery.filter(g => g.secs.some(s => /^V1$/.test(s[0]))), 1)[0], k = G.secs.findIndex(s => s[0] === 'V1'), nx = G.secs[k + 1], a = _secName(nx[0]);
+      return {q: `In the song shape “${G.name}”, what comes right after the first verse?`, a, opts: shuffle([a, ...sample(['the intro', 'the pre-chorus', 'the chorus', 'the bridge', 'a solo', 'the outro', 'the refrain'].filter(x => x !== a), 3)]), hint: `Read the shape: ${G.secs.map(s => s[0]).join(' → ')}.`, why: `“${G.name}” runs ${G.secs.map(s => s[0]).join(' → ')}, so after V1 comes ${a}.`}; },
+    () => { const G = D.gallery[0], c = G.secs.find(s => /^Ch/.test(s[0])); return {q: `In “${G.name}”, how many bars long is the chorus?`, a: String(c[1]), opts: shuffle(['4', '8', '12', '16'].includes(String(c[1])) ? ['4', '8', '12', '16'] : [String(c[1]), '4', '8', '12']), hint: 'Song sections come in 4s and 8s.', why: `The chorus in “${G.name}” is ${c[1]} bars.`}; },
+    () => ({q: 'A hook is:', a: 'the catchy part you remember — a line, riff or rhythm', opts: shuffle(['the catchy part you remember — a line, riff or rhythm', 'the last chord', 'a type of capo', 'the intro’s first note']), hint: 'It gets stuck in your head.', why: 'Choruses are built around a hook — the bit listeners hum afterwards.'}),
+  ],
+  forms: [
+    () => ({q: 'In form letters like AABA, each letter stands for:', a: 'a section of music; the same letter means the same music', opts: shuffle(['a section of music; the same letter means the same music', 'a chord', 'a key', 'a strum pattern']), hint: 'A comes back, B is different.', why: 'Letters label sections: repeat a letter and the music repeats; a new letter brings new music.'}),
+    () => ({q: 'AABA is the classic form of:', a: 'the 32-bar standard', opts: shuffle(['the 32-bar standard', 'the 12-bar blues', 'a rondo', 'the verse–chorus pop song']), hint: 'Four sections of 8 bars.', why: 'Four 8-bar sections — tune, tune, bridge, tune — made the 32-bar song of Tin Pan Alley and jazz standards.'}),
+    () => ({q: 'In AABA, the B section is also called:', a: 'the bridge (or middle eight)', opts: shuffle(['the bridge (or middle eight)', 'the chorus', 'the coda', 'the intro']), hint: 'It sits in the middle and is 8 bars.', why: 'The B of AABA is the contrasting bridge, often called the middle eight.'}),
+    () => ({q: 'A strophic song:', a: 'repeats the same music for every verse', opts: shuffle(['repeats the same music for every verse', 'has no repeats at all', 'alternates two choruses', 'is always instrumental']), hint: 'Verse, verse, verse.', why: 'Strophic form sets every verse to the same music — ballads, hymns and many folk songs.'}),
+    () => ({q: 'A rondo (ABACA) is a form where:', a: 'the main tune keeps returning between new sections', opts: shuffle(['the main tune keeps returning between new sections', 'every section is different', 'the song ends on B', 'only two sections exist']), hint: 'A, then something, then A again.', why: 'A comes back after each contrasting episode — B, then C — so the main idea frames everything.'}),
+    () => ({q: '“Head – solos – head” is the usual form of:', a: 'a jazz tune', opts: shuffle(['a jazz tune', 'a punk song', 'a lullaby', 'a hymn']), hint: 'Play the tune, improvise, play the tune.', why: 'Jazz players state the melody (the head), take solos over its chords, then play the head again.'}),
+    () => { const G = sample(D.gallery, 1)[0], n = G.secs.length; return {q: `The song shape “${G.name}” has how many sections?`, a: String(n), opts: _numOpts(n, Math.max(1, n - 4), n + 4), hint: `Count them: ${G.secs.map(s => s[0]).join(', ')}.`, why: `“${G.name}” is ${G.secs.map(s => s[0]).join(' → ')} — ${n} sections.`}; },
+  ],
+  twelvebar: [
+    () => ({q: 'The 12-bar blues uses which three chords?', a: 'I, IV and V', opts: shuffle(['I, IV and V', 'ii, iii and vi', 'I, vi and IV', 'I, ♭III and ♭VII']), hint: 'The three major chords of a key.', why: 'The 12-bar blues cycles the I, IV and V chords in a fixed order.'}),
+    () => { const t = _KEYS[rnd(12)], I = chordName(t, false, _PAL[0]).name, IV = chordName(t, false, _PAL[3]).name, V = chordName(t, false, _PAL[4]).name, a = `${I}, ${IV} and ${V}`;
+      return {q: `A 12-bar blues in ${t} uses:`, a, opts: shuffle([a, ...sample(_KEYS.filter(k => k !== t), 3).map(k => `${chordName(k, false, _PAL[0]).name}, ${chordName(k, false, _PAL[3]).name} and ${chordName(k, false, _PAL[4]).name}`)]), hint: 'Build I, IV and V on that key.', why: `In ${t}, I is ${I}, IV is ${IV} and V is ${V}.`}; },
+    () => ({q: 'In the standard 12-bar blues, bar 5 moves to the:', a: 'IV chord', opts: shuffle(['IV chord', 'V chord', 'vi chord', 'I chord, staying put']), hint: 'Four bars of I, then…', why: 'I I I I · IV IV I I · V IV I V — the second line opens on IV.'}),
+    () => ({q: 'In the 12-bar blues, the V chord first arrives in bar:', a: '9', opts: shuffle(['9', '5', '2', '12']), hint: 'It opens the last line.', why: 'Bars 9–12 go V IV I V: the V starts the third line and returns in the turnaround.'}),
+    () => ({q: 'The last bar of a 12-bar blues usually plays the V chord to:', a: 'turn the progression around to the top', opts: shuffle(['turn the progression around to the top', 'end the song for good', 'change key', 'start a solo']), hint: 'A turnaround.', why: 'That final V pulls the ear back to the I chord at bar 1 — the turnaround.'}),
+    () => ({q: 'A 12-bar blues is usually played with:', a: 'a shuffle feel — long-short eighths', opts: shuffle(['a shuffle feel — long-short eighths', 'only whole notes', 'a waltz in 3/4', 'no rhythm at all']), hint: 'Da—da da—da.', why: 'Swung, long-short eighths — often written 12/8 — are the blues’ default feel.'}),
+    () => ({q: 'The scale most often soloed over a 12-bar blues is:', a: 'the minor pentatonic or blues scale', opts: shuffle(['the minor pentatonic or blues scale', 'the Lydian mode', 'the chromatic scale only', 'the harmonic minor']), hint: 'Five notes, plus a blue one.', why: 'The minor pentatonic — with the ♭5 blue note added — is the classic blues soloing sound, even over major chords.'}),
+  ],
+});
 // Build a chapter quiz: mostly the chapter's topic, with a few review questions woven in from the previous chapter.
 function buildQuiz(primary, review, n) {
   const out = [], seen = new Set(); let g = 0;
@@ -2574,17 +2789,126 @@ function buildQuiz(primary, review, n) {
   return shuffle(out);
 }
 
+/* ================================================================ UNLOCKS: the game opens the book
+   Soft locks: a reference item tied to a lesson stays sealed until that lesson is cleared. A sealed item is still
+   listed (🔒) and can always be peeked at; "Open book" unlocks everything. Each key is page:item → the chapter
+   (chapKey) that unlocks it. Anything not listed here is open from the start. */
+const UNLOCKS = {
+  'fam:Minor': 'diagrams', 'fam:Dim & Aug': 'triads', 'fam:Dominant 7': 'sevenths', 'fam:Minor 7': 'sevenths', 'fam:Major 7': 'sevenths',
+  'fam:Suspended': 'colours', 'fam:Sixth': 'colours', 'fam:Add9 & 9': 'colours', 'fam:Slash': 'slash', 'fam:Power': 'powerchords',
+  'barre:E-Shape': 'barre', 'barre:A-Shape': 'barre', 'barre:D-Shape': 'barre', 'barre:Easier Barres': 'barre', 'barre:Power Chords': 'powerchords',
+  'barre:One Chord, Five Places': 'caged', 'barre:A Whole Key in One Place': 'caged',
+  'scale:Major Scale': 'scalewhat', 'scale:Natural Minor': 'majmin', 'scale:Harmonic Minor': 'minorscales', 'scale:Blues Scale': 'pentatonic',
+  'scale:Mixolydian': 'modes', 'scale:Dorian': 'modes', 'scale:Lydian': 'modes', 'scale:Phrygian': 'modes',
+  'strum:Bass & strum': 'strumcount', 'strum:Busy': 'strumcount', 'strum:Threes': 'strumfeel', 'strum:Feels': 'strumfeel', 'strum:More feels': 'strumfeel', 'strum:Palm muting': 'strumfeel',
+  'finger:More Patterns': 'fingerstyle', 'finger:Right-Hand Drills': 'fingerstyle', 'finger:Arpeggio Through a Song': 'fingerstyle', 'finger:Flamenco': 'fingerstyle',
+  'finger:Travis Picking': 'travis', 'finger:Going Further': 'travis', 'finger:Travis Through a Song': 'travis',
+  'harm:build': 'triads', 'harm:inkey': 'chordsinkey', 'harm:moves': 'cadences',
+  'prog:Sad & Minor': 'progressions', 'prog:Dreamy & Open': 'progressions', 'prog:Jazz & Soul': 'sevenths', 'prog:Blues & Epic': 'twelvebar',
+  'prog:Turnarounds & Endings': 'cadences', 'prog:More Colours': 'colours',
+};
+const PEEK = new Set();   // peeks last for this session only
+const openBook = () => store.get('openbook', false);
+const lessonFor = key => LESSONS.find(l => chapKey(l) === UNLOCKS[key]);
+const isOpen = key => openBook() || !UNLOCKS[key] || !!courseGot()[UNLOCKS[key]];
+const lockMark = key => isOpen(key) ? '' : '🔒 ';
+function goLesson(L) { const s = state('course', {}); s.open = LESSONS.indexOf(L); s.challenge = -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn')); }
+// call after a page's toolbar: if the chosen item is sealed, draw the seal and return true (the page stops there)
+function gate(v, key, label) {
+  if (isOpen(key)) return false;
+  const L = lessonFor(key);
+  if (PEEK.has(key)) { v.append(h('div', {class: 'peek-bar'}, `👁 Peeking at ${label} · clear “${L.name}” to unlock it for good`,
+    h('button', {class: 'btn small', on: {click: () => goLesson(L)}}, 'Take the lesson'))); return false; }
+  v.append(h('div', {class: 'seal'},
+    h('div', {class: 'seal-lock', 'aria-hidden': 'true'}, '🔒'),
+    h('h2', {}, `Sealed · ${label}`),
+    h('p', {html: `It opens when you clear <b>${L.name}</b> in <b>${L.modName}</b> on the Learn road.`}),
+    h('div', {class: 'seal-btns'},
+      h('button', {class: 'btn acc', on: {click: () => goLesson(L)}}, '⚔ Take the lesson'),
+      h('button', {class: 'btn', on: {click: () => { PEEK.add(key); redraw(); }}}, '👁 Peek anyway')),
+    h('button', {class: 'seal-open', on: {click: () => { store.set('openbook', true); redraw(); }}}, '📖 Or open the whole book — unlock everything')));
+  return true;
+}
+// the toggle that lives on the Learn page
+function openBookToggle() {
+  return h('label', {class: 'pick'}, h('span', {}, 'Open book'),
+    h('button', {class: 'btn' + (openBook() ? ' acc' : ''), style: 'min-height:40px', title: 'Unlock every page now, without the course',
+      on: {click: () => { store.set('openbook', !openBook()); redraw(); }}}, openBook() ? '📖 Everything open' : '🔒 Unlock as I learn'));
+}
+
+/* ---------------- the Index as a collection: a term is "found" when you clear its lesson, visit its page, or open it
+   from inside the book. Nothing is hidden — undiscovered terms still open — they just are not counted yet. */
+const seenTerms = () => store.get('idx.seen', {});
+function markSeen(id) { const s = seenTerms(); if (!s[id]) { s[id] = 1; store.set('idx.seen', s); } }
+const seenPages = () => store.get('seen.pages', {});
+function discovered(id) {
+  if (seenTerms()[id]) return true;
+  const g = CONCEPT_GOTO[id]; if (!g) return false;
+  if (g[0] === 'lesson') return !!courseGot()[g[1]];
+  if (g[0] === 'drill') { const t = {cof: 'cof', intervals: 'intervalname', key: 'chordsinkey', scales: 'modes', capo: 'capo', fretboard: 'neck'}[g[1]]; return !!courseGot()[t]; }
+  if (g[0] === 'page') return !!seenPages()[g[1]];
+  return false;
+}
+function whereFound(id) {
+  const g = CONCEPT_GOTO[id]; if (!g) return 'tap it anywhere in the book';
+  if (g[0] === 'lesson') { const L = LESSONS.find(l => l.topic === g[1]); return L ? `clear “${L.name}”` : 'keep learning'; }
+  if (g[0] === 'page') { const P = PAGES.find(p => p.id === g[1]); return P ? `visit ${P.name}` : 'keep exploring'; }
+  return 'keep learning';
+}
+
+/* ---------------- backing up progress: every gm.* key, as a file to save or a code to copy */
+function progressBlob() { const o = {}; for (let k = 0; k < localStorage.length; k++) { const key = localStorage.key(k); if (key && key.startsWith('gm.')) o[key] = localStorage.getItem(key); }
+  return {book: 'guitar-mastery', saved: new Date().toISOString(), keys: o}; }
+const toCode = obj => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+const fromCode = s => JSON.parse(decodeURIComponent(escape(atob(s.trim()))));
+function restoreProgress(obj) {
+  if (!obj || obj.book !== 'guitar-mastery' || typeof obj.keys !== 'object') throw new Error('not a Guitar Mastery backup');
+  Object.keys(localStorage).filter(k => k.startsWith('gm.')).forEach(k => localStorage.removeItem(k));
+  Object.entries(obj.keys).forEach(([k, val]) => { if (k.startsWith('gm.')) localStorage.setItem(k, val); });
+}
+function backupPanel() {
+  const close = () => wrap.remove();
+  const msg = h('div', {class: 'muted', style: 'min-height:1.3em;font-weight:700'});
+  const area = h('textarea', {rows: 3, placeholder: 'Paste a backup code here to restore it', style: 'width:100%;font:13px/1.3 ui-monospace,monospace;border-radius:10px;padding:8px;border:1.5px solid var(--rule);background:var(--panel);color:var(--ink)'});
+  const file = h('input', {type: 'file', accept: '.json,application/json', style: 'display:none', on: {change: e => { const f = e.target.files[0]; if (!f) return;
+    f.text().then(t => ask(JSON.parse(t))).catch(() => msg.textContent = 'That file is not a Guitar Mastery backup.'); }}});
+  let pending = null;
+  const confirmRow = h('div', {style: 'display:none;gap:10px;align-items:center;flex-wrap:wrap'});
+  function ask(obj) { try { if (!obj || obj.book !== 'guitar-mastery') throw 0; } catch (e) { msg.textContent = 'That is not a Guitar Mastery backup.'; return; }
+    pending = obj; const n = JSON.parse(obj.keys['gm.course.cleared'] || '{}'); msg.textContent = '';
+    confirmRow.replaceChildren(h('span', {style: 'font-weight:700'}, `Replace this iPad’s progress with the backup from ${new Date(obj.saved).toLocaleDateString()} (${Object.keys(n).length} lessons cleared)?`),
+      h('button', {class: 'btn acc', on: {click: () => { restoreProgress(pending); location.reload(); }}}, 'Yes, restore it'), h('button', {class: 'btn', on: {click: () => { confirmRow.style.display = 'none'; pending = null; }}}, 'Cancel'));
+    confirmRow.style.display = 'flex'; }
+  const save = () => { const blob = new Blob([JSON.stringify(progressBlob(), null, 1)], {type: 'application/json'}), a = h('a', {href: URL.createObjectURL(blob), download: `guitar-mastery-progress-${today()}.json`});
+    document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); msg.textContent = 'Saved — keep the file in Files or iCloud Drive.'; };
+  const copy = () => { const code = toCode(progressBlob()); (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => msg.textContent = 'Backup code copied — paste it into Notes to keep it.', () => { area.value = code; area.select(); msg.textContent = 'Copy the code from the box below.'; }); };
+  const card = h('div', {class: 'cpop-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Back up progress', style: 'max-width:520px', on: {click: e => e.stopPropagation()}},
+    h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: close}}, '×'),
+    h('h3', {}, 'Your progress'),
+    h('p', {class: 'cpop-short'}, 'Progress lives only on this iPad. Back it up to keep it safe, or to move it to another device.'),
+    h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;margin:10px 0'}, h('button', {class: 'btn acc', on: {click: save}}, '⬇ Save a backup file'), h('button', {class: 'btn', on: {click: copy}}, '⧉ Copy a backup code')),
+    h('div', {style: 'border-top:1px solid var(--rule);margin:12px 0 10px'}),
+    h('div', {style: 'display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px'}, h('button', {class: 'btn', on: {click: () => file.click()}}, '⬆ Restore from a file'),
+      h('button', {class: 'btn', on: {click: () => { try { ask(fromCode(area.value)); } catch (e) { msg.textContent = 'That code did not read — check it was pasted whole.'; } }}}, 'Restore from the code')),
+    area, file, confirmRow, msg);
+  const wrap = h('div', {id: 'cpop', on: {click: close}}, card);
+  document.body.append(wrap);
+}
+
 /* ================================================================ THE ARENAS: a pixel battleground for each module's lessons
-   Six original worlds, themed after the journey of an 8-bit platformer (meadow → desert → sea → sky → ice → a dark keep),
+   Nine original worlds, themed after the journey of an 8-bit platformer (meadow, desert, giant garden, sea, sky, ice, pipeworks, a grove, a dark keep),
    painted in code at the map's 4-pixel art scale. Your wizard stands on the left; a small world critter on the right
    flinches when you answer right and is beaten when you pass. Night dims every world and lights its stars. */
 const ARENAS = [
-  {name: 'The Meadow', foe: 'blob', foeCol: ['#2f8a3a', '#5fcf5a', '#bff0a0']},
-  {name: 'Sunbaked Dunes', foe: 'blob', foeCol: ['#a8642a', '#e6a84e', '#ffe0a0']},
-  {name: 'The Shoals', foe: 'blob', foeCol: ['#2a5fb0', '#5aa8f0', '#c8ecff']},
-  {name: 'Cloudtops', foe: 'blob', foeCol: ['#8aa0c8', '#f4f8ff', '#ffffff']},
-  {name: 'Frostfall', foe: 'blob', foeCol: ['#3a8ab0', '#9fe0f0', '#f0ffff']},
-  {name: 'Shadow Keep', foe: 'ghost', foeCol: ['#4a2a6a', '#9a6ad0', '#e0c8ff']},
+  {name: 'The Meadow', scene: 'meadow', foe: 'blob', foeCol: ['#2f8a3a', '#5fcf5a', '#bff0a0']},
+  {name: 'Sunbaked Dunes', scene: 'dunes', foe: 'blob', foeCol: ['#a8642a', '#e6a84e', '#ffe0a0']},
+  {name: 'Giant’s Garden', scene: 'giant', foe: 'blob', foeCol: ['#b8457a', '#ff8ac0', '#ffe0f0']},
+  {name: 'The Shoals', scene: 'shoals', foe: 'blob', foeCol: ['#2a5fb0', '#5aa8f0', '#c8ecff']},
+  {name: 'Cloudtops', scene: 'sky', foe: 'blob', foeCol: ['#8aa0c8', '#f4f8ff', '#ffffff']},
+  {name: 'Frostfall', scene: 'frost', foe: 'blob', foeCol: ['#3a8ab0', '#9fe0f0', '#f0ffff']},
+  {name: 'Copperworks', scene: 'pipes', foe: 'blob', foeCol: ['#6a3a1a', '#d8843a', '#ffd0a0']},
+  {name: 'Twilight Grove', scene: 'grove', foe: 'ghost', foeCol: ['#1e4a34', '#6ad08e', '#d8ffe8']},
+  {name: 'Shadow Keep', scene: 'keep', foe: 'ghost', foeCol: ['#4a2a6a', '#9a6ad0', '#e0c8ff']},
 ];
 const FOES = {
   blob: ['....oooo....', '..oohhoooo..', '.oohooooooo.', 'oohooooooooo', 'oowkoooowkoo', 'oowkoooowkoo', 'oooooooooooo', 'oooooooooooo', '.oooooooooo.', '..oooooooo..'],
@@ -2603,7 +2927,7 @@ function foeSprite(kind, [line, body, lit], px) {
 // night: pull every colour toward a deep indigo (lights and stars are drawn separately, undimmed)
 function nightOf(c, k = .55) { const n = parseInt(c.slice(1), 16), m = [20, 26, 62];
   return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((v, i) => Math.round(v * (1 - k) + m[i] * k).toString(16).padStart(2, '0')).join(''); }
-function paintArena(cv, world, night) {
+function paintArena(cv, scene, night) {
   const W = cv.width, H = cv.height, g = cv.getContext('2d'), col = c => night ? nightOf(c) : c;
   const R = (x, y, w, hh, c) => { g.fillStyle = col(c); g.fillRect(x, y, w, hh); };
   const D = (x, y, r, c) => DISC(g, x, y, r, col(c));
@@ -2615,20 +2939,20 @@ function paintArena(cv, world, night) {
   const moonOrSun = (x, y, r, sun) => { if (night) { const bite = skyAt(x + 2, y - 1); DISC(g, x, y, r, '#f2f0d8'); DISC(g, x + 2, y - 1, r - 1, bite); } else { DISC(g, x, y, r + 1, '#fff6c0'); DISC(g, x, y, r, '#ffe066'); } };
   const cloud = (x, y, s = 1, c = '#ffffff', sh = '#cfe4f4') => { [[0, 2, 3], [4, 0, 4], [9, 2, 3]].forEach(([dx, dy, r]) => D(x + dx * s, y + dy * s, r * s, sh)); [[0, 1, 3], [4, -1, 4], [9, 1, 3]].forEach(([dx, dy, r]) => D(x + dx * s, y + dy * s, r * s, c)); };
   const GY = H - 9;   // where the ground begins (the sprites stand here)
-  if (world === 0) {   // the meadow: striped green hills, puffy clouds, a grass strip over dark soil
+  if (scene === 'meadow') {   // the meadow: striped green hills, puffy clouds, a grass strip over dark soil
     sky(['#78c8f8', '#94d6fa', '#b4e4fc']); stars(); moonOrSun(W - 22, 9, 5, '#78c8f8');
     cloud(18, 8); cloud(70, 5, 1); cloud(130, 10);
     [[30, GY + 4, 22, '#3f9a3a'], [92, GY + 6, 30, '#2f7f2f'], [160, GY + 4, 24, '#3f9a3a']].forEach(([x, y, r, c]) => { D(x, y, r + 1, '#1e4a1e'); D(x, y, r, c); for (let k = -r; k < r; k += 6) R(x + k, y - Math.round(Math.sqrt(Math.max(0, r * r - k * k))) + 3, 1, 3, '#5fbf4a'); });
     R(0, GY, W, 2, '#73c257'); R(0, GY + 2, W, 1, '#3f8a2f'); R(0, GY + 3, W, H - GY - 3, '#8a5428');
     for (let x = 0; x < W; x++) for (let y = GY + 3; y < H; y++) if (hash(x, y) % 9 === 0) R(x, y, 1, 1, '#6a3e1c');
     for (let x = 4; x < W; x += 11) { R(x, GY - 1, 1, 1, '#73c257'); if (x % 3 === 0) R(x + 2, GY - 2, 1, 1, '#ff6a6a'); }
-  } else if (world === 1) {   // the dunes: a white-hot sky, a big sun, a stepped pyramid, rolling sand, cacti
+  } else if (scene === 'dunes') {   // the dunes: a white-hot sky, a big sun, a stepped pyramid, rolling sand, cacti
     sky(['#ffc86a', '#ffd88a', '#ffe8b0']); stars(); moonOrSun(30, 12, 7, '#ffc86a');
     const pb = GY + 1, px = 120; for (let s = 0; s < 14; s++) { R(px - 14 + s, pb - s * 2 - 2, 28 - s * 2, 2, s % 2 ? '#d89848' : '#e8b060'); R(px, pb - s * 2 - 2, 14 - s, 2, '#b87a34'); }
     for (let x = 0; x < W; x++) { const y = Math.round(GY - 3 - 3 * Math.sin(x / 13) - 2 * Math.sin(x / 5.3)); R(x, y, 1, GY - y, '#f0b860'); R(x, y, 1, 1, '#ffd888'); }
     [[56, 9], [158, 7], [16, 6]].forEach(([x, hh]) => { R(x, GY - hh, 3, hh, '#3f8a3a'); R(x - 3, GY - hh + 3, 2, 1, '#3f8a3a'); R(x - 3, GY - hh + 1, 1, 3, '#3f8a3a'); R(x + 4, GY - hh + 4, 2, 1, '#3f8a3a'); R(x + 5, GY - hh + 2, 1, 3, '#3f8a3a'); R(x, GY - hh, 1, hh, '#5fae4a'); });
     R(0, GY, W, H - GY, '#e8a850'); for (let x = 0; x < W; x++) for (let y = GY; y < H; y++) if (hash(x, y) % 7 === 0) R(x, y, 1, 1, '#c88a3a');
-  } else if (world === 2) {   // the shoals: open sea under a bright sky, a palm island, white wave crests, a sandy shore
+  } else if (scene === 'shoals') {   // the shoals: open sea under a bright sky, a palm island, white wave crests, a sandy shore
     sky(['#6ab8f0', '#88caf6']); stars(); moonOrSun(22, 8, 5, '#6ab8f0'); cloud(60, 7, 1); cloud(104, 5);
     const sea = Math.round(H * .45);
     D(152, sea + 2, 10, '#c8a860'); D(152, sea + 2, 9, '#e8c878');   // the island, its foot hidden by the sea drawn next
@@ -2636,17 +2960,40 @@ function paintArena(cv, world, night) {
     ['#2f7fc8', '#3a8ed6', '#4a9ee0', '#5aaee8'].forEach((c, i) => R(0, sea + i * 4, W, 4, c)); R(0, sea + 16, W, GY - sea - 16, '#5aaee8');
     for (let y = sea + 2; y < GY; y += 4) for (let x = (y * 3) % 12; x < W; x += 12) { R(x, y, 4, 1, '#d8f0ff'); R(x + 1, y - 1, 2, 1, '#ffffff'); }
     R(0, GY, W, H - GY, '#ecd08a'); R(0, GY, W, 1, '#ffffff'); for (let x = 0; x < W; x++) for (let y = GY + 1; y < H; y++) if (hash(x, y) % 8 === 0) R(x, y, 1, 1, '#d0b06a');
-  } else if (world === 3) {   // cloudtops: deep sky fading to pale, cloud platforms climbing up like steps, a cloud floor
+  } else if (scene === 'sky') {   // cloudtops: deep sky fading to pale, cloud platforms climbing up like steps, a cloud floor
     sky(['#4a96e8', '#6aaaf0', '#8ac0f6', '#b0d8fa']); stars(); moonOrSun(W - 18, 7, 5, '#4a96e8');
     [[46, 26], [74, 21], [102, 16], [130, 11], [158, 6]].forEach(([x, y]) => { R(x, y + 2, 20, 2, '#a8bcd8'); R(x, y, 20, 2, '#ffffff'); D(x + 4, y, 3, '#ffffff'); D(x + 13, y - 1, 3, '#ffffff'); R(x, y + 4, 20, 1, '#8aa0c0'); });
     for (let x = 0; x < W; x += 9) D(x + 4, GY + 1, 5, '#e8f2ff');
     R(0, GY + 2, W, H - GY - 2, '#ffffff'); for (let x = 0; x < W; x += 9) R(x, GY + 5, 6, 1, '#d4e4f6');
-  } else if (world === 4) {   // frostfall: snow-capped peaks, ice blocks, a snowfield, falling flakes
+  } else if (scene === 'frost') {   // frostfall: snow-capped peaks, ice blocks, a snowfield, falling flakes
     sky(['#a8ccf0', '#c0dcf6', '#d8ecfc']); stars(); moonOrSun(26, 8, 5, '#a8ccf0');
     [[60, 30, 26], [110, 34, 22], [160, 30, 24], [10, 30, 18]].forEach(([x, r, hh]) => { for (let k = 0; k < hh; k++) { const w = Math.round(k * r / hh); R(x - w, GY - hh + k, w * 2 + 1, 1, k < hh * .3 ? '#ffffff' : '#7f98c0'); R(x, GY - hh + k, w + 1, 1, k < hh * .3 ? '#e4eefa' : '#6a82aa'); } });
     R(0, GY, W, H - GY, '#f4f8ff'); for (let x = 0; x < W; x++) for (let y = GY; y < H; y++) if (hash(x, y) % 6 === 0) R(x, y, 1, 1, '#c8daf0');
     [[80, GY - 6], [86, GY - 6], [83, GY - 12], [168, GY - 6]].forEach(([x, y]) => { R(x, y, 6, 6, '#7fd0e8'); R(x, y, 6, 1, '#e0faff'); R(x, y, 1, 6, '#e0faff'); R(x + 5, y + 1, 1, 5, '#4fa8c8'); R(x + 1, y + 5, 5, 1, '#4fa8c8'); });
     for (let i = 0; i < 30; i++) { const x = hash(i, 11) % W, y = hash(i, 5) % (GY - 2); g.fillStyle = '#ffffff'; g.fillRect(x, y, 1, 1); }
+  } else if (scene === 'giant') {   // the giant's garden: everything oversized — towering flowers, huge mushrooms, chunky blocks
+    sky(['#7fd0f8', '#9adcfa', '#bce8fc']); stars(); moonOrSun(W - 20, 8, 5, '#7fd0f8'); cloud(30, 6, 1);
+    [[22, 6, '#ff6aa0', '#ffd0e0'], [140, 8, '#ffd040', '#fff2b0'], [168, 5, '#9a6aff', '#e0d0ff']].forEach(([x, top, pet, mid]) => {
+      R(x - 1, GY - 30 + top, 3, 30 - top, '#3f9a3a'); R(x + 2, GY - 14, 5, 2, '#3f9a3a'); R(x + 5, GY - 16, 3, 2, '#5fbf4a');
+      [[-5, 0], [5, 0], [0, -5], [0, 5], [-4, -4], [4, -4], [-4, 4], [4, 4]].forEach(([dx, dy]) => D(x + dx, GY - 33 + top + dy, 3, pet)); D(x, GY - 33 + top, 3, mid); D(x, GY - 33 + top, 1, '#c86a20'); });
+    [[60, 13, 11], [104, 9, 8]].forEach(([x, r, hh]) => { R(x - 3, GY - hh, 7, hh, '#f4e8d0'); R(x + 2, GY - hh, 2, hh, '#d8c8a8'); D(x, GY - hh, r, '#a8241e'); D(x, GY - hh, r - 1, '#e0403a'); R(x - r, GY - hh, r * 2 + 1, r + 1, '#f4e8d0');
+      R(x - r, GY - hh, r * 2 + 1, 1, '#a8241e'); [[-6, -5], [3, -7], [-1, -3], [6, -2]].forEach(([dx, dy]) => D(x + Math.round(dx * r / 13), GY - hh + Math.round(dy * r / 13), 1, '#ffffff')); });
+    for (let x = 0; x < W; x += 12) { R(x, GY, 12, H - GY, '#d89a4a'); R(x, GY, 12, 1, '#f0c070'); R(x, GY, 1, H - GY, '#f0c070'); R(x + 11, GY, 1, H - GY, '#a86a2a'); R(x, H - 1, 12, 1, '#a86a2a'); R(x + 5, GY + 3, 2, 2, '#a86a2a'); }
+  } else if (scene === 'pipes') {   // copperworks: a brick wall, copper pipes and joints, turning gears, riveted floor plates
+    sky(['#c8b8a8', '#d8c8b4']); stars(); moonOrSun(24, 7, 4, '#c8b8a8');
+    for (let y = 10; y < GY; y += 4) for (let x = (y / 4 % 2) * 6; x < W; x += 12) { R(x, y, 11, 3, '#9a5a3a'); R(x, y, 11, 1, '#b8704a'); }
+    [[38, 6], [126, 9], [160, 4]].forEach(([x, top]) => { R(x, top, 6, GY - top, '#c8742a'); R(x + 1, top, 1, GY - top, '#f0a860'); R(x + 5, top, 1, GY - top, '#8a4a1a'); for (let y = top + 6; y < GY; y += 11) { R(x - 1, y, 8, 3, '#e08a3a'); R(x - 1, y, 8, 1, '#ffc080'); } });
+    R(38, 16, 88, 5, '#c8742a'); R(38, 17, 88, 1, '#f0a860'); R(38, 20, 88, 1, '#8a4a1a'); R(80, 15, 4, 7, '#e08a3a');
+    [[92, 28, 6], [148, 22, 4]].forEach(([x, y, r]) => { for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; R(Math.round(x + Math.cos(a) * (r + 1)) - 1, Math.round(y + Math.sin(a) * (r + 1)) - 1, 3, 3, '#6a7078'); }
+      D(x, y, r, '#8a9098'); D(x, y, r - 2, '#6a7078'); D(x, y, 1, '#3a3e44'); });
+    R(0, GY, W, H - GY, '#6a7078'); R(0, GY, W, 1, '#a0a8b0'); for (let x = 0; x < W; x += 15) { R(x, GY, 1, H - GY, '#4a4e54'); R(x + 2, GY + 2, 1, 1, '#c0c8d0'); R(x + 12, GY + 2, 1, 1, '#c0c8d0'); R(x + 2, H - 3, 1, 1, '#c0c8d0'); R(x + 12, H - 3, 1, 1, '#c0c8d0'); }
+  } else if (scene === 'grove') {   // the twilight grove: a dusk sky, tall dark trees, glowing fireflies, mossy ground with roots
+    sky(['#4a3a7a', '#7a4a8a', '#c06a8a', '#f0a07a']); stars(); moonOrSun(W - 26, 8, 5, '#4a3a7a');
+    [[14, 16, 13], [56, 20, 11], [122, 18, 14], [172, 14, 10], [92, 24, 8]].forEach(([x, r, top]) => { R(x - 2, top + r - 4, 5, GY - top - r + 4, '#3a2418'); R(x - 2, top + r - 4, 1, GY - top - r + 4, '#5a3a24');
+      D(x, top, r + 1, '#14241e'); D(x, top, r, '#1e4a34'); D(x - Math.round(r / 3), top - Math.round(r / 3), Math.round(r / 2), '#2f6a48'); });
+    R(0, GY, W, H - GY, '#1e3a24'); R(0, GY, W, 1, '#3f7a44'); for (let x = 0; x < W; x++) for (let y = GY + 1; y < H; y++) if (hash(x, y) % 7 === 0) R(x, y, 1, 1, '#2a4a2e');
+    [[12, 1], [54, -1], [120, 1], [170, -1]].forEach(([x, d]) => { R(x + d * 3, GY + 1, 4, 1, '#3a2418'); R(x + d * 6, GY + 2, 3, 1, '#3a2418'); });
+    for (let i = 0; i < 16; i++) { const x = hash(i, 21) % W, y = 8 + hash(i, 13) % (GY - 10); g.fillStyle = '#fff6a0'; g.fillRect(x, y, 1, 1); g.fillStyle = 'rgba(255,240,140,.35)'; g.fillRect(x - 1, y, 3, 1); g.fillRect(x, y - 1, 1, 3); }
   } else {   // shadow keep: a blood-dusk sky, a black castle with lit windows, cracked rock with lava, rising embers
     sky(['#1a0a20', '#2e0f2a', '#4a1426', '#6a1c22']); if (night) stars();
     DISC(g, W - 28, 10, 6, '#e8d8b0'); DISC(g, W - 26, 9, 5, nightOf('#2e0f2a', .1));
@@ -2662,7 +3009,7 @@ function paintArena(cv, world, night) {
 function arena(mod, sage, {short = false} = {}) {
   const wi = Math.max(0, Math.min(ARENAS.length - 1, mod)), A = ARENAS[wi], night = isMoon();
   const cv = h('canvas', {width: 180, height: short ? 30 : 42, class: 'arena-bg', 'aria-hidden': 'true'});
-  paintArena(cv, wi, night);
+  paintArena(cv, A.scene, night);
   const foe = foeSprite(A.foe, night ? A.foeCol.map(c => nightOf(c, .25)) : A.foeCol, short ? 3 : 4);
   const el = h('div', {class: 'arena' + (short ? ' short' : ''), role: 'img', 'aria-label': `World ${wi + 1}: ${A.name}`}, cv,
     h('div', {class: 'arena-name'}, `WORLD ${wi + 1} · ${A.name.toUpperCase()}`), h('div', {class: 'arena-foe'}, foe));
@@ -2710,11 +3057,11 @@ const spellSprite = kind => bitSprite(SPELL, kind === 'zap' ? {o: '#ffb020', w: 
 function pop(el, text, leftPct) { const p = h('div', {class: 'arena-pop', style: `left:${leftPct}%`}, text); el.append(p); setTimeout(() => p.remove(), 800); }
 function quizView(v, ch, idx) {
   pageScroll = true;
-  const id = chapKey(ch);
-  const primary = ch.exam ? LESSONS.filter(c => c.topic).map(c => c.topic) : [ch.topic];
-  const review = (!ch.exam && idx > 0 && LESSONS[idx - 1].topic) ? [LESSONS[idx - 1].topic] : [];
-  const back = () => { const s = state('course', {}); s.open = -1; keep('course', s); redraw(); };
-  const again = () => { const s = state('course', {}); s.open = idx; keep('course', s); redraw(); };
+  const id = ch.challenge ? 'challenge:' + ch.mod : chapKey(ch);
+  const primary = ch.challenge ? ch.topics : ch.exam ? LESSONS.filter(c => c.topic).map(c => c.topic) : [ch.topic];
+  const review = (!ch.exam && !ch.challenge && idx > 0 && LESSONS[idx - 1].topic) ? [LESSONS[idx - 1].topic] : [];
+  const back = () => { const s = state('course', {}); s.open = -1; s.challenge = -1; keep('course', s); redraw(); };
+  const again = () => { const s = state('course', {}); if (ch.challenge) s.challenge = ch.mod; else s.open = idx; keep('course', s); redraw(); };
   const bar = h('div', {class: 'toolbar'}, h('button', {class: 'btn', on: {click: back}}, '← Map'),
     h('div', {class: 'muted', style: 'font-weight:800;align-self:center'}, ch.name), h('div', {style: 'flex:1'}), musicToggle());
   v.append(bar);
@@ -2743,7 +3090,7 @@ function quizView(v, ch, idx) {
   // an EARLIER module. It cannot hurt you — but a right answer banks a turquoise, counted on the map.
   const gems = () => store.get('course.gems', 0);
   let bonusQ = null;
-  if (!ch.exam && ch.mod > 0) {
+  if (!ch.exam && !ch.challenge && ch.mod > 0) {
     const early = LESSONS.filter(l => l.topic && l.mod < ch.mod && QBANK[l.topic]);
     if (early.length) { const src = early[rnd(early.length)], facs = QBANK[src.topic];
       for (let g = 0; g < 25 && !bonusQ; g++) { const Q = facs[rnd(facs.length)](); if (Q && !qs.some(x => x.q === Q.q)) bonusQ = Object.assign(Q, {bonus: true, from: src.modName}); } } }
@@ -2788,12 +3135,12 @@ function quizView(v, ch, idx) {
   function finish(won) {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
     let bonus = 0;
-    if (won) { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS); addPoints(bonus); showPts(bonus); }
+    if (won) { if (ch.challenge) MODULES[ch.mod].lessons.filter(l => !l.exam).forEach(l => courseClear(chapKey(l))); else { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; } bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS); addPoints(bonus); showPts(bonus); }
     Music.fx(won ? 'win' : 'lose');
     sage.replaceChildren(mageTile(won ? 2 : 0, 72)); ar.beaten(won); counter.textContent = ''; hintRow.replaceChildren();
     qh.textContent = won ? (hits ? 'Victory!' : 'Flawless victory!') : 'Defeated…'; opts.replaceChildren();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: won
-        ? `${right} spells landed${hits ? `, ${hits} hit taken` : ', not a scratch'}. <b>+${bonus} ◆</b> — the next chapter is open.`
+        ? `${right} spells landed${hits ? `, ${hits} hit taken` : ', not a scratch'}. <b>+${bonus} ◆</b> — ${ch.challenge ? `all of ${MODULES[ch.mod].name} is open, and everything it unlocks` : 'the next chapter is open'}.`
         : `The ${ARENAS[Math.min(ARENAS.length - 1, ch.mod)].name.replace(/^The /, '').toLowerCase()} critter got you after ${right} hit${right === 1 ? '' : 's'}. Read the explanations and try again.`}),
       h('div', {style: 'margin-top:16px;display:flex;gap:12px;justify-content:center'},
         h('button', {class: 'btn', on: {click: again}}, 'Try again'),
@@ -2929,7 +3276,10 @@ function roadView(v) {
     const mDone = m.lessons.filter(l => cleared[chapKey(l)]).length;
     wrap.append(h('div', {style: `margin:${mi ? 30 : 6}px 0 16px;padding:12px 16px;border-radius:14px;background:${m.acc};color:#fff;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 0 rgba(0,0,0,.22)`},
       h('div', {}, h('div', {style: 'font-size:11px;font-weight:800;letter-spacing:.16em;opacity:.85'}, `MODULE ${mi + 1}`), h('div', {style: 'font-size:19px;font-weight:900'}, m.name)),
-      h('div', {style: 'font-weight:900;font-size:15px'}, `${mDone}/${m.lessons.length}`)));
+      h('div', {style: 'display:flex;align-items:center;gap:10px'},
+        mDone < m.lessons.filter(l => !l.exam).length ? h('button', {class: 'btn small testout', title: 'Already know this? Win one battle to clear the whole module',
+          on: {click: e => { e.stopPropagation(); const s = state('course', {}); s.challenge = mi; s.open = -1; keep('course', s); redraw(); }}}, '⚔ Test out') : '',
+        h('div', {style: 'font-weight:900;font-size:15px'}, `${mDone}/${m.lessons.length}`))));
     m.lessons.forEach(l => {
       const idx = gi++, st = cleared[chapKey(l)] ? 'done' : (idx <= firstOpen ? 'open' : 'lock'), unlocked = st !== 'lock', off = offs[idx % offs.length];
       const node = h('button', {class: 'btn', disabled: !unlocked, 'aria-label': l.name,
@@ -2986,8 +3336,11 @@ PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'a path from first chord
   v.append(header('I', 'Learn', '', 'climb the path · clear a chapter to open the next', 'var(--navy)'));
   Music.sync();   // a day/night flip swaps the road song
   const s = state('course', {open: -1});
-  if (s.open >= 0 && s.open < LESSONS.length) quizView(v, LESSONS[s.open], s.open);
-  else roadView(v);
+  if (s.challenge >= 0 && s.challenge < MODULES.length) quizView(v, challengeOf(s.challenge), -1);
+  else if (s.open >= 0 && s.open < LESSONS.length) quizView(v, LESSONS[s.open], s.open);
+  else { v.append(h('div', {class: 'toolbar'}, openBookToggle(),
+      h('label', {class: 'pick'}, h('span', {}, 'Progress'), h('button', {class: 'btn', style: 'min-height:40px', on: {click: backupPanel}}, '💾 Back up or restore'))));
+    roadView(v); }
 }});
 
 /* ================================================================ THE ROAD SONGS: original chiptunes for the Learn map
@@ -3035,7 +3388,7 @@ console.assert(SONGS.battle.mode[2] === 3 && SONGS.battle.mode[5] === 8 && SONGS
 const Music = (() => {
   const VOL = .5;
   let on = store.get('course.music', false), playing = null, ctx = null, master = null, echo = null, noise = null, pulse = {}, timer = 0, nextT = 0, step = 0, duckUntil = 0;
-  const inLesson = () => { const o = state('course', {open: -1}).open; return o >= 0 && o < LESSONS.length; };
+  const inLesson = () => { const c = state('course', {open: -1}); return (c.open >= 0 && c.open < LESSONS.length) || (c.challenge >= 0 && c.challenge < MODULES.length); };
   const want = () => inLesson() ? 'battle' : resolveTheme() === 'moon' ? 'night' : 'day';
   function wave(duty) {   // an NES-style pulse wave of the given duty cycle, built from its Fourier series
     if (pulse[duty]) return pulse[duty];
@@ -3214,6 +3567,13 @@ function musicToggle() {
   return b;
 }
 
+// a module's test-out: one battle over every topic in it; win and the whole module (but never the Final) is cleared
+function challengeOf(mi) {
+  const M = MODULES[mi], topics = M.lessons.filter(l => l.topic && QBANK[l.topic]).map(l => l.topic);
+  if (M.lessons.some(l => l.reading)) topics.push('tabread', 'keysigs');
+  return {name: `${M.name} · Test out`, mod: mi, modName: M.name, challenge: true, topics};
+}
+
 /* ================================================================ SKETCHPAD (the songwriting studio, at the back of the book) */
 PAGES.push({id: 'sketch', no: 'VI', name: 'Song Sketchpad', blurb: 'write your own · saves as you go', acc: 'var(--rust)', draw(v) {
   v.append(header('VI', 'Song <em>Sketchpad</em>', `build a song from the ${tm('chord', 'chords')} of any ${tm('key')} · it saves on this iPad as you go`, `tap a bar, then a chord · Roll for a fresh ${tm('progression')}`, 'var(--rust)'));
@@ -3252,7 +3612,11 @@ PAGES.push({id: 'index', no: 'VII', name: 'The Index', blurb: 'every term and id
     h('div', {class: 'muted', style: 'font-weight:800;letter-spacing:.14em;font-size:12px;margin:10px 0 2px'}, 'THE IDEAS'),
     ...INDEX_SUBS.filter(s => s[0] !== 'glossary').map(([k, nm]) => navBtn(['facts:' + k, nm])));
   const body = h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'});
-  const row = c => h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short));
+  const row = c => discovered(c.id) ? h('button', {class: 'gloss-row', 'data-c': c.id}, h('b', {}, c.term), h('span', {}, c.short))
+    : h('button', {class: 'gloss-row unfound', 'data-c': c.id, title: 'Not found yet — it still opens'}, h('b', {}, '? ' + c.term), h('span', {}, `Not found yet · ${whereFound(c.id)}`));
+  const nFound = (D.concepts || []).filter(c => discovered(c.id)).length, nAll = (D.concepts || []).length;
+  body.append(h('div', {class: 'found-bar'}, h('b', {}, `${nFound} of ${nAll} found`), h('span', {}, 'clear lessons, visit pages and tap terms in the book to collect the rest'),
+    h('div', {class: 'found-meter'}, h('i', {style: `width:${Math.round(nFound / nAll * 100)}%`}))));
   if (st.sec.startsWith('facts:')) {
     const k = st.sec.slice(6), name = (INDEX_SUBS.find(s => s[0] === k) || [])[1], facts = (D.theory.facts || []).filter(f => f.tag === k);
     body.append(sec2(name, 'the ideas behind the lessons · tap any term to open it', 'var(--navy)',
