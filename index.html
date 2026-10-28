@@ -595,6 +595,16 @@ table.ref.grid td,table.ref.grid th{text-align:center;padding:4px 5px;font-size:
 .cp-heardbox b.dim{opacity:.3}
 .cp-heardbox small{font-size:12.5px;font-weight:700;color:var(--mute)}
 .cp-heardbox{flex-wrap:wrap}.cp-tune{flex-basis:100%;color:var(--rust)!important;font-weight:600!important}
+.cp-for{font-size:14px;min-height:40px;padding-top:5px;padding-bottom:4px;font-weight:700}
+.cp-take{display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--teal);padding:2px 0 2px 10px}
+.cp-take .heard{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.cp-take .heard .lbl{font-size:12px;font-weight:700;color:var(--mute);margin-right:4px}
+.cp-take .heard b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--ink)}
+.cp-take .heard .x{margin-left:auto;background:none;border:0;font-size:22px;line-height:1;color:var(--mute);min-height:0;padding:0 4px;align-self:center}
+.cp-take .key{font-size:14px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.cp-take .key .chip{min-height:30px;min-width:0;padding:3px 9px;font-size:12.5px}
+.cp-take .key .chip.acc{background:var(--teal);border-color:var(--teal);color:var(--onacc)}
+.cp-take .key b{color:var(--ink)}
 .cp-msg{font-size:14px;color:var(--ink2)}
 .cp-msg:empty{display:none}
 .cp-msg b{color:var(--ink)}
@@ -5420,7 +5430,7 @@ if (typeof module !== 'undefined') module.exports = Suggest;
 
 
 const CP = {S: null, sel: -1, route: 'next', metre: null, engine: null, chords: null, notesKey: null, mode: 'chords',
-  heard: null, heardAt: 0, pending: null, pendingAt: 0, auto: false, needle: 0, playing: null, lastEnd: null};
+  heard: null, heardAt: 0, pending: null, pendingAt: 0, auto: false, needle: 0, playing: null, lastEnd: null, takeBars: 0, take: null};
 const cpSong = () => CP.S || (CP.S = store.get('song', null) || defaultSong());
 const cpSave = () => store.set('song', CP.S);
 const cpKey = () => Suggest.keyOf(cpSong().key, cpSong().minor ? 'minor' : 'major');
@@ -5641,13 +5651,65 @@ function cpMeter(v) {
   if (CP.mode === 'notes' && v.note) {
     const cents = Math.round(v.note.cents); c.textContent = `${v.note.name}${v.note.octave} · ${cents === 0 ? 'right on' : Math.abs(cents) + ' cents ' + (cents > 0 ? 'sharp' : 'flat')}`; c.classList.toggle('ok', Math.abs(cents) <= 5);
     const hb = cpEl('cp-heard'); hb.textContent = v.note.name + v.note.octave; hb.classList.remove('dim'); cpEl('cp-heardsub').textContent = `${v.note.freq.toFixed(1)} Hz`;
-  } else { c.textContent = v.gate ? (v.rms >= v.gate ? 'hearing you' : 'quiet') : ''; c.classList.remove('ok'); }
+  } else {
+    const t = CP.take, bar = t && t.bars ? (t.startAt ? `bar ${Math.min(t.bars, Math.floor((performance.now() - t.startAt) / t.barMs) + 1)} of ${t.bars} · ` : `play to start the ${t.bars} bars · `) : '';
+    c.textContent = v.gate ? bar + (v.rms >= v.gate ? 'hearing you' : 'quiet') : ''; c.classList.remove('ok');
+  }
+}
+/* ---------------- a take: listen for a set number of bars (or until Stop), keep the chords heard in order,
+   then say which key they fit, with the choice of taking that key or writing the chords into the song */
+function cpTakeTick(v) {
+  const t = CP.take; if (!t || !t.bars) return;
+  const now = performance.now();
+  if (!t.startAt) { if (!v.calibrating && v.gate != null && v.rms >= v.gate) t.startAt = now; return; }   // the clock starts at the first sound
+  if (now - t.startAt >= t.bars * t.barMs) setTimeout(cpStopListen, 0);
+}
+function cpTakeAdd(e) {
+  const t = CP.take; if (!t || e.durationMs < 300) return;                       // a chord shorter than that is a change in progress
+  const last = t.chords[t.chords.length - 1];
+  if (last && last.root === e.root && last.quality === e.quality) last.ms += e.durationMs; else t.chords.push({root: e.root, quality: e.quality, ms: e.durationMs});
+}
+function cpTakeReport() {
+  const t = CP.take; if (!t) return; CP.take = null;
+  const last = t.chords[t.chords.length - 1];                                     // the chord still ringing at the end counts too
+  if (CP.heard && performance.now() - CP.heardAt < 4000 && !(last && cpSame(last, CP.heard))) t.chords.push({root: CP.heard.root, quality: CP.heard.quality, ms: 700});
+  const m = cpEl('cp-msg'); if (!m || !t.chords.length) return;
+  cpChipsShown(false);
+  // the key the chords fit: each chord's notes, weighted by how long it rang (the same reading as cpWhere)
+  const kf = KeyFinder.create();
+  t.chords.forEach(c => { const iv = D.qualIv[c.quality] || D.qualIv['']; iv.forEach(x => kf.add({pitchClass: (c.root + x) % 12, midi: 48, durationMs: Math.max(c.ms, 400) / iv.length})); });
+  const r = kf.result(), found = r.state === 'listening' ? null : r.best;
+  const k = found ? Suggest.keyOf(found.tonic, found.mode) : cpKey(), S = cpSong();
+  const same = found && found.tonic === S.key && (found.mode === 'minor') === !!S.minor;
+  const other = found && (found.mode === 'major' ? r.family.minor : r.family.major);
+  const n = t.chords.length, count = n === 1 ? 'one chord' : `${n} chords`;
+  const verdict = !found ? h('span', {}, 'Not enough to tell the key yet: let each chord ring.')
+    : same ? h('span', {}, 'In ', h('b', {}, found.label), ', the key you\'re in.')
+    : h('span', {}, r.state === 'confident' ? 'They fit ' : 'They lean to ', h('b', {}, found.label), other ? ` (or ${other.label}).` : '.');
+  m.replaceChildren(h('div', {class: 'cp-take'},
+    h('div', {class: 'heard'}, h('span', {class: 'lbl'}, `heard ${count}`), ...t.chords.map(c => h('b', {}, Suggest.describe(k, c).name)),
+      h('button', {class: 'x', 'aria-label': 'dismiss', title: 'dismiss', on: {click: () => cpMsg('')}}, '×')),
+    h('div', {class: 'key'}, verdict,
+      found && !same ? h('button', {class: 'chip acc', on: {click: () => { cpSetKey(found.tonic, found.mode === 'minor', true); toast(`Now in ${found.label}`); }}}, `Use ${found.label}`) : '',
+      h('button', {class: 'chip', on: {click: () => cpTakeWrite(t.chords)}}, 'Write them in'))));
+}
+// write the take's chords into the section, after the selected bar or at the end; 8 bars a section
+function cpTakeWrite(chords) {
+  const b = cpBars(), k = cpKey(); let at = CP.sel >= 0 ? CP.sel + 1 : b.length, n = 0;
+  for (const c of chords) {
+    const tok = Suggest.tokenOf(k, c);
+    if (at < b.length && b.length >= 8) b[at] = tok; else if (b.length < 8) b.splice(at, 0, tok); else break;
+    at++; n++;
+  }
+  if (n) CP.sel = at - 1; cpSave(); cpAll();
+  toast(n < chords.length ? `${n} written: a section holds 8 bars` : `${n === 1 ? 'One chord' : n + ' chords'} written into the ${cpSong().active.toLowerCase()}`);
 }
 // re-place the sliding pills in a block (the book's placePills adds a pill each call, so clear the old ones first)
 function cpPills(root) { if (!root) return; root.querySelectorAll('.seg-pill').forEach(x => x.remove()); root.querySelectorAll('.seg').forEach(g => g.classList.remove('has-pill')); placePills(root); }
-function cpMsg(html) { const m = cpEl('cp-msg'); if (m) m.innerHTML = html; }
+function cpMsg(html) { const m = cpEl('cp-msg'); if (m) m.innerHTML = html; cpChipsShown(true); }
+const cpChipsShown = on => { const n = cpEl('cp-next'); if (n) n.hidden = !on; };
 function cpStopListen() {
-  if (CP.engine) CP.engine.stop(); CP.engine = null; CP.heard = null; if (tunerStop === cpStopListen) tunerStop = null;
+  if (CP.engine) CP.engine.stop(); CP.engine = null; cpTakeReport(); CP.heard = null; if (tunerStop === cpStopListen) tunerStop = null;
   cpMeter({rms: 0, gate: null}); const c = cpEl('cp-cents'); if (c) c.textContent = '';
   cpRenderLive(); cpRenderDial(); cpRenderRoutes();
 }
@@ -5661,6 +5723,7 @@ function cpListen() {
   // the key prior: chords in the key are likelier. Start from the song's key; once the chords heard say
   // otherwise (confidently), follow them
   const heardKey = KeyFinder.create(); CP.chords.setKey(cpKey());
+  const S0 = cpSong(); CP.take = {chords: [], bars: CP.takeBars, startAt: 0, barMs: cpMetreOf(D.strums[S0.strum]) * 60000 / S0.bpm}; cpMsg('');
   tunerStop = cpStopListen;                                     // turning the page stops listening (page() calls tunerStop)
   let n = 0;
   // the network's own notes (it hears notes that overlap, which YIN can't): merged with YIN's below
@@ -5689,14 +5752,14 @@ function cpListen() {
     } else if (CP.heard && performance.now() - CP.heardAt > 4000) { CP.heard = null; cpRenderLive(); cpRenderDial(); cpRenderRoutes(); }
   });
   CP.chords.on('chordend', e => {
-    CP.lastEnd = e;
+    CP.lastEnd = e; cpTakeAdd(e);
     e.notes.forEach(pc => heardKey.add({pitchClass: pc, midi: 48 + pc, durationMs: e.durationMs / e.notes.length}));
     const hk = heardKey.result(); if (hk.state === 'confident') CP.chords.setKey(hk.best);
     // "write what I play": a chord held most of a bar becomes a bar; the same root as the last bar is the same chord ringing on
     if (CP.auto && e.durationMs >= 700) { const c = {root: e.root, quality: e.quality}, b = cpBars(), last = b.length && cpChord(b[b.length - 1]);
       if (!(last && last.root === c.root) && b.length < 8) { CP.sel = -1; cpPlace(c); } }
   });
-  eng.on('frame', v => { if (CP.mode === 'notes') cpTuning(v.tuning); cpMeter(v); });
+  eng.on('frame', v => { if (CP.mode === 'notes') cpTuning(v.tuning); cpTakeTick(v); cpMeter(v); });
   eng.on('note', e => { if (CP.mode !== 'notes') return; const h2 = cpEl('cp-heard'); if (h2) { h2.textContent = e.name + e.octave; h2.classList.remove('dim'); cpEl('cp-heardsub').textContent = 'a note'; } });
   eng.on('noteend', e => {
     if (CP.mode !== 'notes') return;
@@ -5740,14 +5803,17 @@ PAGES.push({id: 'sketch', no: 'VI', name: 'Song Sketchpad', blurb: 'write your o
     on: {click: e => { CP.mode = m; CP.heard = null; e.currentTarget.parentNode.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === e.currentTarget ? 'true' : 'false'));
       cpMsg(''); cpPills(e.currentTarget.closest('.cp-live')); cpRenderLive(); cpRenderDial(); cpRenderRoutes(); }}}, l)));
   const auto = h('input', {type: 'checkbox', id: 'cp-auto', checked: CP.auto, on: {change: e => { CP.auto = e.target.checked; }}});
+  // how long to listen: a set number of bars at the song's tempo (the clock starts at the first sound), or until Stop
+  const forSel = h('select', {class: 'cp-for', id: 'cp-for', 'aria-label': 'how long to listen', on: {change: e => { CP.takeBars = +e.target.value; }}},
+    [[0, 'until I stop'], [2, 'for 2 bars'], [4, 'for 4 bars'], [8, 'for 8 bars'], [16, 'for 16 bars']].map(([n, l]) => h('option', {value: n, selected: n === CP.takeBars}, l)));
   const live = h('div', {class: 'cp-live'},
-    h('div', {class: 'cp-top'}, h('button', {class: 'btn acc play', id: 'cp-listen', on: {click: cpListen}}, h('span', {}, 'Listen')), modeSeg),
+    h('div', {class: 'cp-top'}, h('button', {class: 'btn acc play', id: 'cp-listen', on: {click: cpListen}}, h('span', {}, 'Listen')), modeSeg, forSel),
     h('div', {class: 'cp-hear'},
       h('div', {}, h('div', {class: 'cp-meter', id: 'cp-meter'}, h('i', {id: 'cp-lvl'}), h('b', {id: 'cp-gate', style: 'left:0'})), h('div', {class: 'cp-cents', id: 'cp-cents'})),
       h('div', {class: 'cp-heardbox'}, h('b', {id: 'cp-heard', class: 'dim'}, '–'), h('small', {id: 'cp-heardsub'}, 'not listening')),
       h('small', {id: 'cp-tune', class: 'cp-tune'})),
-    h('div', {id: 'cp-next', class: 'cp-next'}),
     h('div', {class: 'cp-msg', id: 'cp-msg'}),
+    h('div', {id: 'cp-next', class: 'cp-next'}),
     h('div', {class: 'row'}, h('button', {class: 'btn small', id: 'cp-add', disabled: true, on: {click: e => {
       const b = e.currentTarget; if (b.dataset.key) { const [t, m] = b.dataset.key.split(':'); cpSetKey(+t, m === 'minor', true); toast(`Key set to ${b.textContent.slice(4)}`); return; }
       const c = CP.heard || (CP.lastEnd && {root: CP.lastEnd.root, quality: CP.lastEnd.quality}); if (c) { cpPlace(c); toast(`${cpName(c)} added`); } }}}, 'Add to song'),
