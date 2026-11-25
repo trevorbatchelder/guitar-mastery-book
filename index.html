@@ -1120,9 +1120,9 @@ const keep = (k, v) => store.set('pg.' + k, v);
 function safeDraw(p, v) { try { p.draw(v); placePills(v); } catch (err) { console.error('page draw failed', p && p.id, err);   // one bad page shouldn't break the book
   v.append(h('div', {style: 'padding:40px 8px;max-width:60ch'}, h('h2', {class: 'lede', style: 'font-weight:800;font-size:18px;color:var(--rust)'}, 'This page hit a snag.'),
     h('p', {class: 'lede'}, 'Swipe or use the arrows to move on — the rest of the book is fine.'))); } }
-function page(i, back = false) {
+function page(i, back = false, game = false) {
   Seq.stop(); if (tunerStop) tunerStop(); clearInterval(timer60);
-  if (bookMode() && (PAGES[(i + PAGES.length) % PAGES.length] || {}).id === 'learn') i += back ? -1 : 1;   // Book mode has no Learn chapter
+  if (!game && (PAGES[(i + PAGES.length) % PAGES.length] || {}).id === 'learn') i += back ? -1 : 1;   // the game is not a chapter: only its button on the cover opens it
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
@@ -1167,8 +1167,8 @@ const M = Object.assign({bpm: 80, beats: 4, on: false}, store.get('metro', {}));
 let sessionStart = null, sessionAcc = store.get('session:' + today(), 0), clockTimer = null, timer60 = null;
 function setBpm(v) { M.bpm = Math.max(30, Math.min(240, v)); store.set('metro', {bpm: M.bpm, beats: M.beats}); Seq.stop(); drawBar(); }
 function drawBar() {
-  const bar = $('#pbar'); bar.innerHTML = ''; bar.classList.toggle('gamebar', (PAGES[at] || {}).id === 'learn' && !bookMode());
-  if (bar.classList.contains('gamebar')) return drawGameBar(bar);   // in Learn mode the Learn page's footer is the game's HUD
+  const bar = $('#pbar'); bar.innerHTML = ''; bar.classList.toggle('gamebar', (PAGES[at] || {}).id === 'learn');
+  if (bar.classList.contains('gamebar')) return drawGameBar(bar);   // the game's footer is its HUD
   const fband = $('#footband'); if (fband) fband.innerHTML = '';   // the footer band is retired everywhere
   const bpm = h('div', {class: 'bpm', 'aria-live': 'polite'}, String(M.bpm));
   const dots = h('div', {class: 'beats', 'aria-hidden': 'true'}); for (let i = 0; i < M.beats; i++) dots.append(h('i', {class: i === 0 ? 'one' : ''}));
@@ -1367,9 +1367,9 @@ const CONCEPT_GOTO = {
   'capo': ['drill', 'capo', 'Drill the capo'], 'roman-numerals': ['drill', 'key', 'Drill chords in a key'], 'tonic': ['drill', 'key', 'Drill chords in a key'],
   'scale': ['page', 'scales', 'Open Scales & Modes'], 'major-scale': ['page', 'scales', 'Open Scales & Modes'], 'minor-scale': ['page', 'scales', 'Open Scales & Modes'], 'pentatonic': ['page', 'scales', 'Open Scales & Modes'], 'mode': ['page', 'scales', 'Open Scales & Modes'],
   'chord': ['page', 'chords', 'Open the chord library'], 'triad': ['page', 'chords', 'Open the chord library'], 'major-chord': ['page', 'chords', 'Open the chord library'], 'minor-chord': ['page', 'chords', 'Open the chord library'], 'diminished': ['page', 'chords', 'Open the chord library'], 'seventh-chord': ['page', 'chords', 'Open the chord library'],
-  'progression': ['page', 'writing', 'Open Writing Music'], 'tab': ['page', 'learn', 'Read music in Learn'], 'staff': ['page', 'learn', 'Read music in Learn'], 'time-signature': ['page', 'learn', 'Read music in Learn'],
+  'progression': ['page', 'writing', 'Open Writing Music'], 'tab': ['page', 'learn', 'Read music in the game'], 'staff': ['page', 'learn', 'Read music in the game'], 'time-signature': ['page', 'learn', 'Read music in the game'],
   // the deep-course and reference terms: 'lesson' opens that topic's chapter on the Learn road
-  'headstock': ['lesson', 'anatomy', 'Practise it in Learn'], 'nut': ['lesson', 'anatomy', 'Practise it in Learn'], 'fretboard': ['lesson', 'anatomy', 'Practise it in Learn'], 'guitar-body': ['lesson', 'anatomy', 'Practise it in Learn'], 'guitar-bridge': ['lesson', 'anatomy', 'Practise it in Learn'], 'soundhole': ['lesson', 'anatomy', 'Practise it in Learn'], 'pickup': ['lesson', 'anatomy', 'Practise it in Learn'], 'string-numbers': ['lesson', 'strings', 'Practise it in Learn'], 'standard-tuning': ['lesson', 'strings', 'Practise it in Learn'], 'relative-tuning': ['lesson', 'octaves', 'Practise it in Learn'], 'position-markers': ['lesson', 'frets', 'Practise it in Learn'], 'chord-box': ['lesson', 'diagrams', 'Practise it in Learn'], 'finger-numbers': ['lesson', 'diagrams', 'Practise it in Learn'], 'scale-diagram': ['lesson', 'diagrams', 'Practise it in Learn'], 'muted-note': ['lesson', 'tabread', 'Practise it in Learn'], 'musical-alphabet': ['lesson', 'neck', 'Practise it in Learn'], 'enharmonic': ['lesson', 'accidentals', 'Practise it in Learn'], 'double-sharp': ['lesson', 'accidentals', 'Practise it in Learn'], 'unison': ['lesson', 'interval', 'Practise it in Learn'], 'octave-shape': ['lesson', 'landmarks', 'Practise it in Learn'], 'perfect-interval': ['lesson', 'intervalquality', 'Practise it in Learn'], 'interval-quality': ['lesson', 'intervalquality', 'Practise it in Learn'], 'augmented': ['lesson', 'intervalquality', 'Practise it in Learn'], 'inversion': ['lesson', 'intervalquality', 'Practise it in Learn'], 'consonance': ['lesson', 'intervalquality', 'Practise it in Learn'], 'note-values': ['lesson', 'notation', 'Practise it in Learn'], 'rest': ['lesson', 'notation', 'Practise it in Learn'], 'beam': ['lesson', 'notation', 'Practise it in Learn'], 'dotted-note': ['lesson', 'notation', 'Practise it in Learn'], 'tie': ['lesson', 'notation', 'Practise it in Learn'], 'compound-time': ['lesson', 'notation', 'Practise it in Learn'], 'dynamics': ['lesson', 'notation', 'Practise it in Learn'], 'beat': ['lesson', 'notation', 'Practise it in Learn'], 'bar': ['lesson', 'notation', 'Practise it in Learn'], 'scale-degree': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'supertonic': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'mediant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'subdominant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'dominant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'submediant': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'leading-tone': ['lesson', 'scaledegrees', 'Practise it in Learn'], 'natural-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'harmonic-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'melodic-minor': ['lesson', 'minorscales', 'Practise it in Learn'], 'blues-scale': ['lesson', 'pentatonic', 'Practise it in Learn'], 'blue-note': ['lesson', 'pentatonic', 'Practise it in Learn'], 'parallel-key': ['lesson', 'keys', 'Practise it in Learn'], 'dominant-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'major-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'minor-seventh': ['lesson', 'sevenths', 'Practise it in Learn'], 'half-diminished': ['lesson', 'sevenths', 'Practise it in Learn'], 'cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'authentic-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'plagal-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'half-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'deceptive-cadence': ['lesson', 'cadences', 'Practise it in Learn'], 'resolution': ['lesson', 'cadences', 'Practise it in Learn'], 'turnaround': ['lesson', 'progressions', 'Practise it in Learn'], 'twelve-bar-blues': ['lesson', 'progressions', 'Practise it in Learn'], 'chord-quality': ['lesson', 'qualities', 'Practise it in Learn'], 'diatonic': ['lesson', 'chordsinkey', 'Practise it in Learn'], 'ionian': ['page', 'scales', 'Open Scales & Modes'], 'dorian': ['page', 'scales', 'Open Scales & Modes'], 'phrygian': ['page', 'scales', 'Open Scales & Modes'], 'lydian': ['page', 'scales', 'Open Scales & Modes'], 'mixolydian': ['page', 'scales', 'Open Scales & Modes'], 'aeolian': ['page', 'scales', 'Open Scales & Modes'], 'locrian': ['page', 'scales', 'Open Scales & Modes'], 'scale-position': ['page', 'scales', 'Open Scales & Modes'], 'caged': ['page', 'chords', 'See it in Chords'], 'slash-chord': ['page', 'chords', 'See it in Chords'], 'sus-chord': ['page', 'chords', 'See it in Chords'], 'add9': ['page', 'chords', 'See it in Chords'], 'sixth-chord': ['page', 'chords', 'See it in Chords'], 'voicing': ['page', 'chords', 'See it in Chords'], 'strumming': ['page', 'righthand', 'Try it in Right Hand'], 'strum-pattern': ['page', 'righthand', 'Try it in Right Hand'], 'palm-muting': ['page', 'righthand', 'Try it in Right Hand'], 'chuck': ['page', 'righthand', 'Try it in Right Hand'], 'boom-chick': ['page', 'righthand', 'Try it in Right Hand'], 'fingerstyle': ['page', 'righthand', 'Try it in Right Hand'], 'pima': ['page', 'righthand', 'Try it in Right Hand'], 'alternating-bass': ['page', 'righthand', 'Try it in Right Hand'], 'travis-picking': ['page', 'righthand', 'Try it in Right Hand'], 'pinch': ['page', 'righthand', 'Try it in Right Hand'], 'rasgueado': ['page', 'righthand', 'Try it in Right Hand'], 'backbeat': ['page', 'righthand', 'Try it in Right Hand'], 'offbeat': ['page', 'righthand', 'Try it in Right Hand'], 'syncopation': ['page', 'righthand', 'Try it in Right Hand'], 'shuffle': ['page', 'righthand', 'Try it in Right Hand'], 'groove': ['page', 'righthand', 'Try it in Right Hand'], 'song-form': ['page', 'writing', 'Open Structure'], 'verse': ['page', 'writing', 'Open Structure'], 'chorus': ['page', 'writing', 'Open Structure'], 'pre-chorus': ['page', 'writing', 'Open Structure'], 'song-bridge': ['page', 'writing', 'Open Structure'], 'hook': ['page', 'writing', 'Open Structure'], 'intro-outro': ['page', 'writing', 'Open Structure'], 'solo': ['page', 'writing', 'Open Structure'],
+  'headstock': ['lesson', 'anatomy', 'Practise it in the game'], 'nut': ['lesson', 'anatomy', 'Practise it in the game'], 'fretboard': ['lesson', 'anatomy', 'Practise it in the game'], 'guitar-body': ['lesson', 'anatomy', 'Practise it in the game'], 'guitar-bridge': ['lesson', 'anatomy', 'Practise it in the game'], 'soundhole': ['lesson', 'anatomy', 'Practise it in the game'], 'pickup': ['lesson', 'anatomy', 'Practise it in the game'], 'string-numbers': ['lesson', 'strings', 'Practise it in the game'], 'standard-tuning': ['lesson', 'strings', 'Practise it in the game'], 'relative-tuning': ['lesson', 'octaves', 'Practise it in the game'], 'position-markers': ['lesson', 'frets', 'Practise it in the game'], 'chord-box': ['lesson', 'diagrams', 'Practise it in the game'], 'finger-numbers': ['lesson', 'diagrams', 'Practise it in the game'], 'scale-diagram': ['lesson', 'diagrams', 'Practise it in the game'], 'muted-note': ['lesson', 'tabread', 'Practise it in the game'], 'musical-alphabet': ['lesson', 'neck', 'Practise it in the game'], 'enharmonic': ['lesson', 'accidentals', 'Practise it in the game'], 'double-sharp': ['lesson', 'accidentals', 'Practise it in the game'], 'unison': ['lesson', 'interval', 'Practise it in the game'], 'octave-shape': ['lesson', 'landmarks', 'Practise it in the game'], 'perfect-interval': ['lesson', 'intervalquality', 'Practise it in the game'], 'interval-quality': ['lesson', 'intervalquality', 'Practise it in the game'], 'augmented': ['lesson', 'intervalquality', 'Practise it in the game'], 'inversion': ['lesson', 'intervalquality', 'Practise it in the game'], 'consonance': ['lesson', 'intervalquality', 'Practise it in the game'], 'note-values': ['lesson', 'notation', 'Practise it in the game'], 'rest': ['lesson', 'notation', 'Practise it in the game'], 'beam': ['lesson', 'notation', 'Practise it in the game'], 'dotted-note': ['lesson', 'notation', 'Practise it in the game'], 'tie': ['lesson', 'notation', 'Practise it in the game'], 'compound-time': ['lesson', 'notation', 'Practise it in the game'], 'dynamics': ['lesson', 'notation', 'Practise it in the game'], 'beat': ['lesson', 'notation', 'Practise it in the game'], 'bar': ['lesson', 'notation', 'Practise it in the game'], 'scale-degree': ['lesson', 'scaledegrees', 'Practise it in the game'], 'supertonic': ['lesson', 'scaledegrees', 'Practise it in the game'], 'mediant': ['lesson', 'scaledegrees', 'Practise it in the game'], 'subdominant': ['lesson', 'scaledegrees', 'Practise it in the game'], 'dominant': ['lesson', 'scaledegrees', 'Practise it in the game'], 'submediant': ['lesson', 'scaledegrees', 'Practise it in the game'], 'leading-tone': ['lesson', 'scaledegrees', 'Practise it in the game'], 'natural-minor': ['lesson', 'minorscales', 'Practise it in the game'], 'harmonic-minor': ['lesson', 'minorscales', 'Practise it in the game'], 'melodic-minor': ['lesson', 'minorscales', 'Practise it in the game'], 'blues-scale': ['lesson', 'pentatonic', 'Practise it in the game'], 'blue-note': ['lesson', 'pentatonic', 'Practise it in the game'], 'parallel-key': ['lesson', 'keys', 'Practise it in the game'], 'dominant-seventh': ['lesson', 'sevenths', 'Practise it in the game'], 'major-seventh': ['lesson', 'sevenths', 'Practise it in the game'], 'minor-seventh': ['lesson', 'sevenths', 'Practise it in the game'], 'half-diminished': ['lesson', 'sevenths', 'Practise it in the game'], 'cadence': ['lesson', 'cadences', 'Practise it in the game'], 'authentic-cadence': ['lesson', 'cadences', 'Practise it in the game'], 'plagal-cadence': ['lesson', 'cadences', 'Practise it in the game'], 'half-cadence': ['lesson', 'cadences', 'Practise it in the game'], 'deceptive-cadence': ['lesson', 'cadences', 'Practise it in the game'], 'resolution': ['lesson', 'cadences', 'Practise it in the game'], 'turnaround': ['lesson', 'progressions', 'Practise it in the game'], 'twelve-bar-blues': ['lesson', 'progressions', 'Practise it in the game'], 'chord-quality': ['lesson', 'qualities', 'Practise it in the game'], 'diatonic': ['lesson', 'chordsinkey', 'Practise it in the game'], 'ionian': ['page', 'scales', 'Open Scales & Modes'], 'dorian': ['page', 'scales', 'Open Scales & Modes'], 'phrygian': ['page', 'scales', 'Open Scales & Modes'], 'lydian': ['page', 'scales', 'Open Scales & Modes'], 'mixolydian': ['page', 'scales', 'Open Scales & Modes'], 'aeolian': ['page', 'scales', 'Open Scales & Modes'], 'locrian': ['page', 'scales', 'Open Scales & Modes'], 'scale-position': ['page', 'scales', 'Open Scales & Modes'], 'caged': ['page', 'chords', 'See it in Chords'], 'slash-chord': ['page', 'chords', 'See it in Chords'], 'sus-chord': ['page', 'chords', 'See it in Chords'], 'add9': ['page', 'chords', 'See it in Chords'], 'sixth-chord': ['page', 'chords', 'See it in Chords'], 'voicing': ['page', 'chords', 'See it in Chords'], 'strumming': ['page', 'righthand', 'Try it in Right Hand'], 'strum-pattern': ['page', 'righthand', 'Try it in Right Hand'], 'palm-muting': ['page', 'righthand', 'Try it in Right Hand'], 'chuck': ['page', 'righthand', 'Try it in Right Hand'], 'boom-chick': ['page', 'righthand', 'Try it in Right Hand'], 'fingerstyle': ['page', 'righthand', 'Try it in Right Hand'], 'pima': ['page', 'righthand', 'Try it in Right Hand'], 'alternating-bass': ['page', 'righthand', 'Try it in Right Hand'], 'travis-picking': ['page', 'righthand', 'Try it in Right Hand'], 'pinch': ['page', 'righthand', 'Try it in Right Hand'], 'rasgueado': ['page', 'righthand', 'Try it in Right Hand'], 'backbeat': ['page', 'righthand', 'Try it in Right Hand'], 'offbeat': ['page', 'righthand', 'Try it in Right Hand'], 'syncopation': ['page', 'righthand', 'Try it in Right Hand'], 'shuffle': ['page', 'righthand', 'Try it in Right Hand'], 'groove': ['page', 'righthand', 'Try it in Right Hand'], 'song-form': ['page', 'writing', 'Open Structure'], 'verse': ['page', 'writing', 'Open Structure'], 'chorus': ['page', 'writing', 'Open Structure'], 'pre-chorus': ['page', 'writing', 'Open Structure'], 'song-bridge': ['page', 'writing', 'Open Structure'], 'hook': ['page', 'writing', 'Open Structure'], 'intro-outro': ['page', 'writing', 'Open Structure'], 'solo': ['page', 'writing', 'Open Structure'],
   'power-chord': ['page', 'chords', 'Open the chord library'], 'barre': ['page', 'chords', 'See it in Chords'], 'arpeggio': ['page', 'righthand', 'Try it fingerstyle'], 'open-string': ['page', 'chords', 'Open the chord library'],
 };
 // the new chapters teach these terms, so their "practise it" buttons open those chapters
@@ -1378,14 +1378,14 @@ Object.assign(CONCEPT_GOTO, Object.fromEntries(Object.entries({
   strumfeel: 'palm-muting chuck syncopation backbeat offbeat shuffle groove accent', fingerstyle: 'fingerstyle pima arpeggio', travis: 'travis-picking alternating-bass pinch',
   lead: 'hammer-on pull-off legato slide bend vibrato alternate-picking string-skipping', powerchords: 'power-chord drop-d', barre: 'barre', caged: 'caged voicing scale-position',
   tunings: 'alternate-tuning open-tuning', songform: 'song-form verse chorus pre-chorus song-bridge hook', forms: 'intro-outro solo', twelvebar: 'twelve-bar-blues turnaround',
-}).flatMap(([t, ids]) => ids.split(' ').map(i => [i, ['lesson', t, 'Practise it in Learn']]))));
+}).flatMap(([t, ids]) => ids.split(' ').map(i => [i, ['lesson', t, 'Practise it in the game']]))));
 function conceptGoto(g) {
   const learnIdx = PAGES.findIndex(p => p.id === 'learn');
   // the old Theory-Lab drills live on as course lessons; a drill link opens that lesson's quiz
-  if (g[0] === 'lesson') { const s = state('course', {}); s.open = LESSONS.findIndex(l => l.topic === g[1]); keep('course', s); page(learnIdx); return; }
+  if (g[0] === 'lesson') { const s = state('course', {}); s.open = LESSONS.findIndex(l => l.topic === g[1]); keep('course', s); page(learnIdx, false, true); return; }
   if (g[0] === 'drill') { const QUIZ = {cof: 'cof', intervals: 'intervalname', key: 'chordsinkey', scales: 'modes', capo: 'capo', fretboard: 'neck'};
-    const s = state('course', {}); s.open = LESSONS.findIndex(l => l.topic === QUIZ[g[1]]); keep('course', s); page(learnIdx); }
-  else { if (g[1] === 'learn') { const s = state('course', {}); s.open = LESSONS.findIndex(l => l.reading); keep('course', s); } page(PAGES.findIndex(p => p.id === g[1])); }
+    const s = state('course', {}); s.open = LESSONS.findIndex(l => l.topic === QUIZ[g[1]]); keep('course', s); page(learnIdx, false, true); }
+  else { if (g[1] === 'learn') { const s = state('course', {}); s.open = LESSONS.findIndex(l => l.reading); keep('course', s); } page(PAGES.findIndex(p => p.id === g[1]), false, true); }
 }
 function openConcept(id) {
   const c = CMAP[id]; if (!c) return;
@@ -1400,7 +1400,7 @@ function openConcept(id) {
     c.more ? h('p', {class: 'cpop-more', html: glossify(c.more, id)}) : '',
     (c.see && c.see.length) ? h('div', {class: 'cpop-see'}, h('span', {class: 'muted', style: 'font-size:12px;letter-spacing:.08em;text-transform:uppercase'}, 'See also'),
       h('div', {html: c.see.map(s => tm(s)).join(' ')})) : '',
-    g && !(bookMode() && (g[0] !== 'page' || g[1] === 'learn')) ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
+    g ? h('button', {class: 'btn acc small cpop-go', on: {click: () => { closeConcept(); conceptGoto(g); }}}, g[2] + ' →') : '');
   const wrap = h('div', {id: 'cpop', on: {click: closeConcept}}, card);
   wrap.addEventListener('keydown', e => { if (e.key !== 'Tab') return;   // keep Tab inside the dialog
     const f = [...wrap.querySelectorAll('button')].filter(el => !el.disabled && el.offsetParent !== null); if (!f.length) return;
@@ -1476,7 +1476,7 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const st = state('cover', {ref: 'fretboard', key: 0, note: -1, tuning: 0, tnote: -1});
   const sv = () => keep('cover', st);
   v.append(h('div', {html: band()}));
-  const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => bookMode() && p.id === 'learn' ? '' : h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
+  const toc = h('div', {class: 'toc'}, PAGES.slice(1).map((p, i) => p.id === 'learn' ? '' : h('button', {on: {click: () => page(i + 1)}}, h('b', {style: `color:${p.acc}`}, p.no), h('span', {}, p.name, h('small', {}, p.blurb)))));
   // the guitar mark is the day/night switch — tap it to flip the theme
   const markBtn = h('button', {title: resolveTheme() === 'moon' ? 'Tap for day' : 'Tap for night', 'aria-label': 'Switch day or night', style: 'all:unset;cursor:pointer;width:62px;flex:none;display:block',
     html: MARK, on: {click: () => setTheme(resolveTheme() === 'moon' ? 'sun' : 'moon')}});
@@ -1539,19 +1539,16 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
       refBody.append(sec2('One finger, every chord', 'a flat finger or a slide over any fret is a new chord · I IV V = 0, 5, 7', 'var(--ink)', bt)); }
     setFocus({label: `cycle the ${tn.name} chords`, play: cycleChords(tcards, tn.chords, {midi: tn.midi})});
   }
-  // the dashboard button: straight to the next lesson waiting on the road
-  const nxt = LESSONS.find(l => !courseGot()[chapKey(l)]);
-  const cont = h('button', {class: 'btn acc', style: 'min-height:46px;font-size:15.5px;font-weight:800;align-self:flex-start', on: {click: () => {
-    const s = state('course', {}); s.open = nxt ? LESSONS.indexOf(nxt) : -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn')); }}},
-    nxt ? `► Continue learning · ${nxt.name}` : '★ Course complete · back to the road');
-  cont.classList.add('cont-go');
+  // the game: a side door from the cover, not a chapter. It opens on the world map, and keeps its progress
+  const nxt = LESSONS.find(l => !courseGot()[chapKey(l)]), begun = LESSONS.some(l => courseGot()[chapKey(l)]);
+  const cont = h('button', {class: 'mode-btn cont-go', style: 'align-self:flex-start', on: {click: () => {
+    const s = state('course', {}); s.open = -1; s.challenge = -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn'), false, true); }}},
+    h('span', {class: 'mode-ic'}, '🎮'), h('b', {}, 'Play the game'),
+    h('small', {}, !nxt ? 'course complete · every world cleared' : begun ? `your progress is saved · next: ${nxt.name}` : 'lessons as battles · learn the book by playing'));
   v.append(brand, h('div', {html: band()}),
     h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.8fr) minmax(0,1.3fr);align-items:start'},
       h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'},
-        h('div', {class: 'modes', role: 'group', 'aria-label': 'How to use the book'},
-          [['learn', '🎮', 'Learn mode', 'the game: lessons unlock the book'], ['book', '📖', 'Book mode', 'every page open · no game']].map(([k, ic, t, d]) =>
-            h('button', {class: 'mode-btn', 'aria-pressed': String(store.get('mode', 'learn') === k), on: {click: () => { store.set('mode', k); redraw(); }}}, h('span', {class: 'mode-ic'}, ic), h('b', {}, t), h('small', {}, d)))),
-        bookMode() ? '' : cont,
+        cont,
         sec2('Contents', 'tap a chapter · swipe or use ‹ › to turn pages', 'var(--ink)', toc)),
       h('div', {style: 'display:flex;flex-direction:column;gap:12px;min-width:0'}, tools, refBody)));
 }});
@@ -1566,10 +1563,10 @@ function progView(toks, tonic, minor, pattern, capo = 0) {
 }
 
 /* ================================================================ I CHORDS (open shapes + moveable barre shapes) */
-PAGES.push({id: 'chords', no: 'II', name: 'Chords', blurb: 'open shapes and moveable barre shapes', acc: 'var(--rust)', draw(v) {
+PAGES.push({id: 'chords', no: 'I', name: 'Chords', blurb: 'open shapes and moveable barre shapes', acc: 'var(--rust)', draw(v) {
   const ui = state('chordmode', {mode: 'open'});
   const openMode = ui.mode === 'open';
-  v.append(header('II', 'Chords',
+  v.append(header('I', 'Chords',
     openMode ? `every useful open shape in the first five ${tm('fret', 'frets')}` : 'moveable shapes · one grip plays every key up the neck',
     openMode ? `○ open string · <span style="color:var(--bad)">✕</span> don’t play · numbers = fingers · coloured note = ${tm('root')}` : `bar = one finger flat · number left = ${tm('fret')} · the E/A/D shapes are your open chords moved up`,
     openMode ? 'var(--rust)' : 'var(--teal)'));
@@ -1634,11 +1631,11 @@ keyData = (scale, k) => { const id = scale.name + '|' + k;
     if (best) best.root = true;
     _kdUp.set(id, Object.assign({}, kd, {boxes})); }
   return _kdUp.get(id); };
-PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'five positions · any key', acc: 'var(--navy)', draw(v) {
   const st = state('scales', {scale: 'Minor Pentatonic', k: 4, pos: 0, label: 'num'});
   const sv = () => keep('scales', st), set = (k, x) => { st[k] = x; sv(); redraw(); };
   const scale = scaleBy(st.scale), kd = keyData(scale, st.k), box = kd.boxes[st.pos];
-  v.append(header('III', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
+  v.append(header('II', 'Scales', '', '<span style="color:var(--gold)">◯</span> gold ring = home · pale = in reach, outside the run · hollow = open string', 'var(--navy)'));
   v.append(h('div', {class: 'toolbar'},
     pick('Scale', [...new Set(D.scales.map(s => s.group))].map(g => ({group: g, items: D.scales.filter(s => s.group === g).map(s => [s.name, lockMark('scale:' + s.name) + s.name])})), st.scale, x => set('scale', x), 'scale'),
     pick('Key', scale.keys.map((K, i) => [i, K.key]), st.k, x => set('k', +x), 'key'),
@@ -1659,10 +1656,10 @@ PAGES.push({id: 'scales', no: 'III', name: 'Scales', blurb: 'five positions · a
 }});
 
 /* ================================================================ V THE RIGHT HAND (strumming + fingerstyle) */
-PAGES.push({id: 'righthand', no: 'IV', name: 'Right Hand Technique', blurb: 'strumming and fingerstyle · the hand that makes the rhythm', acc: 'var(--rust)', draw(v) {
+PAGES.push({id: 'righthand', no: 'III', name: 'Right Hand Technique', blurb: 'strumming and fingerstyle · the hand that makes the rhythm', acc: 'var(--rust)', draw(v) {
   const ui = state('righthand', {mode: 'strum'});
   const strumming = ui.mode === 'strum';
-  v.append(header('IV', 'Right Hand <em>Technique</em>',
+  v.append(header('III', 'Right Hand <em>Technique</em>',
     strumming ? 'strumming · count out loud, the hand never stops' : 'fingerstyle · p·i·m·a under the tab is which finger picks',
     strumming ? '↓ down · ↑ up · <span style="color:var(--bad)">red</span> accent · ✕ muted chuck · <b>B</b> bass · <b>M</b> palm mute'
               : '<b style="color:var(--rust)">p</b> thumb · <b style="color:var(--navy)">i</b> index · <b style="color:var(--teal)">m</b> middle · <b style="color:var(--plum)">a</b> ring',
@@ -1716,10 +1713,10 @@ PAGES.push({id: 'righthand', no: 'IV', name: 'Right Hand Technique', blurb: 'str
 }});
 
 /* ================================================================ VI WRITING MUSIC (harmony + songwriting) */
-PAGES.push({id: 'writing', no: 'V', name: 'Structure', blurb: 'from one chord to a whole song', acc: 'var(--gold)', draw(v) {
+PAGES.push({id: 'writing', no: 'IV', name: 'Structure', blurb: 'from one chord to a whole song', acc: 'var(--gold)', draw(v) {
   const wm = state('writingmode', {mode: 'songs'});
   const chordsMode = wm.mode === 'chords';
-  v.append(header('V', 'Structure',
+  v.append(header('IV', 'Structure',
     chordsMode ? `build any ${tm('chord', 'chord')} · find its family in a ${tm('key', 'key')} · move to the next one` : `${tm('progression', 'progressions')} to borrow · song shapes · a melody to sing over them`,
     chordsMode ? `capital = major · lower = minor · ° = ${tm('diminished')}` : `${tm('roman-numerals', 'numerals')} work in every ${tm('key')}`, 'var(--gold)'));
   const bar = h('div', {class: 'toolbar'}, seg('Working on', [['chords', 'Chords'], ['songs', 'Songs']], wm.mode, x => { wm.mode = x; keep('writingmode', wm); redraw(); }));
@@ -3027,11 +3024,11 @@ const UNLOCKS = {
   'prog:Turnarounds & Endings': 'cadences', 'prog:More Colours': 'colours',
 };
 const PEEK = new Set();   // peeks last for this session only
-const openBook = () => bookMode();   // Book mode opens everything; Learn mode unlocks as you learn
+const openBook = () => bookMode();   // always true now: nothing in the book is sealed
 const lessonFor = key => LESSONS.find(l => chapKey(l) === UNLOCKS[key]);
 const isOpen = key => openBook() || !UNLOCKS[key] || !!courseGot()[UNLOCKS[key]];
 const lockMark = key => isOpen(key) ? '' : '🔒 ';
-function goLesson(L) { const s = state('course', {}); s.open = LESSONS.indexOf(L); s.challenge = -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn')); }
+function goLesson(L) { const s = state('course', {}); s.open = LESSONS.indexOf(L); s.challenge = -1; keep('course', s); page(PAGES.findIndex(p => p.id === 'learn'), false, true); }
 // call after a page's toolbar: if the chosen item is sealed, draw the seal and return true (the page stops there)
 function gate(v, key, label) {
   if (isOpen(key)) return false;
@@ -3650,9 +3647,9 @@ function paintWorld(ctx, W, H, lands, night) {
 }
 
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
-PAGES.push({id: 'learn', no: 'I', name: 'Learn', blurb: 'the course · a world of lessons', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'learn', no: '🎮', name: 'The Game', blurb: 'the course · a world of lessons', acc: 'var(--navy)', draw(v) {
   pageScroll = false;
-  v.append(h('header', {class: 'hd2'}, h('div', {class: 'hrow'}, h('div', {class: 'no'}, 'I'), h('h1', {}, 'Learn'))));
+  v.append(h('header', {class: 'hd2'}, h('div', {class: 'hrow'}, h('div', {class: 'no'}, '🎮'), h('h1', {}, 'The Game'))));
   Music.sync();   // a day/night flip or a new world swaps the song
   const s = state('course', {open: -1});
   if (s.challenge >= 0 && s.challenge < MODULES.length) quizView(v, challengeOf(s.challenge), -1);
@@ -3988,7 +3985,7 @@ function challengeOf(mi) {
    progress, points, turquoise, music, backups on the map; the chapter, your hearts and your items (Hint, Heal) in a
    battle. The metronome stays on the other pages. Pages set GAME; anything that changes it calls drawBar(). */
 let GAME = null, GAME_GAIN = 0;
-const bookMode = () => store.get('mode', 'learn') === 'book';
+const bookMode = () => true;   // the book is always open: the game is played from the cover and seals nothing
 function drawGameBar(bar) {
   const IC = {chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
     chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'};
@@ -5785,9 +5782,9 @@ function cpListen() {
 
 function cpAll() { cpRenderSong(); cpRenderDial(); cpRenderRoutes(); cpRenderLower(); cpRenderLive(); }
 
-PAGES.push({id: 'sketch', no: 'VI', name: 'Song Sketchpad', blurb: 'write your own · the compass shows where to go', acc: 'var(--rust)', draw(v) {
+PAGES.push({id: 'sketch', no: 'V', name: 'Song Sketchpad', blurb: 'write your own · the compass shows where to go', acc: 'var(--rust)', draw(v) {
   const S = cpSong();
-  v.append(header('VI', 'Song <em>Sketchpad</em>', `the ${tm('key')} your song is in, and where it could go next`, `tap a bar, then a chord on the wheel · or Listen and play it in`, 'var(--rust)'));
+  v.append(header('V', 'Song <em>Sketchpad</em>', `the ${tm('key')} your song is in, and where it could go next`, `tap a bar, then a chord on the wheel · or Listen and play it in`, 'var(--rust)'));
   const name = h('input', {type: 'text', value: S.name, 'aria-label': 'song name', class: 'cp-name', on: {input: e => { S.name = e.target.value; cpSave(); }}});
   const keySel = h('select', {'aria-label': 'key', on: {change: e => { const [kk, m] = e.target.value.split(':'); cpSetKey(+kk, m === 'm', false); }}},
     D.majKeys.map((kk, i) => h('option', {value: i + ':', selected: S.key === i && !S.minor}, kk + ' major')), D.minKeys.map((kk, i) => h('option', {value: i + ':m', selected: S.key === i && S.minor}, kk + ' minor')));
@@ -5846,9 +5843,9 @@ const IDX_GROUPS = [
   ['feel', 'Rhythm Feel', ['beat', 'backbeat', 'offbeat', 'syncopation', 'shuffle', 'groove', 'tempo']],
   ['form', 'Song Form', ['song-form', 'intro-outro', 'verse', 'pre-chorus', 'chorus', 'song-bridge', 'hook', 'solo', 'twelve-bar-blues']],
 ];
-PAGES.push({id: 'index', no: 'VII', name: 'The Index', blurb: 'every term and idea in the book, organized', acc: 'var(--navy)', draw(v) {
+PAGES.push({id: 'index', no: 'VI', name: 'The Index', blurb: 'every term and idea in the book, organized', acc: 'var(--navy)', draw(v) {
   pageScroll = true;
-  v.append(header('VII', 'The <em>Index</em>', 'every term the book uses and the ideas behind each lesson', 'browse by topic, or A to Z · tap anything to open it', 'var(--navy)'));
+  v.append(header('VI', 'The <em>Index</em>', 'every term the book uses and the ideas behind each lesson', 'browse by topic, or A to Z · tap anything to open it', 'var(--navy)'));
   const st = state('indexpage', {sec: 'az'});
   const go = sec => { st.sec = sec; keep('indexpage', st); redraw(); };
   const navBtn = ([sec, label]) => h('button', {class: 'btn' + (st.sec === sec ? ' acc' : ''), style: 'justify-content:flex-start;text-align:left;min-height:42px', on: {click: () => go(sec)}}, label);
@@ -5882,8 +5879,8 @@ PAGES.push({id: 'index', no: 'VII', name: 'The Index', blurb: 'every term and id
   v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(185px,.3fr) minmax(0,1fr);align-items:start'}, nav, body));
 }});
 
-// the book's reading order: the course up front, then the reference pages, then the tools
-const PAGE_ORDER = ['cover', 'learn', 'chords', 'scales', 'righthand', 'writing', 'sketch', 'index'];
+// the book's reading order: the reference pages, then the tools; the game sits outside it, opened from the cover
+const PAGE_ORDER = ['cover', 'chords', 'scales', 'righthand', 'writing', 'sketch', 'index', 'learn'];
 PAGES.sort((a, b) => PAGE_ORDER.indexOf(a.id) - PAGE_ORDER.indexOf(b.id));
 PAGES.forEach(p => p.blurb = p.blurb || '');
 const start = (location.hash || '').slice(1), si = PAGES.findIndex(p => p.id === start);
