@@ -497,6 +497,8 @@ table.t td.l{font-weight:800}
 @media (max-width:820px){ .gb-btn small,.gb-stat small,.gb-prog-t small{display:none} .gb-prog{min-width:90px} .pbar.gamebar{gap:6px} }
 /* Book mode / Learn mode on the cover */
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.book-doors{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.battle-back{position:fixed;top:14px;right:16px;z-index:60;border:2px solid var(--ink);background:var(--gold);color:var(--ink);font:inherit;font-weight:900;font-size:16px;border-radius:12px;padding:10px 16px;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer}
 .adv-btn{all:unset;cursor:pointer;display:block;flex:none;border-radius:6px;transition:transform .15s}
 .adv-btn:hover,.adv-btn:focus-visible{transform:translateY(-2px)} .adv-btn:active{transform:translateY(1px) scale(.97)}
 .adv-btn:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
@@ -1137,7 +1139,7 @@ function page(i, back = false, game = false) {
   at = (i + PAGES.length) % PAGES.length; store.set('at', at); focus = null;
   const p = PAGES[at]; const v = view(); v.className = 'pg' + (back ? ' back' : ''); void v.offsetWidth; v.innerHTML = '';   // fit() manages the frame's 'scrollable' class
   document.documentElement.style.setProperty('--acc', p.acc || 'var(--rust)');
-  pageScroll = false; safeDraw(p, v); materialize(v); $('#page').scrollTop = 0; drawBar(); fitSoon(); Music.sync();
+  pageScroll = false; safeDraw(p, v); materialize(v); $('#page').scrollTop = 0; drawBar(); fitSoon(); Music.sync(); battleChip();
   { const sp = seenPages(); if (!sp[p.id]) { sp[p.id] = 1; store.set('seen.pages', sp); } }
   try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
 }
@@ -3457,13 +3459,61 @@ const heartSprite = (full, breaking) => bitSprite(HEART, full ? {o: '#e0403a', h
 const SPELL = ['..o..', '.owo.', 'owwwo', '.owo.', '..o..'];
 const spellSprite = kind => bitSprite(SPELL, kind === 'zap' ? {o: '#ffb020', w: '#fff6c0'} : {o: '#8a3ad0', w: '#f0c0ff'}, 5, 'spell ' + kind);
 function pop(el, text, leftPct) { const p = h('div', {class: 'arena-pop', style: `left:${leftPct}%`}, text); el.append(p); setTimeout(() => p.remove(), 800); }
+/* ---- open book: a battle can send you into the book's own pages to look the answer up. DOORS are places in the book
+   (a page plus the toggles that open the right part of it); BOOK_FOR lists the doors that help with each question topic.
+   The live battle is kept (LIVE: its DOM holds all its state) while you read, and a "Back to battle" button on every
+   book page brings you back to the same question. */
+const DOORS = {
+  fretboard: ['The fretboard', 'cover', [['cover', {ref: 'fretboard'}]]], keychords: ['Chords in a key', 'cover', [['cover', {ref: 'key'}]]],
+  cof: ['Circle of fifths', 'cover', [['cover', {ref: 'cof'}]]], capo: ['The capo', 'cover', [['cover', {ref: 'capo'}]]],
+  scaleref: ['What’s in each scale', 'cover', [['cover', {ref: 'scales'}]]], intervals: ['Intervals', 'cover', [['cover', {ref: 'iv'}]]],
+  tunings: ['Alternate tunings', 'cover', [['cover', {ref: 'tunings'}]]],
+  open: ['Open chords', 'chords', [['chordmode', {mode: 'open'}]]], barre: ['Barre chords', 'chords', [['chordmode', {mode: 'barre'}]]],
+  scales: ['Scale shapes', 'scales', []],
+  strum: ['Strumming', 'righthand', [['righthand', {mode: 'strum'}]]], finger: ['Fingerstyle', 'righthand', [['righthand', {mode: 'finger'}]]],
+  build: ['Build any chord', 'writing', [['writingmode', {mode: 'chords'}], ['harmony', {topic: 'build'}]]],
+  inkey: ['Chords in a key (Structure)', 'writing', [['writingmode', {mode: 'chords'}], ['harmony', {topic: 'inkey'}]]],
+  moves: ['How chords move', 'writing', [['writingmode', {mode: 'chords'}], ['harmony', {topic: 'moves'}]]],
+  songs: ['Progressions & song shapes', 'writing', [['writingmode', {mode: 'songs'}]]],
+  index: ['The Index', 'index', []],
+  parts: ['The Index · the guitar', 'index', [['indexpage', {sec: 'guitar'}]]], pictures: ['The Index · reading the pictures', 'index', [['indexpage', {sec: 'pictures'}]]],
+  notation: ['The Index · rhythm & notation', 'index', [['indexpage', {sec: 'reading'}]]],
+};
+const BOOK_FOR = {anatomy: ['parts'], strings: ['fretboard', 'open', 'parts'], frets: ['fretboard', 'parts'], diagrams: ['pictures', 'open', 'scales'], tabread: ['pictures', 'finger', 'strum'], capo: ['capo'],
+  halfsteps: ['fretboard', 'intervals'], accidentals: ['fretboard'], neck: ['fretboard'], landmarks: ['fretboard'], octaves: ['fretboard', 'intervals'],
+  strumcount: ['strum'], strumfeel: ['strum'], fingerstyle: ['finger'], travis: ['finger'], lead: ['scales'],
+  triads: ['build'], colours: ['build'], sevenths: ['build', 'inkey'], slash: ['build'], chordsinkey: ['inkey', 'keychords'], qualities: ['inkey'], progressions: ['songs', 'inkey'], cadences: ['moves'],
+  interval: ['intervals'], intervalname: ['intervals'], intervalquality: ['intervals'], cof: ['cof'], keysigs: ['cof'], keys: ['cof', 'keychords'],
+  scalewhat: ['scaleref', 'scales'], majmin: ['scaleref'], minorscales: ['scaleref'], pentatonic: ['scales', 'scaleref'], scaledegrees: ['scaleref'], modes: ['scaleref'],
+  powerchords: ['barre'], barre: ['barre'], caged: ['barre', 'scales'], tunings: ['tunings'],
+  songform: ['songs'], forms: ['songs'], twelvebar: ['songs'], notation: ['notation'],
+  basics: ['parts', 'fretboard'], fretboard: ['fretboard'], notes: ['fretboard'], intervals: ['intervals'], key: ['keychords', 'cof'], scales: ['scaleref', 'scales']};
+let LIVE = null;   // {id, el, game, done}: the battle waiting while you read
+function openDoor(k) { const [, pid, sets] = DOORS[k]; sets.forEach(([key, patch]) => keep(key, Object.assign(state(key, {}), patch))); page(PAGES.findIndex(p => p.id === pid)); }
+function showBook(Q) {
+  const ids = [...(BOOK_FOR[Q && Q.topic] || []), 'index'].filter((k, i, a) => a.indexOf(k) === i);
+  const close = () => wrap.remove();
+  const card = h('div', {class: 'cpop-card ref-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Open the book', on: {click: e => e.stopPropagation()}},
+    h('button', {class: 'cpop-x', 'aria-label': 'Close', on: {click: close}}, '×'),
+    h('h3', {}, '📖 Open the book'), h('p', {class: 'cpop-short', style: 'font-size:14px'}, 'Look it up, then tap ⚔ Back to battle. The question waits for you.'),
+    h('div', {class: 'book-doors'}, ids.map(k => h('button', {class: 'btn', on: {click: () => { close(); openDoor(k); }}}, DOORS[k][0]))));
+  const wrap = h('div', {id: 'cpop', on: {click: close}}, card);
+  document.body.append(wrap);
+}
+function battleChip() {
+  const old = $('#battle-back'); if (old) old.remove();
+  if (!LIVE || LIVE.done || PAGES[at].id === 'learn') return;
+  document.body.append(h('button', {id: 'battle-back', class: 'battle-back', on: {click: () => page(PAGES.findIndex(p => p.id === 'learn'), false, true)}}, '⚔ Back to battle'));
+}
 function quizView(v, ch, idx) {
   pageScroll = true;
   const id = ch.challenge ? 'challenge:' + ch.mod : chapKey(ch);
+  if (LIVE && LIVE.id === id && !LIVE.done) { v.append(LIVE.el); GAME = LIVE.game; return; }   // back from the book: the same battle, same question
+  LIVE = null;
   const primary = ch.challenge ? ch.topics : ch.exam ? LESSONS.filter(c => c.topic).map(c => c.topic) : [ch.topic];
   const review = (!ch.exam && !ch.challenge && idx > 0 && LESSONS[idx - 1].topic) ? [LESSONS[idx - 1].topic] : [];
-  const back = () => { const s = state('course', {}); s.open = -1; s.challenge = -1; keep('course', s); redraw(); };
-  const again = () => { const s = state('course', {}); if (ch.challenge) s.challenge = ch.mod; else s.open = idx; keep('course', s); redraw(); };
+  const back = () => { LIVE = null; const s = state('course', {}); s.open = -1; s.challenge = -1; keep('course', s); redraw(); };
+  const again = () => { LIVE = null; const s = state('course', {}); if (ch.challenge) s.challenge = ch.mod; else s.open = idx; keep('course', s); redraw(); };
   if (ch.reading) { GAME = {kind: 'reading', name: ch.name, back}; const bar = h('div', {class: 'toolbar'}); v.append(bar, arena(ch.mod, h('div', {}, mageTile(0, 72)))); readingView(v, bar, ch); return; }
 
   // ---- the battle: you have HEARTS hearts; the critter has one HP per right answer you need. A right answer is your
@@ -3476,10 +3526,11 @@ function quizView(v, ch, idx) {
   const qh = h('div', {style: 'font-size:21px;font-weight:800;min-height:1.4em;text-align:center'});
   const opts = h('div', {style: 'display:flex;flex-wrap:wrap;gap:10px;justify-content:center'});
   const hintRow = h('div', {style: 'text-align:center;min-height:1.6em'});
+  const bookBtn = h('button', {class: 'btn small', style: 'align-self:center', on: {click: () => showBook(current())}}, '📖 Open the book');
   const fb = h('div', {'aria-live': 'polite', style: 'min-height:40px;text-align:center'});
   const ar = arena(ch.mod, sage);
   const showPts = (gain = 0) => { GAME_GAIN = gain; drawBar(); };
-  wrap.append(ar, counter, qh, opts, hintRow, fb);
+  wrap.append(ar, counter, qh, opts, bookBtn, hintRow, fb);
 
   const qs = buildQuiz(primary, review, ch.exam ? 16 : 12);
   // the recall bonus: every chapter past Module 1 ends (once the critter is beaten) with one question pulled back from
@@ -3499,7 +3550,8 @@ function quizView(v, ch, idx) {
   GAME = {kind: 'battle', name: ch.name, back, hearts: () => HEARTS - hits, max: HEARTS, items: () => {
     const Q = current();
     return [
-      {icon: '📖', label: 'Reference', cost: 0, ok: !finished && !!Q, title: 'The chart for this question — free, like an exam legend', use: () => showReference(Q)},
+      {icon: '📖', label: 'Open book', cost: 0, ok: !finished && !answered && !!Q, title: 'Look the answer up in the book — free, it’s an open-book exam', use: () => showBook(Q)},
+      {icon: '📋', label: 'Chart', cost: 0, ok: !finished && !!Q, title: 'The quick chart for this question', use: () => showReference(Q)},
       {icon: '💡', label: 'Hint', cost: HINT_COST, ok: !finished && !answered && !hintShown && !!(Q && Q.hint) && points() >= HINT_COST, title: points() < HINT_COST ? `Earn ${HINT_COST} points to buy a hint` : 'A nudge toward the answer',
         use: () => { addPoints(-HINT_COST); hintShown = true; hintRow.replaceChildren(h('span', {class: 'muted', style: 'font-size:14px;font-weight:700'}, '💡 ' + Q.hint)); Music.fx('coin'); showPts(-HINT_COST); }},
       {icon: '🧪', label: 'Heal', cost: HEAL_COST, ok: !finished && hits > 0 && points() >= HEAL_COST, title: hits ? (points() < HEAL_COST ? `Earn ${HEAL_COST} points to heal` : 'Restore a heart') : 'Your hearts are full',
@@ -3510,9 +3562,9 @@ function quizView(v, ch, idx) {
       : `Question ${i + 1} · ${foeMax - right} hit${foeMax - right === 1 ? '' : 's'} to win` + (streak > 1 ? ` · ${streak} in a row` : '') + (Q.review ? ' · review' : '');
     qh.textContent = Q.q;
     opts.replaceChildren(...Q.opts.map(o => h('button', {class: 'btn', style: 'font-size:16px;min-height:52px;padding:8px 18px;white-space:normal;max-width:320px', on: {click: () => pick(o, Q)}}, String(o))));
-    hintRow.replaceChildren(); hintShown = false;
+    hintRow.replaceChildren(); hintShown = false; bookBtn.style.visibility = '';
     fb.textContent = ''; drawBar(); }
-  function pick(o, Q) { if (answered) return; answered = true;
+  function pick(o, Q) { if (answered) return; answered = true; bookBtn.style.visibility = 'hidden';
     const ok = String(o) === String(Q.a);
     [...opts.children].forEach(btn => { btn.disabled = true; if (btn.textContent === String(Q.a)) btn.classList.add('acc'); else if (btn.textContent === String(o) && !ok) btn.style.opacity = '.45'; });
     hintRow.replaceChildren();
@@ -3537,9 +3589,9 @@ function quizView(v, ch, idx) {
     const best = store.get('course.best', {}); best[id] = Math.max(best[id] || 0, right); store.set('course.best', best);
     let bonus = 0;
     if (won) { if (ch.challenge) MODULES[ch.mod].lessons.filter(l => !l.exam).forEach(l => courseClear(chapKey(l))); else { courseClear(id); walkAnim = {from: idx, to: Math.min(idx + 1, LESSONS.length - 1)}; } bonus = PTS_WIN + (hits ? 0 : PTS_FLAWLESS) + (ch.challenge ? PTS_TESTOUT : 0); addPoints(bonus); showPts(bonus); }
-    Music.fx(won ? 'win' : 'lose'); finished = true; if (!bonus) drawBar();
+    Music.fx(won ? 'win' : 'lose'); finished = true; if (LIVE) LIVE.done = true; if (!bonus) drawBar();
     sage.replaceChildren(mageTile(won ? 2 : 0, 72)); ar.beaten(won); counter.textContent = ''; hintRow.replaceChildren();
-    qh.textContent = won ? (hits ? 'Victory!' : 'Flawless victory!') : 'Defeated…'; opts.replaceChildren();
+    qh.textContent = won ? (hits ? 'Victory!' : 'Flawless victory!') : 'Defeated…'; opts.replaceChildren(); bookBtn.remove();
     fb.replaceChildren(h('div', {style: 'font-size:18px', html: won
         ? `${right} spells landed${hits ? `, ${hits} hit taken` : ', not a scratch'}. <b>+${bonus} ◆</b> — ${ch.challenge ? `all of ${MODULES[ch.mod].name} is open, and everything it unlocks` : 'the next chapter is open'}.`
         : `The ${ARENAS[Math.min(ARENAS.length - 1, ch.mod)].name.replace(/^The /, '').toLowerCase()} critter got you after ${right} hit${right === 1 ? '' : 's'}. Read the explanations and try again.`}),
@@ -3547,6 +3599,7 @@ function quizView(v, ch, idx) {
         h('button', {class: 'btn', on: {click: again}}, 'Try again'),
         h('button', {class: 'btn acc', on: {click: back}}, 'Back to the map'))); }
   render();
+  LIVE = {id, el: wrap, game: GAME, done: false};
 }
 
 /* ===== SPIKE: the Learn road as a pixel-art scene — a CC0 animated wizard walks a tiled path.
@@ -3698,13 +3751,15 @@ function roadView(v) {
     (narrow || mi % 2 === 0 ? colR : colL).append(isle);
   });
   if (wizHolder) { let f = 0; mageTimer = setInterval(() => { if (!document.body.contains(wizHolder)) { clearInterval(mageTimer); mageTimer = null; return; } f = (f + 1) % 4; wizHolder.replaceChildren(mageTile(f, 34)); }, 240); }
-  setTimeout(() => {
+  // painted in the scene's own layout pixels (a page zoom scales screen rects, not layout), and painted again whenever
+  // the scene changes size — an iPad turned on its side, the window resized — so the lands always sit under the banners
+  const paint = () => {
     MP = mapPal();
-    const S = 4, r0 = scene.getBoundingClientRect();
-    if (!r0.width || !r0.height) return;
-    const W = Math.ceil(r0.width / S), H = Math.ceil(r0.height / S);
-    cv.width = W; cv.height = H; cv.style.width = r0.width + 'px'; cv.style.height = r0.height + 'px';
-    const ctx = cv.getContext('2d'), box = el => { const r = el.getBoundingClientRect(); return {x: (r.left - r0.left) / S, y: (r.top - r0.top) / S, w: r.width / S, h: r.height / S}; };
+    const S = 4, r0 = scene.getBoundingClientRect(), lw = scene.offsetWidth, lh = scene.offsetHeight;
+    if (!lw || !lh || !r0.width) return;
+    const z = r0.width / lw, W = Math.ceil(lw / S), H = Math.ceil(lh / S);
+    cv.width = W; cv.height = H; cv.style.width = lw + 'px'; cv.style.height = lh + 'px';
+    const ctx = cv.getContext('2d'), box = el => { const r = el.getBoundingClientRect(); return {x: (r.left - r0.left) / z / S, y: (r.top - r0.top) / z / S, w: r.width / z / S, h: r.height / z / S}; };
     const lands = isles.map(el => Object.assign(box(el), {scene: el.dataset.scene}));
     paintWorld(ctx, W, H, lands, night);
     const pts = nodeEls.map(el => { const b = box(el); return [b.x + b.w / 2, b.y + b.h / 2]; });
@@ -3728,7 +3783,13 @@ function roadView(v) {
         if (n % 3 === 0 && free(x, y)) { PROPS[L.scene](ctx, x, y, k++, d); busy.push({x, y, w: 16, h: 14}); } } });
     const last = pts[pts.length - 1];
     if (last) drawCastle(ctx, Math.round(last[0]) - 18, Math.round(last[1]) + 4, nodeSts[nodeSts.length - 1]);
-  }, 40);
+  };
+  setTimeout(paint, 40);
+  if (window.ResizeObserver) { let size = '', t = 0;
+    const ro = new ResizeObserver(() => { if (!document.body.contains(scene)) { ro.disconnect(); return; }
+      if ((innerWidth < 820) !== narrow) { ro.disconnect(); redraw(); return; }   // turned past the one/two-column width: lay the map out again
+      const now = scene.offsetWidth + 'x' + scene.offsetHeight; if (now === size) return; size = now; clearTimeout(t); t = setTimeout(paint, 120); });
+    ro.observe(scene); }
   setTimeout(() => { const pg = $('#page'); if (pg && wizHolder) { const r = wizHolder.getBoundingClientRect(), pr = pg.getBoundingClientRect(); pg.scrollTop += (r.top - pr.top) - pr.height * 0.4; } }, 60);
 }
 // the sea and the lands: each land is a rounded blob with a ragged coast, its own ground and its own shore —
@@ -3769,7 +3830,6 @@ function paintWorld(ctx, W, H, lands, night) {
 // the Learn page: the course road (with the Index still reachable until it moves to the cover)
 PAGES.push({id: 'learn', no: '🎮', name: 'The Game', blurb: 'the course · a world of lessons', acc: 'var(--navy)', draw(v) {
   pageScroll = false;
-  v.append(h('header', {class: 'hd2'}, h('div', {class: 'hrow'}, h('div', {class: 'no'}, '🎮'), h('h1', {}, 'The Game'))));
   Music.sync();   // a day/night flip or a new world swaps the song
   const s = state('course', {open: -1});
   if (s.challenge >= 0 && s.challenge < MODULES.length) quizView(v, challengeOf(s.challenge), -1);
@@ -3895,7 +3955,7 @@ console.assert(MODES.harmonic[5] === 8 && MODES.harmonic[6] === 11, 'harmonic mi
 console.assert(ARENAS.every(A => SONGS[A.scene]), 'every world has a song');
 const Music = (() => {
   const VOL = .5;
-  let on = store.get('course.music', false), playing = null, ctx = null, master = null, echo = null, noise = null, pulse = {}, timer = 0, nextT = 0, step = 0, duckUntil = 0;
+  let on = store.get('course.music2', true), playing = null, ctx = null, master = null, echo = null, noise = null, pulse = {}, timer = 0, nextT = 0, step = 0, duckUntil = 0;
   const inLesson = () => { const c = state('course', {open: -1}); return (c.open >= 0 && c.open < LESSONS.length) || (c.challenge >= 0 && c.challenge < MODULES.length); };
   const want = () => { const c = state('course', {open: -1});
     if (c.challenge >= 0 && c.challenge < MODULES.length) return ARENAS[Math.min(ARENAS.length - 1, c.challenge)].scene;
@@ -4042,7 +4102,7 @@ const Music = (() => {
     let t = .05, i = 0; while (t < secs - .6) { t += play(S, i, t); i++; }
     const out = ctx.startRendering(); ({ctx, master, echo, noise, pulse} = live); return out;
   }
-  return {sync, duck, fx, render, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music', on); sync(); return on; }};
+  return {sync, duck, fx, render, get on() { return on; }, get playing() { return playing; }, toggle() { on = !on; store.set('course.music2', on); sync(); return on; }};   // course.music2: sound now defaults on (the old key defaulted off)
 })();
 // progress lives in this device's localStorage (gm.* keys); ask the browser to keep it rather than treat it as clearable cache
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
