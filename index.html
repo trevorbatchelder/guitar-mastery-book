@@ -263,7 +263,9 @@ table.t td.l{font-weight:800}
 .clock2{display:flex;align-items:center;gap:9px}
 .clock2 .clock{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px}
 .clock2 .lbl{font-size:10px}
-.station{display:flex;align-items:center;gap:8px;flex:none}
+.station{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0}
+.station .tempo2{flex:1 1 auto;min-width:0;padding:0 12px 0 3px;gap:4px}
+.tslide{flex:1 1 auto;min-width:50px;height:32px;margin:0 2px;accent-color:var(--acc);cursor:pointer}
 .station .dots{display:flex;gap:4px;margin-left:2px}
 /* contextual "Numbers to beat" on the Practice page */
 .goals-ctx{display:flex;flex-direction:column;gap:8px}
@@ -285,6 +287,7 @@ table.t td.l{font-weight:800}
   .pbar{gap:4px} .pbar .go.play{font-size:0;gap:0;padding:0 14px;min-width:42px}   /* play button → just the ▶ */
   .tempo2{height:40px;padding:0 2px} .tempo2 button{width:31px;height:31px;font-size:18px} .tempo2 .v{min-width:34px} .tempo2 .bpm{font-size:18px}
   .icon{width:40px;height:40px} .arrow{width:36px;height:36px}
+  .station{gap:4px} .station .dots,.tempo2 .v span{display:none} .station .tempo2{padding:0 6px 0 2px;gap:0} .tslide{min-width:36px;margin:0}
   .pg{gap:9px;padding-block:9px 13px} .sec{gap:6px} .body{gap:9px 12px}
   .band{height:12px} .hd2 .band{height:8px;opacity:.5} .hd2{gap:4px}
   .hrow h1{font-size:clamp(24px,7.5vw,32px)} .brand-big{font-size:clamp(34px,10vw,48px)!important}
@@ -1202,21 +1205,22 @@ function drawBar() {
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>'};
   metro.className = 'icon' + (M.on ? ' on' : ''); metro.innerHTML = IC.metro; metro.title = 'metronome';
   playBtn.className = 'go play'; playBtn.textContent = 'Practice this';
-  const p = PAGES[at] || {}, pgLabel = p.no && p.no !== '✎' ? `${p.no} · ${p.name}` : p.name || 'Cover';
-  // three intentional zones: a metronome station (left), the Practice-this action (centre), the session (right)
+  if (focus) playBtn.title = focus.label;
+  // the tempo slider takes the width (−/+ nudge one BPM for an exact number), the metronome beside it, Practice this by the next-page arrow
+  const slide = h('input', {type: 'range', class: 'tslide', min: 30, max: 240, step: 1, value: M.bpm, 'aria-label': 'tempo',
+    on: {input: e => { M.bpm = +e.target.value; bpm.textContent = M.bpm; }, change: e => setB(+e.target.value)}});
+  const nudge = d => { setB(M.bpm + d); slide.value = M.bpm; };
   const station = h('div', {class: 'station', role: 'group', 'aria-label': 'metronome'},
     h('div', {class: 'tempo2', role: 'group', 'aria-label': 'tempo'},
-      h('button', {'aria-label': 'slower', html: IC.minus, on: {click: () => setB(M.bpm - 4)}}),
-      h('div', {class: 'v'}, bpm, h('span', {}, 'BPM')),
-      h('button', {'aria-label': 'faster', html: IC.plus, on: {click: () => setB(M.bpm + 4)}})),
+      h('button', {'aria-label': 'one slower', html: IC.minus, on: {click: () => nudge(-1)}}), slide,
+      h('button', {'aria-label': 'one faster', html: IC.plus, on: {click: () => nudge(1)}}),
+      h('div', {class: 'v'}, bpm, h('span', {}, 'BPM'))),
     metro,
-    h('button', {class: 'icon tap', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); }}}, 'TAP'),
+    h('button', {class: 'icon tap', 'aria-label': 'tap tempo', on: {click: () => { const t = performance.now(); taps = taps.filter(x => t - x < 2500); taps.push(t); if (taps.length > 1) { setB(Math.round(60000 / ((taps.at(-1) - taps[0]) / (taps.length - 1)))); slide.value = M.bpm; } }}}, 'TAP'),
     h('span', {class: 'dots hide-s'}, dots));
-  const action = h('div', {class: 'cta' + (focus ? '' : ' none')}, focus ? playBtn : '',
-    h('div', {class: 'what'}, h('span', {}, focus ? 'Practice' : pgLabel), h('span', {}, focus ? focus.label : '')));
   bar.append(
     h('button', {class: 'arrow', 'aria-label': 'previous page', html: IC.chevL, on: {click: () => page(at - 1, true)}}),
-    station, h('div', {class: 'sp'}), action, h('div', {class: 'sp'}),
+    station, focus ? h('div', {class: 'cta'}, playBtn) : '',
     h('button', {class: 'arrow', 'aria-label': 'next page', html: IC.chevR, on: {click: () => page(at + 1)}}));
 }
 /* ================================================================ MOTION: one spring, touch-down feedback, sliding pills, fluid page turns
@@ -1356,8 +1360,9 @@ function tabSVG2(steps, {color = 'var(--plum)', lit = -1, rh = true, scale = 1} 
   o.push(`<text x="4" y="${T + dy * 2.9}" font-size="15" font-weight="800" fill="var(--mute)">T</text>`);
   const RC = {p: 'var(--rust)', i: 'var(--navy)', m: 'var(--teal)', a: 'var(--plum)'};
   steps.forEach((st, k) => { const x = L + (k + .5) * dx, grp = st.notes || [st];
-    if (k === lit) o.push(`<rect x="${x - 17}" y="${T - 12}" width="34" height="${dy * 5 + 24}" rx="6" fill="var(--gold)" fill-opacity=".28"/>`);
-    grp.forEach(([s, f]) => { const y = T + (5 - s) * dy; o.push(`<rect x="${x - 11}" y="${y - 9}" width="22" height="18" fill="var(--bg)" rx="3"/><text x="${x}" y="${y + 5.5}" font-size="15" font-weight="900" text-anchor="middle" fill="var(--ink)">${f}</text>`); });
+    const on = k === lit;
+    if (on) o.push(`<rect class="tab-lit" x="${x - 18}" y="${T - 13}" width="36" height="${dy * 5 + 26}" rx="7" fill="var(--gold)" fill-opacity=".5"/>`);
+    grp.forEach(([s, f]) => { const y = T + (5 - s) * dy; o.push(`<rect x="${x - 12}" y="${y - 10}" width="24" height="20" fill="${on ? 'var(--ink)' : 'var(--bg)'}" rx="4"/><text x="${x}" y="${y + 5.5}" font-size="${on ? 17 : 15}" font-weight="900" text-anchor="middle" fill="${on ? 'var(--bg)' : 'var(--ink)'}">${f}</text>`); });
     if (rh && st.rh) st.rh.forEach((r, j) => o.push(`<text x="${x}" y="${T + dy * 5 + 24 + j * 17}" font-size="16" font-weight="900" text-anchor="middle" fill="${RC[r] || color}">${r}</text>`));
     else if (!rh && st[2]) o.push(`<text x="${x}" y="${T + dy * 5 + 26}" font-size="15" font-weight="800" text-anchor="middle" fill="${color}">${st[2]}</text>`); });
   return o.join('') + '</svg>';
@@ -1668,7 +1673,7 @@ function shapeSVG(groups, kd, scale, {label = 'fin', ring = [], lit = null} = {}
   const rings = new Set(ring.map(([s, f]) => key(s, f)));
   for (const {s, f, k, ns, ks} of owners.values()) {
     const x = xOf(f), y = T + (5 - s) * dy, root = (OPEN_PC[s] + f) % 12 === keyPc, open = f === 0, r = 12.5;
-    if (lit && lit[0] === s && lit[1] === f) o.push(`<circle cx="${x}" cy="${y}" r="${r + 5}" fill="var(--gold)" fill-opacity=".45"/>`);
+    if (lit && lit[0] === s && lit[1] === f) o.push(`<circle cx="${x}" cy="${y}" r="${r + 9}" fill="var(--gold)" fill-opacity=".55"/>`);
     if (rings.has(key(s, f))) o.push(`<circle cx="${x}" cy="${y}" r="${r + 3.5}" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 2.4"/>`);
     if (root) o.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--gold)"/>`);
     else if (open) o.push(`<circle cx="${x}" cy="${y}" r="${r - 1}" fill="var(--bg)" stroke="${shapeCol(ns[0])}" stroke-width="2.4"/>`);
@@ -1679,10 +1684,12 @@ function shapeSVG(groups, kd, scale, {label = 'fin', ring = [], lit = null} = {}
     if (label === 'fin' && ns.length > 1 && !open) { ks.forEach((kk, j) => o.push(`<text x="${x + (j ? 5.5 : -5.5)}" y="${y + 4}" font-size="11" font-weight="800" text-anchor="middle" fill="${root ? 'var(--ink)' : 'var(--onacc)'}">${kk}</text>`)); continue; }
     o.push(`<text x="${x}" y="${y + 4.5}" font-size="${t.length > 2 ? 10 : 12.5}" font-weight="800" text-anchor="middle" fill="${root ? 'var(--ink)' : open ? shapeCol(ns[0]) : 'var(--onacc)'}">${t}</text>`);
   }
+  // the note sounding now: a ring over the dot, so it reads on a gold root as well as a coloured one
+  if (lit && owners.has(key(lit[0], lit[1]))) o.push(`<circle class="lit-ring" cx="${xOf(lit[1])}" cy="${T + (5 - lit[0]) * dy}" r="16.5" fill="none" stroke="var(--ink)" stroke-width="3.5"/>`);
   return o.join('') + '</svg>';
 }
 // the whole neck, frets 0–15: the scale's notes everywhere, each shape outlined where it sits (and its copy 12 frets on), the chosen one solid
-function shapesNeckSVG(kd, focus, {pair = null} = {}) {
+function shapesNeckSVG(kd, focus, {pair = null, lit = null} = {}) {
   const MAXF = 15, FW = 50, X0 = 36, Y0 = 34, SHh = 24, W = X0 + (MAXF + 1) * FW + 6, keyPc = pcof(kd.key);
   const cx = f => X0 + (f + .5) * FW, sy = s => Y0 + (5 - s) * SHh;
   const o = [`<svg viewBox="0 0 ${W} ${Y0 + 5 * SHh + 40}" xmlns="${NS}" role="img" aria-label="the whole neck">`];
@@ -1705,6 +1712,7 @@ function shapesNeckSVG(kd, focus, {pair = null} = {}) {
   for (let s = 0; s < 6; s++) for (let f = 0; f <= MAXF; f++) { const pc = (OPEN_PC[s] + f) % 12; if (!pcs.has(pc)) continue;
     const n = mine.get(s + ':' + f), root = pc === keyPc;
     o.push(`<circle cx="${cx(f)}" cy="${sy(s)}" r="${n ? 8.5 : 5.5}" fill="${root ? 'var(--gold)' : n ? shapeCol(n) : 'var(--ink2)'}" fill-opacity="${n ? 1 : .3}"/>`); }
+  if (lit && lit[1] <= MAXF) o.push(`<circle cx="${cx(lit[1])}" cy="${sy(lit[0])}" r="13" fill="var(--gold)" fill-opacity=".5"/><circle class="lit-ring" cx="${cx(lit[1])}" cy="${sy(lit[0])}" r="12" fill="none" stroke="var(--ink)" stroke-width="3"/>`);
   return o.join('') + '</svg>';
 }
 // the notes of a shape low to high, and the same notes "in threes" over its first octave from the root
@@ -1732,7 +1740,7 @@ PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'shapes that join up 
   const formula = scale.steps.map((t, i) => `<b>${kd.names[(keyPc + t) % 12]}</b> <span class="muted">${scale.degrees[i]}</span>`).join(' &nbsp;·&nbsp; ');
   const up = sh.join, nx = nextShape(kd, sh);
   const where = s => `${s.caged} shape · ${SHAPE_WHERE[s.caged]} · frets ${s.lo}–${s.hi}`;
-  const tabBox = h('div', {class: 'scroll', style: 'margin-top:4px'}), big = h('div', {class: 'big', style: 'width:100%;margin-inline:auto'});
+  const tabBox = h('div', {class: 'scroll', style: 'margin-top:4px'}), big = h('div', {class: 'big', style: 'width:100%;margin-inline:auto'}), neckBox = h('div', {class: 'scroll'});
   let groups, ring, seq, label;
 
   if (st.view === 'one') {
@@ -1745,7 +1753,7 @@ PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'shapes that join up 
     v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,.9fr) minmax(0,1.75fr);grid-template-rows:auto auto;align-items:start'},
       sec2(`${scale.name} in ${kd.key} · shape ${sh.num}`, where(sh), shapeCol(sh.num), h('div', {class: 'lede', html: scale.mood + '<br>' + formula}), big),
       sec2('The whole neck', `one scale, five overlapping shapes · each hands over to the next where they share notes · tap a shape to open it`, 'var(--navy)',
-        h('div', {class: 'scroll', html: shapesNeckSVG(kd, sh.num)}), chips),
+        neckBox, chips),
       h('div', {style: 'grid-column:1 / -1'}, sec2('Play it', `start on the lowest root, climb to the top, come down to the bottom, finish on the root · numbers under the tab are fingers · learn one shape well before the next, then <button type="button" class="term" data-join>join it to shape ${up.to}</button>`, shapeCol(sh.num), tabBox))));
     v.querySelector('[data-join]').addEventListener('click', e => { e.stopPropagation(); st.step = 0; set('view', 'join'); });
   } else {
@@ -1766,13 +1774,19 @@ PAGES.push({id: 'scales', no: 'II', name: 'Scales', blurb: 'shapes that join up 
       h('b', {}, `${i + 1} · ${t}`), h('span', {}, hw)))));
     v.append(h('div', {class: 'body', style: 'grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto auto;align-items:start'},
       sec2(`Shape ${sh.num} into shape ${nx.num}`, `${scale.name} in ${kd.key} · <b style="color:${shapeCol(sh.num)}">${sh.caged} shape</b> at fret ${sh.lo}, <b style="color:${shapeCol(nx.num)}">${nx.caged} shape</b> at fret ${nx.lo} · split dots belong to both`, shapeCol(sh.num), big,
-        h('div', {class: 'scroll', html: shapesNeckSVG(kd, sh.num, {pair: [sh.num, nx.num]})})),
+        neckBox),
       sec2('Five steps across', 'one at a time, slowly, with the practice bar · when step 5 feels easy, move on to the next pair', 'var(--navy)', list),
       h('div', {style: 'grid-column:1 / -1'}, sec2(`${st.step + 1} · ${title}`, how + ' · numbers under the tab are fingers', shapeCol(st.step === 2 ? nx.num : sh.num), tabBox))));
   }
   const tabNotes = seq;   // [string, fret, finger]: each note carries the finger of the shape the hand is in
-  const draw = i => { big.innerHTML = shapeSVG(groups, kd, scale, {label: st.label, ring, lit: i >= 0 ? seq[i] : null});
-    tabBox.innerHTML = tabSVG2(tabNotes, {rh: false, lit: i, color: shapeCol(sh.num), scale: tabNotes.length > 26 ? .82 : 1}); };
+  // every view follows the note that is sounding: the shape, the whole neck, and the tab (scrolled to keep it in sight)
+  const draw = i => { const lit = i >= 0 ? seq[i] : null;
+    big.innerHTML = shapeSVG(groups, kd, scale, {label: st.label, ring, lit});
+    neckBox.innerHTML = shapesNeckSVG(kd, sh.num, {pair: st.view === 'join' ? [sh.num, nx.num] : null, lit});
+    tabBox.innerHTML = tabSVG2(tabNotes, {rh: false, lit: i, color: shapeCol(sh.num), scale: tabNotes.length > 26 ? .82 : 1});
+    const col = tabBox.querySelector('.tab-lit');
+    if (col && tabBox.scrollWidth > tabBox.clientWidth) { const b = tabBox.getBoundingClientRect(), c = col.getBoundingClientRect();
+      tabBox.scrollLeft += c.left + c.width / 2 - (b.left + b.width / 2); } };
   draw(-1);
   setFocus({label, play: tabPlay(tabNotes, draw)});
 }});
