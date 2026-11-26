@@ -1839,12 +1839,16 @@ PAGES.push({id: 'caged', no: 'II', name: 'CAGED', blurb: 'one chord in five plac
 
   const open5 = [...'CAGED'].map(L => K.grips.find(x => x.letter === L));
   const scale = scaleBy('Major Scale'), kd = keyData(scale, st.k), sh = lifted(kd.shapes[g.num - 1], g.scaleUp);
-  const moved = g.at ? `Slide the open ${tint(g.letter, col)} chord up ${g.at} fret${g.at > 1 ? 's' : ''}. Your first finger lies across fret ${g.at}, doing the job the nut did, and the other fingers hold the same shape above it. It now sounds ${K.key}.`
-    : `In ${K.key} the ${tint(g.letter, col)} shape has not moved at all: it is the open chord. Pick another shape above to watch one slide up.`;
+  const kind = {E: 'This is the standard six-string barre chord: the first finger lies flat across all six strings.',
+    A: 'This is the standard five-string barre chord: the first finger lies across strings 5 to 1, and the 6th string stays silent.',
+    D: 'It only uses the top four strings, so the barre is small. Players hold it as this four-string grip.'}[g.letter]
+    || 'In principle this is a barre chord too, but the whole grip is a big stretch, so players usually hold only part of it, three or four strings.';
+  const moved = g.at ? `Slide the open ${tint(g.letter, col)} chord up ${g.at} fret${g.at > 1 ? 's' : ''}. Your first finger becomes a barre at fret ${g.at}, doing the job the nut did, and the other fingers hold the same shape above it. It now sounds ${K.key}. ${kind}`
+    : `In ${K.key} the ${tint(g.letter, col)} shape has not moved at all: it is the open chord. Pick another shape above to watch one slide up and become a barre chord.`;
   const steps = [
     ['Five open chords', 'C, A, G, E and D. Every major chord anywhere on the neck is one of these five grips, moved.',
-      `You already play these. Notice where the gold root sits in each one: it is how you will find the shape again higher up.`],
-    ['Move one up the neck', `the open ${g.letter} chord becomes ${K.key}`, moved],
+      `You already play these. Notice where the gold root sits in each one: it is how you will find the shape again higher up. Moved up the neck, each one becomes a barre chord, with your first finger in place of the nut.`],
+    ['Move one up the neck', `the open ${g.letter} chord becomes a barre chord`, moved],
     ['One chord, five places', `${K.key} with all five grips, low to high: ${word}`,
       `Going up the neck the grips always come in the order of the word CAGED, whichever letter it starts on. After the last one the first comes round again, twelve frets higher.`],
     ['Each one joins the next', `${g.letter} shape into ${nx.letter} shape`,
@@ -1861,7 +1865,10 @@ PAGES.push({id: 'caged', no: 'II', name: 'CAGED', blurb: 'one chord in five plac
   let on = new Set([gi]), ring = [], cards = [], chords = [], play = null, label = '';
   const row = (cs, opt = () => ({})) => { chords = cs; cards = cs.map((c, i) => chordCard(c, opt(c, i))); return h('div', {class: 'cgrid', style: `--n:${Math.max(5, cs.length)};--cw:170px`}, cards); };
   if (st.step === 0) { stage.append(row(open5.map(x => x.open), (c, i) => ({color: shapeCol(open5[i].num)}))); on = new Set(); label = 'the five open chords: C, A, G, E, D'; }
-  else if (st.step === 1) { stage.append(row(g.at ? [g.open, g.chord] : [g.chord], () => ({color: col}))); label = `open ${g.letter}, then the same shape as ${K.key}`; }
+  else if (st.step === 1) { stage.append(row(g.at ? [g.open, g.chord] : [g.chord], () => ({color: col}))); label = `open ${g.letter}, then the same shape as ${K.key}`;
+    const fam = {E: 0, A: 1, D: 2}[g.letter], go = h('button', {type: 'button', class: 'term'}, fam === undefined ? 'See the barre chords on the Chords page' : `See the ${g.letter}-shape barre chords on the Chords page`);
+    go.addEventListener('click', e => { e.stopPropagation(); keep('chordmode', {mode: 'barre'}); keep('barre', {fam: fam || 0, move: 0}); page(PAGES.findIndex(p => p.id === 'chords')); });
+    stage.append(h('p', {class: 'lede', style: 'text-align:center;margin-top:2px'}, go)); }
   else if (st.step === 2) { stage.append(row(K.grips.map(x => x.chord), (c, i) => ({color: shapeCol(K.grips[i].num)}))); on = new Set([0, 1, 2, 3, 4]); label = `${K.key} in five places`; }
   else if (st.step === 3) { stage.append(row([g.chord, g.up ? nx.octave : nx.chord], (c, i) => ({color: i ? ncol : col}))); on = new Set([gi, g.to]); ring = g.shared; label = `${K.key}: ${g.letter} shape into ${nx.letter} shape`; }
   else { const big = h('div', {class: 'big', style: 'width:100%;max-width:400px;margin-inline:auto'}), seq = sh.path.map(i => sh.notes[i]);
