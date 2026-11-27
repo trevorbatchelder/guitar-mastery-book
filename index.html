@@ -1,7 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>The Guide to Guitar Mastery</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Fretloom</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Guitar Mastery">
+<meta name="apple-mobile-web-app-title" content="Fretloom">
 <meta name="theme-color" content="#f6efe0">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1500,8 +1500,8 @@ PAGES.push({id: 'cover', no: '', acc: 'var(--rust)', draw(v) {
   const markBtn = h('button', {title: resolveTheme() === 'moon' ? 'Tap for day' : 'Tap for night', 'aria-label': 'Switch day or night', style: 'all:unset;cursor:pointer;width:62px;flex:none;display:block',
     html: MARK, on: {click: () => setTheme(resolveTheme() === 'moon' ? 'sun' : 'moon')}});
   const titleBlock = h('div', {},
-    h('div', {class: 'brand-t brand-sm', style: 'font-family:var(--title);color:var(--rust);letter-spacing:.22em;font-size:19px;text-transform:uppercase'}, 'The Guide to'),
-    h('div', {class: 'brand-t brand-big', style: 'font-family:var(--title);font-size:clamp(40px,5.2vw,60px);letter-spacing:.06em;line-height:.95;text-transform:uppercase'}, 'Guitar', h('br'), 'Mastery'));
+    h('div', {class: 'brand-t brand-sm', style: 'font-family:var(--title);color:var(--rust);letter-spacing:.22em;font-size:19px;text-transform:uppercase'}, 'The Guitar Atlas'),
+    h('div', {class: 'brand-t brand-big', style: 'font-family:var(--title);font-size:clamp(40px,5.2vw,60px);letter-spacing:.06em;line-height:.95;text-transform:uppercase'}, 'Fretloom'));
   // the game: a side door from the cover, not a chapter. Its pixel badge sits beside the title; it opens on the world map and keeps its progress
   const nxt = LESSONS.find(l => !courseGot()[chapKey(l)]), begun = LESSONS.some(l => courseGot()[chapKey(l)]);
   const adv = h('button', {class: 'adv-btn cont-go', 'aria-label': 'Adventure Mode', title: !nxt ? 'every world cleared' : begun ? `next: ${nxt.name}` : 'Adventure Mode', on: {click: () => {
@@ -3309,7 +3309,7 @@ function progressBlob() { const o = {}; for (let k = 0; k < localStorage.length;
 const toCode = obj => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
 const fromCode = s => JSON.parse(decodeURIComponent(escape(atob(s.trim()))));
 function restoreProgress(obj) {
-  if (!obj || obj.book !== 'guitar-mastery' || typeof obj.keys !== 'object') throw new Error('not a Guitar Mastery backup');
+  if (!obj || obj.book !== 'guitar-mastery' || typeof obj.keys !== 'object') throw new Error('not a Fretloom backup');
   Object.keys(localStorage).filter(k => k.startsWith('gm.')).forEach(k => localStorage.removeItem(k));
   Object.entries(obj.keys).forEach(([k, val]) => { if (k.startsWith('gm.')) localStorage.setItem(k, val); });
 }
@@ -3318,10 +3318,10 @@ function backupPanel() {
   const msg = h('div', {class: 'muted', style: 'min-height:1.3em;font-weight:700'});
   const area = h('textarea', {rows: 3, placeholder: 'Paste a backup code here to restore it', style: 'width:100%;font:13px/1.3 ui-monospace,monospace;border-radius:10px;padding:8px;border:1.5px solid var(--rule);background:var(--panel);color:var(--ink)'});
   const file = h('input', {type: 'file', accept: '.json,application/json', style: 'display:none', on: {change: e => { const f = e.target.files[0]; if (!f) return;
-    f.text().then(t => ask(JSON.parse(t))).catch(() => msg.textContent = 'That file is not a Guitar Mastery backup.'); }}});
+    f.text().then(t => ask(JSON.parse(t))).catch(() => msg.textContent = 'That file is not a Fretloom backup.'); }}});
   let pending = null;
   const confirmRow = h('div', {style: 'display:none;gap:10px;align-items:center;flex-wrap:wrap'});
-  function ask(obj) { try { if (!obj || obj.book !== 'guitar-mastery') throw 0; } catch (e) { msg.textContent = 'That is not a Guitar Mastery backup.'; return; }
+  function ask(obj) { try { if (!obj || obj.book !== 'guitar-mastery') throw 0; } catch (e) { msg.textContent = 'That is not a Fretloom backup.'; return; }
     pending = obj; const n = JSON.parse(obj.keys['gm.course.cleared'] || '{}'); msg.textContent = '';
     confirmRow.replaceChildren(h('span', {style: 'font-weight:700'}, `Replace this iPad’s progress with the backup from ${new Date(obj.saved).toLocaleDateString()} (${Object.keys(n).length} lessons cleared)?`),
       h('button', {class: 'btn acc', on: {click: () => { restoreProgress(pending); location.reload(); }}}, 'Yes, restore it'), h('button', {class: 'btn', on: {click: () => { confirmRow.style.display = 'none'; pending = null; }}}, 'Cancel'));
@@ -4221,6 +4221,7 @@ audio = function () { const c = _audio0(); Music.duck(); return c; };
 /* the road's title card: the book's name in a hand-drawn 5×7 pixel font, shaded like an 8-bit game logo —
    a dark outline, a drop shadow, a lit top edge and a shaded bottom edge. Day is sun-gold, night is moon-silver with stars. */
 const PIXFONT = {
+  F: '#####|#....|#....|####.|#....|#....|#....', L: '#....|#....|#....|#....|#....|#....|#####', B: '####.|#...#|#...#|####.|#...#|#...#|####.', K: '#...#|#..#.|#.#..|##...|#.#..|#..#.|#...#',
   A: '.###.|#...#|#...#|#####|#...#|#...#|#...#', D: '####.|#...#|#...#|#...#|#...#|#...#|####.', E: '#####|#....|#....|####.|#....|#....|#####',
   G: '.###.|#...#|#....|#.###|#...#|#...#|.###.', H: '#...#|#...#|#...#|#####|#...#|#...#|#...#', I: '###|.#.|.#.|.#.|.#.|.#.|###',
   M: '#...#|##.##|#.#.#|#.#.#|#...#|#...#|#...#', O: '.###.|#...#|#...#|#...#|#...#|#...#|.###.', R: '####.|#...#|#...#|####.|#.#..|#..#.|#...#',
@@ -4230,7 +4231,7 @@ const PIXFONT = {
 };
 // the cover's Adventure Mode badge: a pixel game pad (# body, o buttons) beside the words, drawn by the same logo renderer
 const PIXPAD = ['..###########..', '.##o######o###.', '##ooo####o#o###', '.##o######o###.', '###############', '#####.....#####', '####.......####', '.##.........##.'];
-function pixelTitle(night, {lines = [['THE GUIDE TO', 1], ['GUITAR', 2], ['MASTERY', 2]], icon = null, cls = 'pixtitle', label = 'The Guide to Guitar Mastery', gap = 1} = {}) {
+function pixelTitle(night, {lines = [['THE GUITAR ATLAS', 1], ['FRETLOOM', 2]], icon = null, cls = 'pixtitle', label = 'Fretloom, the guitar atlas', gap = 1} = {}) {
   const P = 4, IK = 2, IW = icon ? icon[0].length * IK + 8 : 0;   // [text, pixels per font dot]; P = padding for outline + shadow; IW = room for the icon; gap = font dots between letters
   const widthOf = (t, k) => [...t].reduce((w, ch) => w + (PIXFONT[ch].split('|')[0].length + gap) * k, -gap * k);
   const W = Math.max(...lines.map(([t, k]) => widthOf(t, k))) + P * 2 + IW, H = lines.reduce((y, [, k]) => y + 7 * k + 3, 0) + P * 2;
